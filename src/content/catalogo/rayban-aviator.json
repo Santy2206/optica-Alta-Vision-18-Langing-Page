@@ -1,0 +1,9 @@
+{
+  "name": "Aviator Classic",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": 450000,
+  "image": "/uploads/catalogo/rayban-aviator.webp",
+  "imageAlt": "Gafas de sol Ray-Ban Aviator Classic color dorado",
+  "featured": true
+}

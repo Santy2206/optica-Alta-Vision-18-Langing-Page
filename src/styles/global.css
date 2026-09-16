@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Design tokens — Óptica Alta Visión
+   Tailwind v4: theme lives in CSS (@theme), not tailwind.config.mjs
+   - aguamarina: dominante (60-70%) — fondos, header, secciones
+   - verde-neon: SOLO botones CTA sólidos (texto blanco/negro encima; nunca como color de texto suelto)
+   - fucsia: acento secundario — badges de promo, hover states
+*/
+@theme {
+  --color-aguamarina: #00b4b0;
+  --color-verde-neon: #39ff14;
+  --color-fucsia: #ff1493;
+
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-white text-slate-900 antialiased;
+  }
+}

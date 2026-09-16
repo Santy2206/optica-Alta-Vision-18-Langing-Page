@@ -1,0 +1,89 @@
+# Decap CMS — Óptica Alta Visión
+# Auth (Netlify Identity + Git Gateway) se activa en sesión 09_CMS_Auth_Setup.
+# Backend listo; el widget de login no se monta todavía.
+
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: public/uploads
+public_folder: /uploads
+
+locale: es
+
+collections:
+  # --- Catálogo de monturas (una entrada JSON por producto) ---
+  - name: catalogo
+    label: Catálogo
+    label_singular: Montura
+    folder: src/content/catalogo
+    create: true
+    delete: true
+    extension: json
+    format: json
+    slug: "{{slug}}"
+    fields:
+      - { label: Nombre, name: name, widget: string }
+      - { label: Marca, name: brand, widget: string }
+      - label: Categoría
+        name: category
+        widget: select
+        options:
+          - { label: Formuladas, value: formuladas }
+          - { label: Sol, value: sol }
+          - { label: Niños, value: ninos }
+          - { label: Deportivas, value: deportivas }
+      - label: Precio (COP)
+        name: price
+        widget: number
+        required: false
+        value_type: int
+        hint: Dejar vacío = "Consultar precio" (WhatsApp)
+      - label: Imagen
+        name: image
+        widget: image
+        media_folder: /public/uploads/catalogo
+        public_folder: /uploads/catalogo
+      - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
+      - { label: Destacada, name: featured, widget: boolean, default: false }
+
+  # --- Promociones activables ---
+  - name: promociones
+    label: Promociones
+    label_singular: Promoción
+    folder: src/content/promociones
+    create: true
+    delete: true
+    extension: json
+    format: json
+    slug: "{{slug}}"
+    fields:
+      - { label: Título, name: title, widget: string }
+      - { label: Descripción, name: description, widget: text }
+      - label: Imagen
+        name: image
+        widget: image
+        required: false
+        media_folder: /public/uploads/promociones
+        public_folder: /uploads/promociones
+      - { label: Activa, name: active, widget: boolean, default: false }
+      - { label: Texto del CTA, name: ctaText, widget: string, default: "Aprovecha esta promo" }
+
+  # --- Configuración del sitio (archivo único, no carpeta) ---
+  - name: configuracion
+    label: Configuración
+    files:
+      - name: site
+        label: Datos del sitio
+        file: src/content/configuracion/site.json
+        fields:
+          - { label: Teléfono (wa.me, sin +), name: telefono, widget: string, hint: "Ej. 573118812747" }
+          - { label: Horario, name: horario, widget: string }
+          - { label: Dirección, name: direccion, widget: string }
+          - label: Redes sociales
+            name: redesSociales
+            widget: object
+            fields:
+              - { label: Instagram URL, name: instagram, widget: string, required: false }
+              - { label: Facebook URL, name: facebook, widget: string, required: false }
+          - { label: Google Maps embed URL, name: googleMapsEmbedUrl, widget: string, required: false }

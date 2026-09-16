@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import site from '../content/configuracion/site.json';
+
+const catalogo = await getCollection('catalogo');
+const promociones = await getCollection('promociones');
+---
+
+<BaseLayout
+  title="Óptica Alta Visión | Bogotá"
+  description="Óptica Alta Visión — gafas, lentes y exámenes visuales en Bogotá. Horario 11am–8pm."
+>
+  <!-- Smoke test content schema (sesión 1.2). UI real: sesión 2.1+ / 3.x -->
+  <main class="min-h-screen bg-aguamarina flex items-center justify-center p-6">
+    <div class="max-w-lg w-full rounded-2xl bg-white p-8 shadow-lg space-y-4">
+      <h1 class="text-2xl font-semibold text-slate-900 text-center">Óptica Alta Visión</h1>
+      <p class="text-slate-600 text-sm text-center">
+        Schema OK — {catalogo.length} monturas · {promociones.length} promo(s) · tel {site.telefono}
+      </p>
+      <ul class="text-left text-sm text-slate-700 space-y-2 border-t border-slate-100 pt-4">
+        {
+          catalogo.map((item) => (
+            <li class="flex justify-between gap-2">
+              <span>
+                <span class="font-medium">{item.data.name}</span>
+                <span class="text-slate-500"> · {item.data.brand}</span>
+                <span class="text-fucsia text-xs ml-1">[{item.data.category}]</span>
+              </span>
+              <span class="shrink-0 tabular-nums">
+                {item.data.price == null
+                  ? 'Consultar'
+                  : `$${item.data.price.toLocaleString('es-CO')}`}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+      <a
+        href={`https://wa.me/${site.telefono}`}
+        class="inline-block w-full text-center rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 hover:bg-fucsia hover:text-white transition-colors"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        WhatsApp CTA
+      </a>
+    </div>
+  </main>
+</BaseLayout>
