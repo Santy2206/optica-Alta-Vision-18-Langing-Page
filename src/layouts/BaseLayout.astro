@@ -49,19 +49,5 @@ const ogImage = '/og-placeholder.png';
   </head>
   <body>
     <slot />
-
-    <!-- Netlify Identity: redirige invites/login al panel Decap en /admin/ -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js" is:inline></script>
-    <script is:inline>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', (user) => {
-          if (!user) {
-            window.netlifyIdentity.on('login', () => {
-              document.location.href = '/admin/';
-            });
-          }
-        });
-      }
-    </script>
   </body>
 </html>
