@@ -1,0 +1,166 @@
+---
+import { getCollection } from 'astro:content';
+import site from '../content/configuracion/site.json';
+
+const items = await getCollection('catalogo');
+
+const filters = [
+  { label: 'Todos', value: 'todos' },
+  { label: 'Formuladas', value: 'formuladas' },
+  { label: 'Sol', value: 'sol' },
+  { label: 'Niños', value: 'ninos' },
+  { label: 'Deportivas', value: 'deportivas' },
+] as const;
+
+const productSchemas = items.map((item) => {
+  const product: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: item.data.name,
+    brand: {
+      '@type': 'Brand',
+      name: item.data.brand,
+    },
+    image: `https://optica-alta-vision-18.netlify.app${item.data.image}`,
+  };
+
+  if (item.data.price !== null) {
+    product.offers = {
+      '@type': 'Offer',
+      price: item.data.price,
+      priceCurrency: 'COP',
+      availability: 'https://schema.org/InStock',
+      url: 'https://optica-alta-vision-18.netlify.app',
+    };
+  } else {
+    // TODO: agregar Offer cuando el cliente confirme el precio
+  }
+
+  return product;
+});
+---
+
+<section id="catalogo" class="bg-white py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="mb-8 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+      Catálogo de monturas
+    </h2>
+
+    <!-- Filtros -->
+    <div
+      class="mb-10 flex flex-wrap justify-center gap-2"
+      role="group"
+      aria-label="Filtrar por categoría"
+      data-catalog-filters
+    >
+      {
+        filters.map((f, i) => (
+          <button
+            type="button"
+            data-filter={f.value}
+            class:list={[
+              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              i === 0
+                ? 'bg-aguamarina text-white'
+                : 'bg-aguamarina/10 text-slate-700 hover:bg-aguamarina/20',
+            ]}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+          >
+            {f.label}
+          </button>
+        ))
+      }
+    </div>
+
+    <!-- Grid: todas las tarjetas permanecen en el DOM (SEO); se ocultan con .hidden -->
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-catalog-grid>
+      {
+        items.map((item) => {
+          const waText = encodeURIComponent(
+            `Hola, quiero información sobre ${item.data.name}`,
+          );
+          const waHref = `https://wa.me/${site.telefono}?text=${waText}`;
+          const priceLabel =
+            item.data.price !== null
+              ? `$${item.data.price.toLocaleString('es-CO')}`
+              : 'Consultar precio';
+
+          return (
+            <article
+              class="catalog-card flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+              data-category={item.data.category}
+            >
+              <div class="aspect-[4/3] bg-aguamarina/10">
+                {/* item.data.image ya incluye /uploads/catalogo/... (sesión 1.2) */}
+                <img
+                  src={item.data.image}
+                  alt={item.data.imageAlt}
+                  loading="lazy"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div class="flex flex-1 flex-col gap-2 p-4">
+                <div>
+                  <h3 class="font-semibold text-slate-900">{item.data.name}</h3>
+                  <p class="text-sm text-slate-500">{item.data.brand}</p>
+                </div>
+                <p class="text-base font-medium text-aguamarina">{priceLabel}</p>
+                <a
+                  href={waHref}
+                  class="mt-auto inline-block rounded-full bg-verde-neon px-4 py-2 text-center text-sm font-semibold text-slate-900 transition-shadow hover:shadow-md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Me interesa
+                </a>
+              </div>
+            </article>
+          );
+        })
+      }
+    </div>
+
+    {
+      items.length === 0 && (
+        <p class="text-center text-sm text-slate-500">
+          Catálogo vacío — agrega monturas desde el CMS.
+        </p>
+      )
+    }
+  </div>
+
+  {productSchemas.map((schema) => (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  ))}
+</section>
+
+<script>
+  const root = document.getElementById('catalogo');
+  if (root) {
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const cards = root.querySelectorAll<HTMLElement>('.catalog-card');
+
+    const setActive = (active: HTMLButtonElement) => {
+      buttons.forEach((btn) => {
+        const isActive = btn === active;
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        btn.classList.toggle('bg-aguamarina', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('bg-aguamarina/10', !isActive);
+        btn.classList.toggle('text-slate-700', !isActive);
+      });
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter ?? 'todos';
+        setActive(btn);
+        cards.forEach((card) => {
+          const cat = card.dataset.category;
+          const show = filter === 'todos' || cat === filter;
+          card.classList.toggle('hidden', !show);
+        });
+      });
+    });
+  }
+</script>

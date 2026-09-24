@@ -1,0 +1,95 @@
+---
+import site from '../content/configuracion/site.json';
+import Icon from './Icon.astro';
+
+const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+
+// Formato legible del teléfono colombiano 573118812747 → +57 311 881 2747
+const raw = site.telefono;
+const formatted = raw.startsWith('57')
+  ? `+57 ${raw.slice(2, 5)} ${raw.slice(5, 8)} ${raw.slice(8)}`
+  : raw;
+
+const { instagram, facebook } = site.redesSociales;
+---
+
+<footer class="bg-aguamarina py-10 text-white">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <!-- NAP -->
+      <div class="space-y-2">
+        <!-- Logo: guardar imagen en public/logo.png para activarla; el texto es fallback -->
+        <p class="flex items-center text-lg font-bold">
+          <img
+            src="/logo.png"
+            alt="Alta Visión 18"
+            class="hidden h-7 w-auto"
+            onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden');"
+            onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
+          />
+          <span class="">Alta Visión 18</span>
+        </p>
+        <p class="text-white/90">{site.direccion}</p>
+        <p class="text-white/90">{site.horario}</p>
+        <p>
+          <a href={`tel:+${site.telefono}`} class="text-white/90 hover:text-white hover:underline">
+            {formatted}
+          </a>
+        </p>
+      </div>
+
+      <!-- Redes sociales (condicionales) -->
+      <div class="space-y-3">
+        <p class="font-semibold">Síguenos</p>
+        <ul class="flex flex-wrap gap-4">
+          {
+            instagram && (
+              <li>
+                <a
+                  href={instagram}
+                  class="text-white/90 hover:text-white hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Instagram
+                </a>
+              </li>
+            )
+          }
+          {
+            facebook && (
+              <li>
+                <a
+                  href={facebook}
+                  class="text-white/90 hover:text-white hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Facebook
+                </a>
+              </li>
+            )
+          }
+          {!(instagram || facebook) && <li class="text-white/70 text-sm">Redes pendientes de configurar</li>}
+        </ul>
+      </div>
+
+      <!-- CTA -->
+      <div class="md:text-right lg:text-right">
+        <a
+          href={whatsappHref}
+          class="inline-flex items-center justify-center gap-1.5 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon name="whatsapp" class="h-4 w-4" />
+          Escribir por WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-10 border-t border-white/20 pt-6 text-center text-sm text-white/70">
+      © {new Date().getFullYear()} Alta Visión 18. Todos los derechos reservados.
+    </div>
+  </div>
+</footer>

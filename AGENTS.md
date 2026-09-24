@@ -6,7 +6,7 @@ npm run build    # static output → dist/
 npm run preview
 ```
 
-Node `>=22.12.0`. Stack: Astro 7 + Tailwind CSS v4 (`@tailwindcss/vite`) + TypeScript strict.
+Node `>=22.12.0`. Stack: Astro 7 + Tailwind CSS v4 (`@tailwindcss/vite`) + TypeScript strict + `@astrojs/sitemap`.
 
 ## Design tokens (Tailwind v4)
 
@@ -59,6 +59,14 @@ import site from '../content/configuracion/site.json';
 
 Campos Decap en `public/admin/config.yml` deben mantenerse alineados con Zod.
 Media: `public/uploads` → URL `/uploads/...`.
+
+## Performance / QA
+
+- Imágenes: el CMS (Decap) guarda en `public/uploads`. **Antes de subir fotos reales vía CMS, convertir a WebP** para mantener el performance. Recomendado: `sharp` o `cwebp`.
+- Lazy loading: todas las `<img>` del catálogo/promociones usan `loading="lazy"`. La futura imagen Hero (above-the-fold) **NO** debe llevar `lazy`.
+- Contraste: CTAs `bg-verde-neon` usan `text-slate-900`. Badges `bg-fucsia` usan `text-slate-900` para AA.
+- Lighthouse (sesión 10): `npm run build && npm run preview && npx lighthouse http://localhost:<port> ...`
+  - Última corrida: Performance 100, Accessibility 94, Best Practices 100, SEO 100.
 
 ## Negocio (Fase 0)
 

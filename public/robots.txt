@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://optica-alta-vision-18.netlify.app/sitemap-index.xml

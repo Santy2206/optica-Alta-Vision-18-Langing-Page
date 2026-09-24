@@ -1,49 +1,75 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Catalogo from '../components/Catalogo.astro';
+import Servicios from '../components/Servicios.astro';
+import Confianza from '../components/Confianza.astro';
+import Promociones from '../components/Promociones.astro';
+import Ubicacion from '../components/Ubicacion.astro';
+import FAQ from '../components/FAQ.astro';
+import Footer from '../components/Footer.astro';
 import site from '../content/configuracion/site.json';
 
-const catalogo = await getCollection('catalogo');
-const promociones = await getCollection('promociones');
+// TODO: reemplazar "Bogotá" por el barrio exacto cuando se confirme la dirección
+const title = 'Óptica Alta Visión 18 | Óptica en Bogotá';
+const description =
+  'Óptica en Bogotá: exámenes de optometría y monturas formuladas y de sol. Agenda tu cita por WhatsApp hoy.';
+
+// Mapeo básico para openingHoursSpecification (site.horario = "Lunes a Sábado, 11am - 8pm")
+const dayMap: Record<string, string> = {
+  lunes: 'Monday',
+  martes: 'Tuesday',
+  miércoles: 'Wednesday',
+  jueves: 'Thursday',
+  viernes: 'Friday',
+  sábado: 'Saturday',
+  domingo: 'Sunday',
+};
+
+const daysOfWeek = Object.entries(dayMap)
+  .filter(([es]) => site.horario.toLowerCase().includes(es))
+  .map(([, en]) => en);
+
+// TODO: ajustar días y horarios exactos cuando el cliente confirme
+const openingHours = {
+  '@type': 'OpeningHoursSpecification',
+  dayOfWeek: daysOfWeek,
+  opens: '11:00',
+  closes: '20:00',
+};
+
+const socialLinks = Object.values(site.redesSociales).filter((url) => url && url.trim() !== '');
+
+const localBusiness = {
+  '@context': 'https://schema.org',
+  '@type': 'Optician',
+  name: 'Óptica Alta Visión 18',
+  telephone: `+${site.telefono}`,
+  // TODO: migrar a PostalAddress estructurado (streetAddress, addressLocality, addressRegion, postalCode) cuando se confirme la dirección
+  address: site.direccion,
+  url: 'https://optica-alta-vision-18.netlify.app',
+  openingHoursSpecification: [openingHours],
+  sameAs: socialLinks,
+};
 ---
 
 <BaseLayout
-  title="Óptica Alta Visión | Bogotá"
-  description="Óptica Alta Visión — gafas, lentes y exámenes visuales en Bogotá. Horario 11am–8pm."
+  title={title}
+  description={description}
+  canonical="https://optica-alta-vision-18.netlify.app"
 >
-  <!-- Smoke test content schema (sesión 1.2). UI real: sesión 2.1+ / 3.x -->
-  <main class="min-h-screen bg-aguamarina flex items-center justify-center p-6">
-    <div class="max-w-lg w-full rounded-2xl bg-white p-8 shadow-lg space-y-4">
-      <h1 class="text-2xl font-semibold text-slate-900 text-center">Óptica Alta Visión</h1>
-      <p class="text-slate-600 text-sm text-center">
-        Schema OK — {catalogo.length} monturas · {promociones.length} promo(s) · tel {site.telefono}
-      </p>
-      <ul class="text-left text-sm text-slate-700 space-y-2 border-t border-slate-100 pt-4">
-        {
-          catalogo.map((item) => (
-            <li class="flex justify-between gap-2">
-              <span>
-                <span class="font-medium">{item.data.name}</span>
-                <span class="text-slate-500"> · {item.data.brand}</span>
-                <span class="text-fucsia text-xs ml-1">[{item.data.category}]</span>
-              </span>
-              <span class="shrink-0 tabular-nums">
-                {item.data.price == null
-                  ? 'Consultar'
-                  : `$${item.data.price.toLocaleString('es-CO')}`}
-              </span>
-            </li>
-          ))
-        }
-      </ul>
-      <a
-        href={`https://wa.me/${site.telefono}`}
-        class="inline-block w-full text-center rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 hover:bg-fucsia hover:text-white transition-colors"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        WhatsApp CTA
-      </a>
-    </div>
-  </main>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(localBusiness)} />
+  </Fragment>
+
+  <Header />
+  <Hero />
+  <Catalogo />
+  <Servicios />
+  <Confianza />
+  <Promociones />
+  <Ubicacion />
+  <FAQ />
+  <Footer />
 </BaseLayout>

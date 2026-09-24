@@ -1,0 +1,46 @@
+---
+import Icon from './Icon.astro';
+
+const services = [
+  {
+    icon: 'eye',
+    title: 'Examen de optometría',
+    // TODO: validar copy con el cliente
+    description: 'Evaluación de agudeza visual y graduación con equipo especializado.',
+  },
+  {
+    icon: 'wrench',
+    title: 'Mantenimiento de montura',
+    // TODO: validar copy con el cliente
+    description: 'Ajustes, cambio de tornillos, soldadura básica y limpieza profesional.',
+  },
+  {
+    icon: 'shield',
+    title: 'Garantías',
+    // TODO: validar copy con el cliente
+    description: 'Aseguramos tus gafas por defectos de fábrica con acompañamiento.',
+  },
+];
+---
+
+<section id="servicios" class="bg-white py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+      Nuestros servicios
+    </h2>
+
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        services.map((service) => (
+          <div class="rounded-2xl bg-aguamarina/10 p-6 text-center transition-shadow hover:shadow-md">
+            <div class="mb-4 inline-flex items-center justify-center rounded-full bg-aguamarina p-3 text-white">
+              <Icon name={service.icon as 'eye' | 'wrench' | 'shield'} class="h-6 w-6" />
+            </div>
+            <h3 class="mb-2 text-lg font-semibold text-slate-900">{service.title}</h3>
+            <p class="text-sm text-slate-600">{service.description}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

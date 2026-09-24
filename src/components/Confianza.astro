@@ -1,0 +1,46 @@
+---
+import Icon from './Icon.astro';
+
+// TODO: reemplazar cifras con datos reales del cliente
+const stats = [
+  { value: '+X', label: 'años de experiencia' },
+  { value: '+XXX', label: 'clientes atendidos' },
+];
+---
+
+<section class="bg-slate-50 py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-10 md:grid-cols-2">
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-6">
+        {
+          stats.map((stat) => (
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center">
+              <div class="text-3xl font-bold text-fucsia">{stat.value}</div>
+              <div class="mt-1 text-sm font-medium text-slate-600">{stat.label}</div>
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- Reseñas placeholder -->
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center">
+        <h3 class="mb-3 text-lg font-semibold text-slate-900">Lo que dicen nuestros clientes</h3>
+        <p class="mb-4 text-sm text-slate-600">
+          Reseñas de Google — pendiente vincular Google Business Profile
+        </p>
+        <!--
+          TODO sesión 11_Lanzamiento:
+          Reemplazar este placeholder con widget de reseñas reales.
+          Opciones: Elfsight, SociableKIT o iframe del Place ID de GBP.
+          Ejemplo Place ID placeholder (reemplazar cuando exista GBP):
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18..." loading="lazy"></iframe>
+        -->
+        <span class="inline-flex items-center gap-2 rounded-full bg-fucsia/10 px-3 py-1 text-xs font-semibold text-slate-900">
+          <Icon name="star" class="h-3.5 w-3.5" />
+          Reseñas pendientes
+        </span>
+      </div>
+    </div>
+  </div>
+</section>

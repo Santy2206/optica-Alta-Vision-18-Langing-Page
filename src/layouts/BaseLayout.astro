@@ -8,12 +8,17 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  canonical?: string;
 }
 
 const {
   title,
   description = 'Óptica Alta Visión — gafas, lentes y exámenes visuales en Bogotá.',
+  canonical = 'https://optica-alta-vision-18.netlify.app',
 } = Astro.props;
+
+// TODO: actualizar og:image cuando exista una imagen OG real con logo/foto del local
+const ogImage = '/og-placeholder.png';
 ---
 
 <!doctype html>
@@ -26,9 +31,37 @@ const {
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="es_CO" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <slot name="head" />
   </head>
   <body>
     <slot />
+
+    <!-- Netlify Identity: redirige invites/login al panel Decap en /admin/ -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js" is:inline></script>
+    <script is:inline>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', (user) => {
+          if (!user) {
+            window.netlifyIdentity.on('login', () => {
+              document.location.href = '/admin/';
+            });
+          }
+        });
+      }
+    </script>
   </body>
 </html>

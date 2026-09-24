@@ -1,0 +1,43 @@
+---
+import site from '../content/configuracion/site.json';
+
+const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+---
+
+<section class="bg-aguamarina py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-center gap-10 md:grid-cols-2 md:gap-12">
+      <div class="space-y-6">
+        <!-- H1: reemplazar "Bogotá" por barrio exacto cuando confirme dirección. SEO 08. -->
+        <h1 class="text-3xl font-bold leading-tight text-white md:text-5xl">
+          Óptica en Bogotá — Alta Visión 18
+        </h1>
+
+        <!-- Copy validado con el cliente -->
+        <p class="text-lg text-white/90">
+          Exámenes de optometría y monturas formuladas, de sol y deportivas para toda la familia.
+        </p>
+
+        <div class="flex flex-wrap gap-4">
+          <a
+            href={whatsappHref}
+            class="inline-block rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Escríbenos por WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- Placeholder visual: reemplazar con foto real del local. Sesión 11 / fotos cliente. -->
+      <div
+        class="relative aspect-[4/3] w-full rounded-2xl bg-aguamarina/40 ring-1 ring-inset ring-white/20 flex items-center justify-center"
+      >
+        <span class="text-center text-white/80 px-6 text-sm uppercase tracking-wider font-medium">
+          Imagen próximamente
+        </span>
+      </div>
+    </div>
+  </div>
+</section>

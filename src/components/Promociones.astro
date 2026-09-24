@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import site from '../content/configuracion/site.json';
+
+const promos = await getCollection('promociones', ({ data }) => data.active === true);
+---
+
+{
+  promos.length > 0 && (
+    <section class="bg-white py-10 md:py-14">
+      <div class="mx-auto max-w-6xl px-4">
+        <div class="space-y-6">
+          {promos.map((item) => {
+            const waText = encodeURIComponent(
+              `Hola, quiero aprovechar la promoción: ${item.data.title}`,
+            );
+            const waHref = `https://wa.me/${site.telefono}?text=${waText}`;
+
+            return (
+              <article class="overflow-hidden rounded-2xl border border-fucsia/30 bg-fucsia/5 shadow-sm">
+                <div class="grid items-center gap-6 p-6 md:grid-cols-2 md:p-8">
+                  <div class="space-y-3">
+                    <span class="inline-flex items-center rounded-full bg-fucsia px-3 py-1 text-xs font-semibold text-slate-900">
+                      Promoción
+                    </span>
+                    <h2 class="text-xl font-bold text-slate-900 md:text-2xl">{item.data.title}</h2>
+                    <p class="text-sm text-slate-700 md:text-base">{item.data.description}</p>
+                    <a
+                      href={waHref}
+                      class="inline-block rounded-full bg-verde-neon px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {item.data.ctaText}
+                    </a>
+                  </div>
+
+                  {item.data.image && item.data.image.trim() !== '' && (
+                    <div class="order-first md:order-last">
+                      <img
+                        src={item.data.image}
+                        alt={item.data.title}
+                        loading="lazy"
+                        class="aspect-video w-full rounded-xl object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}

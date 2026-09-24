@@ -1,0 +1,68 @@
+---
+const faqs = [
+  {
+    q: '¿El examen de optometría tiene costo?',
+    // TODO: validar respuesta exacta con el cliente
+    a: 'Depende de la promoción vigente. Muchas veces es gratuito si compras las gafas con nosotros.',
+  },
+  {
+    q: '¿Cuánto tarda la entrega de las gafas?',
+    // TODO: validar respuesta exacta con el cliente
+    a: 'Generalmente entre 3 y 5 días hábiles, según disponibilidad del laboratorio y receta.',
+  },
+  {
+    q: '¿Qué métodos de pago aceptan?',
+    // TODO: validar respuesta exacta con el cliente
+    a: 'Aceptamos efectivo, tarjetas débito/crédito y transferencias. Consulta si aplica cuotas.',
+  },
+  {
+    q: '¿Qué garantía tienen las monturas?',
+    // TODO: validar respuesta exacta con el cliente
+    a: 'Ofrecemos garantía por defectos de fábrica. El periodo exacto varía por marca.',
+  },
+  {
+    q: '¿Necesito cita previa?',
+    // TODO: validar respuesta exacta con el cliente
+    a: 'Recomendamos agendar por WhatsApp para atenderte con tiempo, aunque también recibimos walk-ins.',
+  },
+];
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.a,
+    },
+  })),
+};
+---
+
+<section class="bg-white py-16 md:py-24">
+  <div class="mx-auto max-w-3xl px-4">
+    <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+      Preguntas frecuentes
+    </h2>
+
+    <div class="space-y-4">
+      {
+        faqs.map((item) => (
+          <details class="group rounded-2xl border border-slate-200 bg-white open:ring-1 open:ring-aguamarina/30">
+            <summary class="flex cursor-pointer list-none items-center justify-between p-4 text-base font-semibold text-slate-900">
+              {item.q}
+              <span class="ml-2 text-slate-900 transition-transform group-open:rotate-45" aria-hidden="true">
+                +
+              </span>
+            </summary>
+            <p class="border-t border-slate-100 p-4 text-sm text-slate-600">{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+</section>
