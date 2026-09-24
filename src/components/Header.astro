@@ -38,14 +38,80 @@ const navLinks = [
       }
     </nav>
 
-    <a
-      href={whatsappHref}
-      class="inline-flex items-center gap-1.5 rounded-full bg-verde-neon px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <Icon name="whatsapp" class="h-4 w-4" />
-      Agenda tu cita
-    </a>
+    <div class="flex items-center gap-2">
+      <a
+        href={whatsappHref}
+        class="inline-flex items-center gap-1.5 rounded-full bg-verde-neon px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Icon name="whatsapp" class="h-4 w-4" />
+        Agenda tu cita
+      </a>
+
+      <button
+        type="button"
+        class="inline-flex items-center justify-center rounded-full p-2 text-white hover:bg-white/10 md:hidden"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-toggle
+      >
+        <Icon name="menu" class="h-6 w-6" data-icon-menu />
+        <Icon name="close" class="hidden h-6 w-6" data-icon-close />
+      </button>
+    </div>
   </div>
+
+  <nav
+    id="mobile-menu"
+    class="hidden flex-col gap-1 border-t border-white/20 bg-aguamarina px-4 py-3 md:hidden"
+    aria-label="Navegación móvil"
+    data-mobile-menu
+  >
+    {
+      navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="rounded-lg px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white"
+          data-mobile-link
+        >
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
 </header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.querySelector<HTMLElement>('[data-mobile-menu]');
+  const iconMenu = document.querySelector<HTMLElement>('[data-icon-menu]');
+  const iconClose = document.querySelector<HTMLElement>('[data-icon-close]');
+  const links = document.querySelectorAll<HTMLAnchorElement>('[data-mobile-link]');
+
+  if (toggle && menu) {
+    const closeMenu = () => {
+      menu.classList.add('hidden');
+      menu.classList.remove('flex');
+      toggle.setAttribute('aria-expanded', 'false');
+      iconMenu?.classList.remove('hidden');
+      iconClose?.classList.add('hidden');
+    };
+
+    const openMenu = () => {
+      menu.classList.remove('hidden');
+      menu.classList.add('flex');
+      toggle.setAttribute('aria-expanded', 'true');
+      iconMenu?.classList.add('hidden');
+      iconClose?.classList.remove('hidden');
+    };
+
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      isOpen ? closeMenu() : openMenu();
+    });
+
+    links.forEach((link) => link.addEventListener('click', closeMenu));
+  }
+</script>

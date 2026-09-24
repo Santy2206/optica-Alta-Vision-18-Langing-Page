@@ -1,0 +1,16 @@
+---
+import site from '../content/configuracion/site.json';
+import Icon from './Icon.astro';
+
+const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+---
+
+<a
+  href={whatsappHref}
+  class="fixed bottom-4 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-verde-neon text-slate-900 shadow-lg transition-transform hover:scale-105 md:hidden"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Escríbenos por WhatsApp"
+>
+  <Icon name="whatsapp" class="h-7 w-7" />
+</a>

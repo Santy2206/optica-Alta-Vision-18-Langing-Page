@@ -1,23 +1,28 @@
 ---
 import Icon from './Icon.astro';
 
-// TODO: reemplazar cifras con datos reales del cliente
-const stats = [
-  { value: '+X', label: 'años de experiencia' },
-  { value: '+XXX', label: 'clientes atendidos' },
+// TODO: cuando el cliente confirme cifras reales (años de experiencia, clientes atendidos),
+// se pueden reintroducir como stats numéricos. Mientras tanto usamos hechos ya validados
+// (ver FAQ.astro) en vez de placeholders inventados.
+const trustPoints: { icon: 'shield' | 'eye' | 'check'; text: string }[] = [
+  { icon: 'shield', text: 'Garantía por defectos de fábrica en todas las monturas' },
+  { icon: 'eye', text: 'Atención personalizada en cada examen de optometría' },
+  { icon: 'check', text: 'Pago en efectivo, tarjeta o transferencia' },
 ];
 ---
 
 <section class="bg-slate-50 py-16 md:py-24">
   <div class="mx-auto max-w-6xl px-4">
     <div class="grid items-center gap-10 md:grid-cols-2">
-      <!-- Stats -->
-      <div class="grid grid-cols-2 gap-6">
+      <!-- Trust points -->
+      <div class="space-y-4">
         {
-          stats.map((stat) => (
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center">
-              <div class="text-3xl font-bold text-fucsia">{stat.value}</div>
-              <div class="mt-1 text-sm font-medium text-slate-600">{stat.label}</div>
+          trustPoints.map((point) => (
+            <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-aguamarina text-white">
+                <Icon name={point.icon} class="h-5 w-5" />
+              </span>
+              <p class="text-sm font-medium text-slate-700">{point.text}</p>
             </div>
           ))
         }
