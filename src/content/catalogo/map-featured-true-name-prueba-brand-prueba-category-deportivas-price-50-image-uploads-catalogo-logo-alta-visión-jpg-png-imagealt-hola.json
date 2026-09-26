@@ -1,0 +1,9 @@
+{
+  "featured": true,
+  "name": "Prueba ",
+  "brand": "Prueba ",
+  "category": "deportivas",
+  "price": 50,
+  "image": "/uploads/catalogo/logo-alta-visión.jpg.png",
+  "imageAlt": "Hola"
+}
