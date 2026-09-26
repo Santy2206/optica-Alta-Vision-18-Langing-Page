@@ -35,6 +35,36 @@ public_folder: /uploads
 locale: es
 
 collections:
+  # --- Carrusel de banners promocionales (inicio del sitio) ---
+  - name: carrusel
+    label: Carrusel de inicio
+    label_singular: Banner
+    folder: src/content/carrusel
+    create: true
+    delete: true
+    extension: json
+    format: json
+    slug: "{{slug}}"
+    fields:
+      - label: Imagen
+        name: image
+        widget: image
+        media_folder: /public/uploads/carrusel
+        public_folder: /uploads/carrusel
+        hint: "Banner horizontal (recomendado ~1600x600px). El texto de la promo debe ir dentro de la imagen."
+      - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
+      - label: Enlace (opcional)
+        name: link
+        widget: string
+        required: false
+        hint: "Si se deja vacío, el banner abre WhatsApp al hacer clic."
+      - { label: Activo, name: active, widget: boolean, default: true }
+      - label: Orden
+        name: order
+        widget: number
+        default: 0
+        hint: "Menor número = aparece primero"
+
   # --- Catálogo de monturas (una entrada JSON por producto) ---
   - name: catalogo
     label: Catálogo

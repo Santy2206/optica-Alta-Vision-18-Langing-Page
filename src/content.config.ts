@@ -34,4 +34,18 @@ const promociones = defineCollection({
   }),
 });
 
-export const collections = { catalogo, promociones };
+const carrusel = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: './src/content/carrusel' }),
+  schema: z.object({
+    /** Ruta pública, p.ej. /uploads/carrusel/cupon-bienvenida.webp */
+    image: z.string(),
+    imageAlt: z.string(),
+    /** Si se deja vacío, el banner enlaza a WhatsApp por defecto */
+    link: z.string().optional(),
+    active: z.boolean().default(true),
+    /** Menor número = aparece primero */
+    order: z.number().default(0),
+  }),
+});
+
+export const collections = { catalogo, promociones, carrusel };

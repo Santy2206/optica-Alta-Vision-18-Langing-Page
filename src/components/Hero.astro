@@ -1,43 +1,162 @@
 ---
+import { getCollection } from 'astro:content';
 import site from '../content/configuracion/site.json';
 
 const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+
+const slides = (await getCollection('carrusel', ({ data }) => data.active)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
 ---
 
-<section class="bg-aguamarina py-16 md:py-24">
-  <div class="mx-auto max-w-6xl px-4">
-    <div class="grid items-center gap-10 md:grid-cols-2 md:gap-12">
-      <div class="space-y-6">
-        <!-- H1: reemplazar "Bogotá" por barrio exacto cuando confirme dirección. SEO 08. -->
-        <h1 class="text-3xl font-bold leading-tight text-white md:text-5xl">
-          Óptica en Bogotá — Alta Visión 18
-        </h1>
+{
+  slides.length > 0 ? (
+    <section
+      class="relative w-full overflow-hidden bg-aguamarina"
+      aria-roledescription="carousel"
+      aria-label="Promociones destacadas"
+      data-carousel
+    >
+      <h1 class="sr-only">Óptica en Bogotá — Alta Visión 18</h1>
 
-        <!-- Copy validado con el cliente -->
-        <p class="text-lg text-white/90">
-          Exámenes de optometría y monturas formuladas, de sol y deportivas para toda la familia.
-        </p>
+      <div class="relative aspect-[4/3] w-full sm:aspect-[16/6]" data-carousel-track>
+        {slides.map((slide, i) => {
+          const href = slide.data.link?.trim() ? slide.data.link : whatsappHref;
+          const isExternal = href.startsWith('http');
+          return (
+            <a
+              href={href}
+              target={isExternal ? '_blank' : undefined}
+              rel={isExternal ? 'noopener noreferrer' : undefined}
+              class:list={[
+                'absolute inset-0 transition-opacity duration-700 ease-in-out',
+                i === 0 ? 'opacity-100' : 'pointer-events-none opacity-0',
+              ]}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${i + 1} de ${slides.length}`}
+              data-carousel-slide
+            >
+              <img
+                src={slide.data.image}
+                alt={slide.data.imageAlt}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                class="h-full w-full object-cover"
+              />
+            </a>
+          );
+        })}
+      </div>
 
-        <div class="flex flex-wrap gap-4">
-          <a
-            href={whatsappHref}
-            class="inline-block rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Escríbenos por WhatsApp
-          </a>
+      {slides.length > 1 && (
+        <div
+          class="absolute inset-x-0 bottom-4 flex justify-center gap-2"
+          role="tablist"
+          aria-label="Seleccionar banner"
+        >
+          {slides.map((_, i) => (
+            <button
+              type="button"
+              class:list={[
+                'h-2.5 w-2.5 rounded-full transition-colors',
+                i === 0 ? 'bg-white' : 'bg-white/50',
+              ]}
+              role="tab"
+              aria-label={`Ver banner ${i + 1}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              data-carousel-dot
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  ) : (
+    <section class="bg-aguamarina py-16 md:py-24">
+      <div class="mx-auto max-w-6xl px-4">
+        <div class="grid items-center gap-10 md:grid-cols-2 md:gap-12">
+          <div class="space-y-6">
+            {/* H1: reemplazar "Bogotá" por barrio exacto cuando confirme dirección. SEO 08. */}
+            <h1 class="text-3xl font-bold leading-tight text-white md:text-5xl">
+              Óptica en Bogotá — Alta Visión 18
+            </h1>
+
+            <p class="text-lg text-white/90">
+              Exámenes de optometría y monturas formuladas, de sol y deportivas para toda la
+              familia.
+            </p>
+
+            <div class="flex flex-wrap gap-4">
+              <a
+                href={whatsappHref}
+                class="inline-block rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Escríbenos por WhatsApp
+              </a>
+            </div>
+          </div>
+
+          {/* Placeholder visual: se reemplaza solo por el carrusel en cuanto se suba un banner desde el CMS (colección "Carrusel de inicio"). */}
+          <div class="relative aspect-[4/3] w-full rounded-2xl bg-aguamarina/40 ring-1 ring-inset ring-white/20 flex items-center justify-center">
+            <span class="text-center text-white/80 px-6 text-sm uppercase tracking-wider font-medium">
+              Imagen próximamente
+            </span>
+          </div>
         </div>
       </div>
+    </section>
+  )
+}
 
-      <!-- Placeholder visual: reemplazar con foto real del local. Sesión 11 / fotos cliente. -->
-      <div
-        class="relative aspect-[4/3] w-full rounded-2xl bg-aguamarina/40 ring-1 ring-inset ring-white/20 flex items-center justify-center"
-      >
-        <span class="text-center text-white/80 px-6 text-sm uppercase tracking-wider font-medium">
-          Imagen próximamente
-        </span>
-      </div>
-    </div>
-  </div>
-</section>
+<script>
+  const section = document.querySelector<HTMLElement>('[data-carousel]');
+  const slides = document.querySelectorAll<HTMLElement>('[data-carousel-slide]');
+  const dots = document.querySelectorAll<HTMLButtonElement>('[data-carousel-dot]');
+
+  if (section && slides.length > 1) {
+    let current = 0;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const goTo = (index: number) => {
+      slides[current].classList.add('opacity-0', 'pointer-events-none');
+      slides[current].classList.remove('opacity-100');
+      dots[current]?.classList.replace('bg-white', 'bg-white/50');
+      dots[current]?.setAttribute('aria-selected', 'false');
+
+      current = index;
+
+      slides[current].classList.remove('opacity-0', 'pointer-events-none');
+      slides[current].classList.add('opacity-100');
+      dots[current]?.classList.replace('bg-white/50', 'bg-white');
+      dots[current]?.setAttribute('aria-selected', 'true');
+    };
+
+    const next = () => goTo((current + 1) % slides.length);
+
+    const stop = () => {
+      if (timer) clearInterval(timer);
+    };
+
+    const start = () => {
+      if (prefersReducedMotion) return;
+      stop();
+      timer = setInterval(next, 5000);
+    };
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        goTo(i);
+        start();
+      });
+    });
+
+    section.addEventListener('mouseenter', stop);
+    section.addEventListener('mouseleave', start);
+    section.addEventListener('focusin', stop);
+    section.addEventListener('focusout', start);
+
+    start();
+  }
+</script>
