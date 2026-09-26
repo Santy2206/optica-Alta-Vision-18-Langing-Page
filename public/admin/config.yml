@@ -44,7 +44,7 @@ collections:
     delete: true
     extension: json
     format: json
-    slug: "{{slug}}"
+    slug: "banner-{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}"
     fields:
       - label: Imagen
         name: image
@@ -75,6 +75,7 @@ collections:
     extension: json
     format: json
     slug: "{{slug}}"
+    identifier_field: name
     fields:
       - { label: Nombre, name: name, widget: string }
       - { label: Marca, name: brand, widget: string }
@@ -110,6 +111,7 @@ collections:
     extension: json
     format: json
     slug: "{{slug}}"
+    identifier_field: title
     fields:
       - { label: Título, name: title, widget: string }
       - { label: Descripción, name: description, widget: text }
