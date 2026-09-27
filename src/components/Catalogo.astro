@@ -1,15 +1,22 @@
 ---
 import { getCollection } from 'astro:content';
 import site from '../content/configuracion/site.json';
+import Icon from './Icon.astro';
+import { tiposLente } from '../data/tiposLente';
 
-const items = await getCollection('catalogo');
+const all = await getCollection('catalogo');
+const featured = all.filter((item) => item.data.featured);
+// Con menos de 2 monturas "destacadas" el carrusel se ve como una sola tarjeta suelta,
+// así que mostramos el catálogo completo para que siempre haya varias para deslizar.
+const items = featured.length > 1 ? featured : all;
 
-const filters = [
-  { label: 'Todos', value: 'todos' },
-  { label: 'Formuladas', value: 'formuladas' },
-  { label: 'Sol', value: 'sol' },
-  { label: 'Niños', value: 'ninos' },
-  { label: 'Deportivas', value: 'deportivas' },
+const categorias = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'formuladas', label: 'Formuladas' },
+  { value: 'sol', label: 'Sol' },
+  { value: 'ninos', label: 'Niños' },
+  { value: 'deportivas', label: 'Deportivas' },
+  { value: 'contacto', label: 'Lentes de contacto' },
 ] as const;
 
 const productSchemas = items.map((item) => {
@@ -32,8 +39,6 @@ const productSchemas = items.map((item) => {
       availability: 'https://schema.org/InStock',
       url: 'https://optica-alta-vision-18.netlify.app',
     };
-  } else {
-    // TODO: agregar Offer cuando el cliente confirme el precio
   }
 
   return product;
@@ -42,125 +47,452 @@ const productSchemas = items.map((item) => {
 
 <section id="catalogo" class="bg-white py-16 md:py-24">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="mb-8 text-center text-2xl font-bold text-slate-900 md:text-3xl">
-      Catálogo de monturas
+    <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+      Monturas más vendidas
     </h2>
 
-    <!-- Filtros -->
-    <div
-      class="mb-10 flex flex-wrap justify-center gap-2"
-      role="group"
-      aria-label="Filtrar por categoría"
-      data-catalog-filters
-    >
-      {
-        filters.map((f, i) => (
-          <button
-            type="button"
-            data-filter={f.value}
-            class:list={[
-              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-              i === 0
-                ? 'bg-aguamarina text-white'
-                : 'bg-aguamarina/10 text-slate-700 hover:bg-aguamarina/20',
-            ]}
-            aria-pressed={i === 0 ? 'true' : 'false'}
-          >
-            {f.label}
-          </button>
-        ))
-      }
-    </div>
-
-    <!-- Grid: todas las tarjetas permanecen en el DOM (SEO); se ocultan con .hidden -->
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-catalog-grid>
-      {
-        items.map((item) => {
-          const waText = encodeURIComponent(
-            `Hola, quiero información sobre ${item.data.name}`,
-          );
-          const waHref = `https://wa.me/${site.telefono}?text=${waText}`;
-          const priceLabel =
-            item.data.price !== null
-              ? `$${item.data.price.toLocaleString('es-CO')}`
-              : 'Consultar precio';
-
-          return (
-            <article
-              class="catalog-card flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
-              data-category={item.data.category}
-            >
-              <div class="aspect-[4/3] bg-aguamarina/10">
-                {/* item.data.image ya incluye /uploads/catalogo/... (sesión 1.2) */}
-                <img
-                  src={item.data.image}
-                  alt={item.data.imageAlt}
-                  loading="lazy"
-                  class="h-full w-full object-cover"
-                />
-              </div>
-              <div class="flex flex-1 flex-col gap-2 p-4">
-                <div>
-                  <h3 class="font-semibold text-slate-900">{item.data.name}</h3>
-                  <p class="text-sm text-slate-500">{item.data.brand}</p>
-                </div>
-                <p class="text-base font-medium text-aguamarina">{priceLabel}</p>
-                <a
-                  href={waHref}
-                  class="mt-auto inline-block rounded-full bg-verde-neon px-4 py-2 text-center text-sm font-semibold text-slate-900 transition-shadow hover:shadow-md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Me interesa
-                </a>
-              </div>
-            </article>
-          );
-        })
-      }
-    </div>
-
     {
-      items.length === 0 && (
+      items.length > 0 ? (
+        <>
+          <div
+            class="mb-6 flex flex-wrap justify-center gap-2"
+            role="group"
+            aria-label="Filtrar por categoría"
+            data-catalogo-filter-group
+          >
+            {categorias.map((cat, i) => (
+              <button
+                type="button"
+                class:list={[
+                  'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                  i === 0
+                    ? 'border-aguamarina bg-aguamarina text-white'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-aguamarina hover:text-aguamarina',
+                ]}
+                data-catalogo-filter-btn
+                data-filter={cat.value}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div class="relative" data-catalogo-wrapper>
+          {items.length > 1 && (
+            <button
+              type="button"
+              class="absolute left-1 top-[calc(50%-2rem)] z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-900 shadow-md transition-opacity hover:shadow-lg disabled:opacity-0 sm:left-0 sm:h-10 sm:w-10 sm:-translate-x-4"
+              aria-label="Anterior"
+              data-catalogo-prev
+            >
+              <Icon name="chevron-left" class="h-5 w-5" />
+            </button>
+          )}
+
+          <div
+            class:list={[
+              'flex gap-6 overflow-x-auto scroll-smooth pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              items.length > 1 ? 'snap-x snap-mandatory' : 'justify-center',
+            ]}
+            data-catalogo-track
+          >
+            {items.map((item) => {
+              const priceLabel =
+                item.data.price !== null
+                  ? `Desde $${item.data.price.toLocaleString('es-CO')}`
+                  : 'Consultar precio';
+
+              return (
+                <article
+                  class="flex w-[80%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md sm:w-[45%] lg:w-[30%] xl:w-[23%]"
+                  data-catalogo-item
+                  data-category={item.data.category}
+                >
+                  <div class="aspect-[4/3] bg-aguamarina/10" data-photo-hover>
+                    <img
+                      src={item.data.image}
+                      alt={item.data.imageAlt}
+                      loading="lazy"
+                      class="h-full w-full object-cover"
+                      data-product-image
+                      data-default-image={item.data.image}
+                      data-hover-image={item.data.colors[0]?.modelImage ?? ''}
+                    />
+                  </div>
+                  <div class="flex flex-1 flex-col gap-2 p-4">
+                    <div>
+                      <h3 class="font-semibold text-slate-900">{item.data.name}</h3>
+                      <p class="text-sm text-slate-500">{item.data.brand}</p>
+                    </div>
+
+                    {item.data.colors.length > 0 && (
+                      <div class="flex flex-wrap gap-2" role="group" aria-label="Colores disponibles">
+                        {item.data.colors.map((color, ci) => (
+                          <button
+                            type="button"
+                            class:list={[
+                              'h-6 w-6 rounded-full border border-slate-300 transition-shadow',
+                              ci === 0 && 'ring-2 ring-offset-2 ring-slate-900',
+                            ]}
+                            style={`background-color: ${color.hex}`}
+                            title={color.name}
+                            aria-label={color.name}
+                            data-swatch
+                            data-image={color.image ?? ''}
+                            data-model-image={color.modelImage ?? ''}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <p class="text-base font-medium text-aguamarina">{priceLabel}</p>
+                    <button
+                      type="button"
+                      class="mt-auto inline-block rounded-full bg-verde-neon px-4 py-2 text-center text-sm font-semibold text-slate-900 transition-shadow hover:shadow-md"
+                      data-open-lens-modal
+                      data-frame-name={item.data.name}
+                    >
+                      Me interesa
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {items.length > 1 && (
+            <button
+              type="button"
+              class="absolute right-1 top-[calc(50%-2rem)] z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-900 shadow-md transition-opacity hover:shadow-lg disabled:opacity-0 sm:right-0 sm:h-10 sm:w-10 sm:translate-x-4"
+              aria-label="Siguiente"
+              data-catalogo-next
+            >
+              <Icon name="chevron-right" class="h-5 w-5" />
+            </button>
+          )}
+
+          {items.length > 1 && (
+            <div
+              class="mt-4 flex justify-center gap-2"
+              role="tablist"
+              aria-label="Seleccionar página"
+              data-catalogo-dots
+            />
+          )}
+          </div>
+
+          <p class="mt-8 hidden text-center text-sm text-slate-500" data-catalogo-empty-message>
+            No hay monturas en esta categoría todavía.
+          </p>
+        </>
+      ) : (
         <p class="text-center text-sm text-slate-500">
           Catálogo vacío — agrega monturas desde el CMS.
         </p>
       )
     }
+
+    <div class="mt-8 text-center">
+      <a
+        href="/catalogo"
+        class="inline-block rounded-full border border-aguamarina px-6 py-2.5 text-sm font-semibold text-aguamarina transition-colors hover:bg-aguamarina hover:text-white"
+      >
+        Ver catálogo completo
+      </a>
+    </div>
   </div>
 
   {productSchemas.map((schema) => (
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   ))}
+
+  <div
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Elige el tipo de lente"
+    data-lens-modal
+    data-telefono={site.telefono}
+  >
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div class="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">¿Qué tipo de lente quieres cotizar?</h3>
+          <p class="text-sm text-slate-500">
+            Montura: <span class="font-medium text-slate-700" data-lens-modal-frame />
+          </p>
+        </div>
+        <button
+          type="button"
+          class="rounded-full p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          aria-label="Cerrar"
+          data-close-lens-modal
+        >
+          <Icon name="close" class="h-5 w-5" />
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        {
+          tiposLente.map((tipo) => (
+            <button
+              type="button"
+              class="group relative overflow-hidden rounded-xl text-left shadow-sm transition-shadow hover:shadow-md"
+              data-lens-modal-option
+              data-lens-name={tipo.nombre}
+            >
+              <div class="aspect-[3/4] w-full overflow-hidden">
+                <img
+                  src={tipo.imagen}
+                  alt={`Lentes ${tipo.nombre}`}
+                  loading="lazy"
+                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <span class="absolute inset-x-0 bottom-2 mx-auto flex w-fit items-center justify-center rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-md">
+                {tipo.nombre}
+              </span>
+            </button>
+          ))
+        }
+      </div>
+
+      <button
+        type="button"
+        class="mt-4 w-full text-center text-sm font-medium text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
+        data-skip-lens
+      >
+        Prefiero preguntar sin elegir el lente
+      </button>
+    </div>
+  </div>
 </section>
 
 <script>
-  const root = document.getElementById('catalogo');
-  if (root) {
-    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-filter]');
-    const cards = root.querySelectorAll<HTMLElement>('.catalog-card');
+  const wrapper = document.querySelector<HTMLElement>('[data-catalogo-wrapper]');
+  const track = document.querySelector<HTMLElement>('[data-catalogo-track]');
+  const prev = document.querySelector<HTMLButtonElement>('[data-catalogo-prev]');
+  const next = document.querySelector<HTMLButtonElement>('[data-catalogo-next]');
+  const dotsContainer = document.querySelector<HTMLElement>('[data-catalogo-dots]');
+  const slides = track?.querySelectorAll<HTMLElement>(':scope > article') ?? [];
 
-    const setActive = (active: HTMLButtonElement) => {
-      buttons.forEach((btn) => {
-        const isActive = btn === active;
-        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        btn.classList.toggle('bg-aguamarina', isActive);
-        btn.classList.toggle('text-white', isActive);
-        btn.classList.toggle('bg-aguamarina/10', !isActive);
-        btn.classList.toggle('text-slate-700', !isActive);
+  let refreshCarousel: (() => void) | null = null;
+
+  if (track && slides.length > 1) {
+    const slideWidth = () => {
+      const visibleSlide = Array.from(slides).find((s) => !s.classList.contains('hidden'));
+      return (visibleSlide?.getBoundingClientRect().width ?? 0) + 24; // gap-6 = 24px
+    };
+
+    const maxScrollLeft = () => track.scrollWidth - track.clientWidth;
+
+    // Cuántas posiciones de scroll realmente existen (depende de cuántas tarjetas
+    // caben por vista, que cambia según el breakpoint) — no siempre una por tarjeta.
+    const pageCount = () => {
+      const max = maxScrollLeft();
+      if (max <= 4) return 1;
+      return Math.round(max / slideWidth()) + 1;
+    };
+
+    const currentIndex = () => Math.round(track.scrollLeft / slideWidth());
+
+    let dots: HTMLButtonElement[] = [];
+
+    const buildDots = () => {
+      if (!dotsContainer) return;
+      const count = pageCount();
+      if (dots.length === count) return;
+
+      dotsContainer.innerHTML = '';
+      dots = Array.from({ length: count }, (_, i) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'h-2.5 w-2.5 rounded-full bg-slate-300 transition-colors';
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', `Ver página ${i + 1}`);
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+        return dot;
       });
     };
 
-    buttons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const filter = btn.dataset.filter ?? 'todos';
-        setActive(btn);
-        cards.forEach((card) => {
-          const cat = card.dataset.category;
-          const show = filter === 'todos' || cat === filter;
-          card.classList.toggle('hidden', !show);
-        });
+    const goTo = (index: number) => {
+      const count = pageCount();
+      const clamped = ((index % count) + count) % count;
+      track.scrollTo({ left: Math.min(slideWidth() * clamped, maxScrollLeft()), behavior: 'smooth' });
+    };
+
+    const updateUI = () => {
+      buildDots();
+      const index = currentIndex();
+      prev?.toggleAttribute('disabled', track.scrollLeft <= 4);
+      next?.toggleAttribute('disabled', track.scrollLeft >= maxScrollLeft() - 4);
+      dots.forEach((dot, i) => {
+        const active = i === index;
+        dot.classList.toggle('bg-aguamarina', active);
+        dot.classList.toggle('bg-slate-300', !active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
       });
+    };
+
+    prev?.addEventListener('click', () => goTo(currentIndex() - 1));
+    next?.addEventListener('click', () => {
+      const atEnd = track.scrollLeft >= maxScrollLeft() - 4;
+      atEnd ? goTo(0) : goTo(currentIndex() + 1);
     });
+
+    track.addEventListener('scroll', updateUI);
+    window.addEventListener('resize', updateUI);
+    updateUI();
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let timer: ReturnType<typeof setInterval> | undefined;
+
+    const stopAuto = () => {
+      if (timer) clearInterval(timer);
+    };
+
+    const startAuto = () => {
+      if (prefersReducedMotion) return;
+      stopAuto();
+      timer = setInterval(() => {
+        const atEnd = track.scrollLeft >= maxScrollLeft() - 4;
+        atEnd ? goTo(0) : goTo(currentIndex() + 1);
+      }, 4000);
+    };
+
+    wrapper?.addEventListener('mouseenter', stopAuto);
+    wrapper?.addEventListener('mouseleave', startAuto);
+    wrapper?.addEventListener('focusin', stopAuto);
+    wrapper?.addEventListener('focusout', startAuto);
+
+    startAuto();
+    refreshCarousel = updateUI;
   }
+
+  const catalogoFilterButtons = document.querySelectorAll<HTMLButtonElement>('[data-catalogo-filter-btn]');
+  const catalogoItems = document.querySelectorAll<HTMLElement>('[data-catalogo-item]');
+  const catalogoEmptyMessage = document.querySelector<HTMLElement>('[data-catalogo-empty-message]');
+
+  catalogoFilterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter ?? 'todos';
+      let visibleCount = 0;
+
+      catalogoItems.forEach((item) => {
+        const matches = filter === 'todos' || item.dataset.category === filter;
+        item.classList.toggle('hidden', !matches);
+        if (matches) visibleCount += 1;
+      });
+
+      catalogoEmptyMessage?.classList.toggle('hidden', visibleCount > 0);
+
+      catalogoFilterButtons.forEach((b) => {
+        const active = b === btn;
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        b.classList.toggle('border-aguamarina', active);
+        b.classList.toggle('bg-aguamarina', active);
+        b.classList.toggle('text-white', active);
+        b.classList.toggle('bg-white', !active);
+        b.classList.toggle('text-slate-700', !active);
+      });
+
+      if (track) track.scrollLeft = 0;
+      refreshCarousel?.();
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    const swatch = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-swatch]');
+    if (!swatch) return;
+
+    const article = swatch.closest('article');
+    if (!article) return;
+
+    const image = article.querySelector<HTMLImageElement>('[data-product-image]');
+    if (image) {
+      if (swatch.dataset.image) {
+        image.src = swatch.dataset.image;
+        image.dataset.defaultImage = swatch.dataset.image;
+      }
+      image.dataset.hoverImage = swatch.dataset.modelImage ?? '';
+    }
+
+    article.querySelectorAll<HTMLButtonElement>('[data-swatch]').forEach((s) => {
+      const selected = s === swatch;
+      s.classList.toggle('ring-2', selected);
+      s.classList.toggle('ring-offset-2', selected);
+      s.classList.toggle('ring-slate-900', selected);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-photo-hover]').forEach((container) => {
+    const image = container.querySelector<HTMLImageElement>('[data-product-image]');
+    if (!image) return;
+
+    container.addEventListener('mouseenter', () => {
+      if (image.dataset.hoverImage) image.src = image.dataset.hoverImage;
+    });
+
+    container.addEventListener('mouseleave', () => {
+      if (image.dataset.defaultImage) image.src = image.dataset.defaultImage;
+    });
+  });
+
+  const lensModal = document.querySelector<HTMLElement>('[data-lens-modal]');
+  const lensModalFrame = document.querySelector<HTMLElement>('[data-lens-modal-frame]');
+  const lensModalOptions = document.querySelectorAll<HTMLButtonElement>('[data-lens-modal-option]');
+  const openLensButtons = document.querySelectorAll<HTMLButtonElement>('[data-open-lens-modal]');
+  const closeLensButton = document.querySelector<HTMLButtonElement>('[data-close-lens-modal]');
+  const skipLensButton = document.querySelector<HTMLButtonElement>('[data-skip-lens]');
+  const telefono = lensModal?.dataset.telefono ?? '';
+
+  let currentFrameName = '';
+
+  const openLensModal = (frameName: string) => {
+    currentFrameName = frameName;
+    if (lensModalFrame) lensModalFrame.textContent = frameName;
+    lensModal?.classList.remove('hidden');
+    lensModal?.classList.add('flex');
+  };
+
+  const closeLensModal = () => {
+    lensModal?.classList.add('hidden');
+    lensModal?.classList.remove('flex');
+  };
+
+  const sendWhatsApp = (message: string) => {
+    const text = encodeURIComponent(message);
+    window.open(`https://wa.me/${telefono}?text=${text}`, '_blank', 'noopener');
+  };
+
+  openLensButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      openLensModal(button.dataset.frameName ?? '');
+    });
+  });
+
+  closeLensButton?.addEventListener('click', closeLensModal);
+
+  lensModal?.addEventListener('click', (e) => {
+    if (e.target === lensModal) closeLensModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLensModal();
+  });
+
+  lensModalOptions.forEach((button) => {
+    button.addEventListener('click', () => {
+      const lensName = button.dataset.lensName ?? '';
+      sendWhatsApp(`Hola, quiero cotizar unas gafas con lente ${lensName} y montura ${currentFrameName}`);
+      closeLensModal();
+    });
+  });
+
+  skipLensButton?.addEventListener('click', () => {
+    sendWhatsApp(`Hola, quiero información sobre ${currentFrameName}`);
+    closeLensModal();
+  });
 </script>

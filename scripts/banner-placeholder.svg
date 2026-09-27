@@ -1,0 +1,8 @@
+<svg width="1600" height="600" viewBox="0 0 1600 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="600" fill="#00B4B0"/>
+  <text x="90" y="260" font-family="Poppins, Arial, sans-serif" font-weight="700" font-size="72" fill="#FFFFFF">Óptica en Bogotá</text>
+  <text x="90" y="345" font-family="Poppins, Arial, sans-serif" font-weight="700" font-size="72" fill="#FFFFFF">Alta Visión 18</text>
+  <text x="90" y="410" font-family="Poppins, Arial, sans-serif" font-weight="400" font-size="30" fill="#FFFFFF" opacity="0.9">Exámenes de optometría y monturas para toda la familia</text>
+  <rect x="90" y="450" width="360" height="70" rx="35" fill="#39FF14"/>
+  <text x="270" y="494" font-family="Poppins, Arial, sans-serif" font-weight="600" font-size="28" fill="#0F172A" text-anchor="middle">Escríbenos por WhatsApp</text>
+</svg>

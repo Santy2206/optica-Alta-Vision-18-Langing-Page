@@ -87,6 +87,7 @@ collections:
           - { label: Sol, value: sol }
           - { label: Niños, value: ninos }
           - { label: Deportivas, value: deportivas }
+          - { label: Lentes de contacto, value: contacto }
       - label: Precio (COP)
         name: price
         widget: number
@@ -99,7 +100,33 @@ collections:
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
       - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
-      - { label: Destacada, name: featured, widget: boolean, default: false }
+      - label: Mostrar en "Más vendidas" (inicio)
+        name: featured
+        widget: boolean
+        default: false
+        hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio."
+      - label: Colores disponibles
+        name: colors
+        widget: list
+        required: false
+        default: []
+        hint: "Opcional. Cada color se muestra como un círculo debajo del nombre. Si le pones foto, al hacer clic cambia la imagen de la tarjeta."
+        fields:
+          - { label: Nombre del color, name: name, widget: string, hint: "Ej. Negro, Dorado, Carey" }
+          - { label: Color (swatch), name: hex, widget: color }
+          - label: Foto de este color (opcional)
+            name: image
+            widget: image
+            required: false
+            media_folder: /public/uploads/catalogo
+            public_folder: /uploads/catalogo
+          - label: Foto con modelo puesto (opcional)
+            name: modelImage
+            widget: image
+            required: false
+            media_folder: /public/uploads/catalogo
+            public_folder: /uploads/catalogo
+            hint: "Foto de una persona usando esta montura en este color. Se muestra al pasar el mouse sobre la foto."
 
   # --- Promociones activables ---
   - name: promociones

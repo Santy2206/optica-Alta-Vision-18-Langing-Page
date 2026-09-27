@@ -2,12 +2,16 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import Beneficios from '../components/Beneficios.astro';
+import TiposMarco from '../components/TiposMarco.astro';
 import Catalogo from '../components/Catalogo.astro';
-import Servicios from '../components/Servicios.astro';
+import CotizadorLentes from '../components/CotizadorLentes.astro';
+import TiposRostro from '../components/TiposRostro.astro';
 import Confianza from '../components/Confianza.astro';
+import Servicios from '../components/Servicios.astro';
 import Promociones from '../components/Promociones.astro';
-import Ubicacion from '../components/Ubicacion.astro';
 import FAQ from '../components/FAQ.astro';
+import Ubicacion from '../components/Ubicacion.astro';
 import Footer from '../components/Footer.astro';
 import WhatsAppFloat from '../components/WhatsAppFloat.astro';
 import site from '../content/configuracion/site.json';
@@ -66,12 +70,16 @@ const localBusiness = {
 
   <Header />
   <Hero />
+  <Beneficios />
+  <TiposMarco />
   <Catalogo />
-  <Servicios />
+  <CotizadorLentes />
+  <TiposRostro />
   <Confianza />
+  <Servicios />
   <Promociones />
-  <Ubicacion />
   <FAQ />
+  <Ubicacion />
   <Footer />
   <WhatsAppFloat />
 </BaseLayout>

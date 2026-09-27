@@ -1,0 +1,248 @@
+---
+import { getCollection } from 'astro:content';
+import site from '../content/configuracion/site.json';
+import Icon from './Icon.astro';
+import { tiposLente } from '../data/tiposLente';
+
+const monturas = await getCollection('catalogo');
+
+const opcionesLente = [
+  { imagen: '/images/tipos-lente/todos.svg', nombre: 'Todos' },
+  ...tiposLente,
+];
+
+const categorias = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'formuladas', label: 'Formuladas' },
+  { value: 'sol', label: 'Sol' },
+  { value: 'ninos', label: 'Niños' },
+  { value: 'deportivas', label: 'Deportivas' },
+  { value: 'contacto', label: 'Lentes de contacto' },
+] as const;
+---
+
+<section id="cotizador" class="bg-aguamarina/5 py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="mb-3 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+      Cotiza tus gafas en 2 pasos
+    </h2>
+    <p class="mx-auto mb-10 max-w-2xl text-center text-sm text-slate-600 md:text-base">
+      Elige el tipo de lente y la montura que más te gusten. Te escribimos por WhatsApp para darte el precio.
+    </p>
+
+    <div class="mx-auto mb-10 flex max-w-xs items-center justify-center gap-3" aria-hidden="true">
+      <div class="flex items-center gap-2" data-step-indicator="1">
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-aguamarina text-sm font-semibold text-white">
+          1
+        </span>
+        <span class="text-sm font-medium text-slate-900">Lente</span>
+      </div>
+      <div class="h-px flex-1 bg-slate-300"></div>
+      <div class="flex items-center gap-2" data-step-indicator="2">
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-300 text-sm font-semibold text-white transition-colors" data-step-indicator-badge="2">
+          2
+        </span>
+        <span class="text-sm font-medium text-slate-500" data-step-indicator-label="2">Montura</span>
+      </div>
+    </div>
+
+    <!-- Paso 1: tipo de lente -->
+    <div data-step-panel="1">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        {
+          opcionesLente.map((tipo) => (
+            <button
+              type="button"
+              class="group relative overflow-hidden rounded-2xl text-left shadow-sm ring-0 ring-aguamarina ring-offset-2 transition-all hover:shadow-lg"
+              data-lens-option
+              data-lens-name={tipo.nombre}
+              aria-pressed="false"
+            >
+              <div class="aspect-[3/4] w-full overflow-hidden">
+                <img
+                  src={tipo.imagen}
+                  alt={`Lentes ${tipo.nombre}`}
+                  loading="lazy"
+                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <span class="absolute inset-x-0 bottom-4 mx-auto flex w-fit items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-md">
+                {tipo.nombre}
+              </span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Paso 2: montura -->
+    <div data-step-panel="2" hidden>
+      <div class="mb-6 flex flex-wrap items-center justify-center gap-3 text-sm">
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition-colors hover:bg-slate-100"
+          data-back-to-lens
+        >
+          <Icon name="chevron-left" class="h-4 w-4" />
+          Cambiar tipo de lente
+        </button>
+        <span class="rounded-full bg-aguamarina/10 px-3 py-1.5 font-medium text-aguamarina">
+          Lente: <span data-selected-lens-label>—</span>
+        </span>
+      </div>
+
+      {
+        monturas.length > 0 ? (
+          <>
+            <div
+              class="mb-6 flex flex-wrap justify-center gap-2"
+              role="group"
+              aria-label="Filtrar monturas por categoría"
+              data-frame-filter-group
+            >
+              {categorias.map((cat, i) => (
+                <button
+                  type="button"
+                  class:list={[
+                    'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                    i === 0
+                      ? 'border-aguamarina bg-aguamarina text-white'
+                      : 'border-slate-300 bg-white text-slate-700 hover:border-aguamarina hover:text-aguamarina',
+                  ]}
+                  data-frame-filter-btn
+                  data-filter={cat.value}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {monturas.map((montura) => (
+                <button
+                  type="button"
+                  class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition-shadow hover:shadow-md"
+                  data-frame-option
+                  data-frame-name={montura.data.name}
+                  data-category={montura.data.category}
+                >
+                  <div class="aspect-[4/3] bg-aguamarina/10">
+                    <img
+                      src={montura.data.image}
+                      alt={montura.data.imageAlt}
+                      loading="lazy"
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div class="p-3">
+                    <p class="text-sm font-semibold text-slate-900">{montura.data.name}</p>
+                    <p class="text-xs text-slate-500">{montura.data.brand}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <p class="mt-6 hidden text-center text-sm text-slate-500" data-frame-empty-message>
+              No hay monturas en esta categoría todavía.
+            </p>
+          </>
+        ) : (
+          <p class="text-center text-sm text-slate-500">
+            Catálogo vacío — agrega monturas desde el CMS.
+          </p>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ telefono: site.telefono }}>
+  const lensButtons = document.querySelectorAll('[data-lens-option]');
+  const frameButtons = document.querySelectorAll('[data-frame-option]');
+  const backButton = document.querySelector('[data-back-to-lens]');
+  const step1Panel = document.querySelector('[data-step-panel="1"]');
+  const step2Panel = document.querySelector('[data-step-panel="2"]');
+  const selectedLensLabel = document.querySelector('[data-selected-lens-label]');
+  const stepBadge2 = document.querySelector('[data-step-indicator-badge="2"]');
+  const stepLabel2 = document.querySelector('[data-step-indicator-label="2"]');
+
+  let selectedLens = '';
+
+  const goToStep2 = (lensName) => {
+    selectedLens = lensName;
+    if (selectedLensLabel) selectedLensLabel.textContent = lensName;
+    if (step1Panel) step1Panel.hidden = true;
+    if (step2Panel) step2Panel.hidden = false;
+    stepBadge2?.classList.remove('bg-slate-300');
+    stepBadge2?.classList.add('bg-aguamarina');
+    stepLabel2?.classList.remove('text-slate-500');
+    stepLabel2?.classList.add('text-slate-900');
+  };
+
+  const goToStep1 = () => {
+    if (step1Panel) step1Panel.hidden = false;
+    if (step2Panel) step2Panel.hidden = true;
+    stepBadge2?.classList.add('bg-slate-300');
+    stepBadge2?.classList.remove('bg-aguamarina');
+    stepLabel2?.classList.add('text-slate-500');
+    stepLabel2?.classList.remove('text-slate-900');
+  };
+
+  lensButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const lensName = button.dataset.lensName ?? '';
+
+      lensButtons.forEach((b) => {
+        b.classList.remove('ring-4');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      button.classList.add('ring-4');
+      button.setAttribute('aria-pressed', 'true');
+
+      goToStep2(lensName);
+    });
+  });
+
+  backButton?.addEventListener('click', goToStep1);
+
+  const filterButtons = document.querySelectorAll('[data-frame-filter-btn]');
+  const frameEmptyMessage = document.querySelector('[data-frame-empty-message]');
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter ?? 'todos';
+      let visibleCount = 0;
+
+      frameButtons.forEach((frame) => {
+        const matches = filter === 'todos' || frame.dataset.category === filter;
+        frame.classList.toggle('hidden', !matches);
+        if (matches) visibleCount += 1;
+      });
+
+      frameEmptyMessage?.classList.toggle('hidden', visibleCount > 0);
+
+      filterButtons.forEach((b) => {
+        const active = b === btn;
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        b.classList.toggle('border-aguamarina', active);
+        b.classList.toggle('bg-aguamarina', active);
+        b.classList.toggle('text-white', active);
+        b.classList.toggle('bg-white', !active);
+        b.classList.toggle('text-slate-700', !active);
+      });
+    });
+  });
+
+  frameButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const frameName = button.dataset.frameName ?? '';
+      const lensClause =
+        selectedLens === 'Todos' ? 'sin preferencia de lente' : `con lente ${selectedLens}`;
+      const text = encodeURIComponent(
+        `Hola, quiero cotizar unas gafas ${lensClause} y montura ${frameName}`,
+      );
+      window.open(`https://wa.me/${telefono}?text=${text}`, '_blank', 'noopener');
+    });
+  });
+</script>

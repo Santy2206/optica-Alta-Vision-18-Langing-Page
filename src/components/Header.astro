@@ -5,20 +5,22 @@ import Icon from './Icon.astro';
 const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
 
 const navLinks = [
-  { label: 'Catálogo', href: '#catalogo' },
-  { label: 'Servicios', href: '#servicios' },
-  { label: 'Ubicación', href: '#ubicacion' },
+  { label: 'Inicio', href: '/' },
+  { label: 'Catálogo', href: '/catalogo' },
+  { label: 'Nosotros', href: '/nosotros' },
+  { label: 'Servicios', href: '/#servicios' },
+  { label: 'Ubicación', href: '/#ubicacion' },
 ];
 ---
 
 <header class="sticky top-0 z-50 bg-aguamarina shadow-sm">
   <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
     <!-- Logo: guardar imagen en public/logo.png para activarla; el texto es fallback -->
-    <a href="#" class="flex items-center text-lg font-bold text-white tracking-tight">
+    <a href="/" class="flex items-center text-lg font-bold text-white tracking-tight">
       <img
         src="/logo.png"
         alt="Alta Visión 18"
-        class="hidden h-8 w-auto"
+        class="hidden h-12 w-auto"
         onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden');"
         onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
       />

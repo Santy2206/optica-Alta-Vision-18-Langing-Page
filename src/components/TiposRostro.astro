@@ -1,0 +1,60 @@
+---
+import site from '../content/configuracion/site.json';
+
+const whatsappHref = (mensaje: string) =>
+  `https://wa.me/${site.telefono}?text=${encodeURIComponent(mensaje)}`;
+
+const formas = [
+  { imagen: '/images/rostros/redondo.svg', label: 'Redondo' },
+  { imagen: '/images/rostros/corazon.svg', label: 'Corazón' },
+  { imagen: '/images/rostros/diamante.svg', label: 'Diamante' },
+  { imagen: '/images/rostros/ovalado.svg', label: 'Ovalado' },
+  { imagen: '/images/rostros/cuadrado.svg', label: 'Cuadrado' },
+] as const;
+---
+
+<section class="bg-aguamarina/5 py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">Elige según tu forma de rostro</h2>
+        <p class="mt-2 text-sm text-slate-600 md:text-base">
+          Cada rostro luce mejor con ciertas monturas — te ayudamos a encontrar la tuya.
+        </p>
+      </div>
+      <a
+        href={whatsappHref('Hola, quiero que me recomienden monturas según mi forma de rostro')}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-block whitespace-nowrap rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+      >
+        Pide tu recomendación
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+      {
+        formas.map((forma) => (
+          <a
+            href={whatsappHref(`Hola, tengo rostro ${forma.label.toLowerCase()} y quiero que me recomienden monturas`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group flex flex-col items-center gap-3"
+          >
+            <div class="aspect-square w-full max-w-[9rem] overflow-hidden">
+              <img
+                src={forma.imagen}
+                alt={`Rostro ${forma.label}`}
+                loading="lazy"
+                class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <span class="text-center text-sm font-bold uppercase tracking-wide text-slate-900">
+              {forma.label}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>

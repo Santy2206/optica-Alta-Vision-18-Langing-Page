@@ -1,0 +1,225 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppFloat from '../components/WhatsAppFloat.astro';
+import Icon from '../components/Icon.astro';
+import site from '../content/configuracion/site.json';
+import { getCollection } from 'astro:content';
+
+const title = 'Catálogo completo | Óptica Alta Visión 18';
+const description =
+  'Explora todas nuestras monturas formuladas, de sol, para niños y deportivas. Filtra por categoría y consulta precios por WhatsApp.';
+
+const items = await getCollection('catalogo');
+
+const categorias = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'formuladas', label: 'Formuladas' },
+  { value: 'sol', label: 'Sol' },
+  { value: 'ninos', label: 'Niños' },
+  { value: 'deportivas', label: 'Deportivas' },
+  { value: 'contacto', label: 'Lentes de contacto' },
+] as const;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical="https://optica-alta-vision-18.netlify.app/catalogo"
+>
+  <Header />
+
+  <section class="bg-aguamarina py-10 text-white md:py-14">
+    <div class="mx-auto max-w-6xl px-4">
+      <h1 class="text-2xl font-bold md:text-3xl">Catálogo completo</h1>
+      <p class="mt-2 text-white/90">Filtra por categoría y encuentra tu montura ideal.</p>
+    </div>
+  </section>
+
+  <section class="bg-white py-10 md:py-16">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría" data-filter-group>
+        {
+          categorias.map((cat, i) => (
+            <button
+              type="button"
+              class:list={[
+                'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                i === 0
+                  ? 'border-aguamarina bg-aguamarina text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-aguamarina hover:text-aguamarina',
+              ]}
+              data-filter-btn
+              data-filter={cat.value}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {cat.label}
+            </button>
+          ))
+        }
+      </div>
+
+      {
+        items.length > 0 ? (
+          <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4" data-catalog-grid>
+            {items.map((item) => {
+              const waText = encodeURIComponent(
+                `Hola, quiero información sobre ${item.data.name}`,
+              );
+              const waHref = `https://wa.me/${site.telefono}?text=${waText}`;
+              const priceLabel =
+                item.data.price !== null
+                  ? `Desde $${item.data.price.toLocaleString('es-CO')}`
+                  : 'Consultar precio';
+
+              return (
+                <article
+                  class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  data-catalog-item
+                  data-category={item.data.category}
+                >
+                  <div class="aspect-[4/3] bg-aguamarina/10" data-photo-hover>
+                    <img
+                      src={item.data.image}
+                      alt={item.data.imageAlt}
+                      loading="lazy"
+                      class="h-full w-full object-cover"
+                      data-product-image
+                      data-default-image={item.data.image}
+                      data-hover-image={item.data.colors[0]?.modelImage ?? ''}
+                    />
+                  </div>
+                  <div class="flex flex-1 flex-col gap-2 p-4">
+                    <div>
+                      <h3 class="font-semibold text-slate-900">{item.data.name}</h3>
+                      <p class="text-sm text-slate-500">{item.data.brand}</p>
+                    </div>
+
+                    {item.data.colors.length > 0 && (
+                      <div class="flex flex-wrap gap-2" role="group" aria-label="Colores disponibles">
+                        {item.data.colors.map((color, ci) => (
+                          <button
+                            type="button"
+                            class:list={[
+                              'h-6 w-6 rounded-full border border-slate-300 transition-shadow',
+                              ci === 0 && 'ring-2 ring-offset-2 ring-slate-900',
+                            ]}
+                            style={`background-color: ${color.hex}`}
+                            title={color.name}
+                            aria-label={color.name}
+                            data-swatch
+                            data-image={color.image ?? ''}
+                            data-model-image={color.modelImage ?? ''}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <p class="text-base font-medium text-aguamarina">{priceLabel}</p>
+                    <a
+                      href={waHref}
+                      class="mt-auto inline-block rounded-full bg-verde-neon px-4 py-2 text-center text-sm font-semibold text-slate-900 transition-shadow hover:shadow-md"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Me interesa
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <p class="text-center text-sm text-slate-500">
+            Catálogo vacío — agrega monturas desde el CMS.
+          </p>
+        )
+      }
+
+      <p class="mt-8 hidden text-center text-sm text-slate-500" data-empty-message>
+        No hay monturas en esta categoría todavía.
+      </p>
+    </div>
+  </section>
+
+  <Footer />
+  <WhatsAppFloat />
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter-btn]');
+  const items = document.querySelectorAll<HTMLElement>('[data-catalog-item]');
+  const emptyMessage = document.querySelector<HTMLElement>('[data-empty-message]');
+
+  const applyFilter = (filter: string) => {
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      const matches = filter === 'todos' || item.dataset.category === filter;
+      item.classList.toggle('hidden', !matches);
+      if (matches) visibleCount += 1;
+    });
+
+    emptyMessage?.classList.toggle('hidden', visibleCount > 0);
+
+    buttons.forEach((btn) => {
+      const active = btn.dataset.filter === filter;
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.classList.toggle('border-aguamarina', active);
+      btn.classList.toggle('bg-aguamarina', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('bg-white', !active);
+      btn.classList.toggle('text-slate-700', !active);
+    });
+  };
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.filter) applyFilter(btn.dataset.filter);
+    });
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  const initialFilter = params.get('categoria');
+  if (initialFilter && Array.from(buttons).some((b) => b.dataset.filter === initialFilter)) {
+    applyFilter(initialFilter);
+  }
+
+  document.addEventListener('click', (e) => {
+    const swatch = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-swatch]');
+    if (!swatch) return;
+
+    const article = swatch.closest('article');
+    if (!article) return;
+
+    const image = article.querySelector<HTMLImageElement>('[data-product-image]');
+    if (image) {
+      if (swatch.dataset.image) {
+        image.src = swatch.dataset.image;
+        image.dataset.defaultImage = swatch.dataset.image;
+      }
+      image.dataset.hoverImage = swatch.dataset.modelImage ?? '';
+    }
+
+    article.querySelectorAll<HTMLButtonElement>('[data-swatch]').forEach((s) => {
+      const selected = s === swatch;
+      s.classList.toggle('ring-2', selected);
+      s.classList.toggle('ring-offset-2', selected);
+      s.classList.toggle('ring-slate-900', selected);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-photo-hover]').forEach((container) => {
+    const image = container.querySelector<HTMLImageElement>('[data-product-image]');
+    if (!image) return;
+
+    container.addEventListener('mouseenter', () => {
+      if (image.dataset.hoverImage) image.src = image.dataset.hoverImage;
+    });
+
+    container.addEventListener('mouseleave', () => {
+      if (image.dataset.defaultImage) image.src = image.dataset.defaultImage;
+    });
+  });
+</script>

@@ -13,13 +13,26 @@ const catalogo = defineCollection({
   schema: z.object({
     name: z.string(),
     brand: z.string(),
-    category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas']),
+    category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas', 'contacto']),
     /** null = "Consultar precio" (WhatsApp) */
     price: z.number().nullable(),
     /** Ruta pública, p.ej. /uploads/catalogo/rayban-aviator.webp */
     image: z.string(),
     imageAlt: z.string(),
     featured: z.boolean().default(false),
+    /** Variaciones de color opcionales (swatches en la tarjeta del catálogo) */
+    colors: z
+      .array(
+        z.object({
+          name: z.string(),
+          hex: z.string(),
+          /** Si se define, al hacer clic en el swatch cambia la foto de la tarjeta */
+          image: z.string().optional(),
+          /** Si se define, al pasar el mouse por la foto se muestra un modelo usando esta montura en este color */
+          modelImage: z.string().optional(),
+        }),
+      )
+      .default([]),
   }),
 });
 
