@@ -18,6 +18,7 @@ export default {
       },
       fontFamily: {
         sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Sora', 'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },
