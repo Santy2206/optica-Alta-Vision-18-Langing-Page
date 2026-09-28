@@ -1,0 +1,838 @@
+---
+import { getCollection } from 'astro:content';
+import Icon from './Icon.astro';
+import site from '../content/configuracion/site.json';
+import { getFrameShape } from '../data/frameShape';
+import {
+  faceShapeInfo,
+  frameRecommendations,
+  measurementSteps,
+  measurementPrep,
+} from '../data/faceShapeQuiz';
+import type { FaceShapeId } from '../data/faceShapeQuiz';
+
+const allItems = await getCollection('catalogo');
+
+const catalogForTest = allItems.map((item) => ({
+  name: item.data.name,
+  brand: item.data.brand,
+  price: item.data.price,
+  image: item.data.image,
+  imageAlt: item.data.imageAlt,
+  frameShape: getFrameShape(item.data),
+  tryOnSku: item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null,
+}));
+
+const faceShapeIds = Object.keys(faceShapeInfo) as FaceShapeId[];
+
+const faceShapeResults = faceShapeIds.map((shapeId) => {
+  const recommended = frameRecommendations[shapeId];
+  const matches = catalogForTest.filter((item) => item.frameShape && recommended.includes(item.frameShape)).slice(0, 6);
+  return { shapeId, matches };
+});
+---
+
+<!--
+  Test de forma de rostro compartido: cualquier elemento con data-facetest-open
+  abre el modal desde el inicio; data-facetest-manual="{forma}" salta directo
+  al resultado de esa forma (selección manual, sin cámara ni mediciones).
+-->
+<div
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Test de forma de rostro"
+  data-facetest-modal
+  data-telefono={site.telefono}
+>
+  <div class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+    <div class="mb-4 flex items-start justify-between gap-4">
+      <h3 class="text-lg font-bold text-slate-900">Descubre tu forma de rostro</h3>
+      <button
+        type="button"
+        class="rounded-full p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+        aria-label="Cerrar"
+        data-facetest-close
+      >
+        <Icon name="close" class="h-5 w-5" />
+      </button>
+    </div>
+
+    <!-- Paso 1: elegir método -->
+    <div data-facetest-step="intro">
+      <p class="mb-6 text-sm text-slate-600">
+        Elige cómo prefieres descubrir tu forma de rostro. Con cualquiera de las dos opciones te recomendamos
+        monturas de nuestro catálogo.
+      </p>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <button
+          type="button"
+          class="flex flex-col items-center gap-3 rounded-2xl border-2 border-slate-200 p-6 text-center transition-colors hover:border-aguamarina"
+          data-facetest-start="camera"
+        >
+          <Icon name="eye" class="h-8 w-8 text-aguamarina" />
+          <span class="font-semibold text-slate-900">Usar la cámara</span>
+          <span class="text-xs text-slate-500">Detección automática en segundos</span>
+        </button>
+        <button
+          type="button"
+          class="flex flex-col items-center gap-3 rounded-2xl border-2 border-slate-200 p-6 text-center transition-colors hover:border-aguamarina"
+          data-facetest-start="quiz"
+        >
+          <Icon name="list" class="h-8 w-8 text-aguamarina" />
+          <span class="font-semibold text-slate-900">Medir con cinta métrica</span>
+          <span class="text-xs text-slate-500">Guía + calculadora de forma</span>
+        </button>
+      </div>
+
+      <p class="mt-6 mb-3 text-center text-xs font-medium text-slate-500">
+        ¿Ya sabes tu forma? Elígela directamente:
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        {
+          faceShapeIds.map((id) => (
+            <button
+              type="button"
+              data-facetest-manual={id}
+              class="flex flex-col items-center gap-1 rounded-xl p-2 transition-colors hover:bg-aguamarina/10"
+              title={faceShapeInfo[id].label}
+            >
+              <img
+                src={faceShapeInfo[id].image}
+                alt={`Rostro ${faceShapeInfo[id].label}`}
+                loading="lazy"
+                class="h-12 w-12 object-contain"
+              />
+              <span class="text-[11px] font-semibold text-slate-600">{faceShapeInfo[id].label}</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Paso 2a: guía de medición + calculadora -->
+    <div class="hidden" data-facetest-step="quiz">
+      <p class="mb-3 text-sm text-slate-600">
+        Mide 4 puntos con cinta métrica. Cada paso tiene su ilustración y los errores a evitar.
+      </p>
+
+      <div class="mb-4 flex flex-wrap gap-2">
+        {
+          measurementPrep.map((item) => (
+            <span class="rounded-full bg-aguamarina/10 px-3 py-1 text-[11px] font-medium text-slate-700">{item}</span>
+          ))
+        }
+      </div>
+
+      <form class="flex flex-col gap-4" data-facetest-measure-form>
+        {
+          measurementSteps.map((step, index) => (
+            <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div class="bg-aguamarina/5 px-3 pt-3 sm:px-4 sm:pt-4">
+                <img
+                  src={step.image}
+                  alt={step.imageAlt}
+                  loading="lazy"
+                  width="640"
+                  height="400"
+                  class="mx-auto h-auto w-full max-w-md object-contain"
+                />
+              </div>
+              <div class="flex flex-col gap-3 p-4">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-aguamarina">Paso {index + 1}</p>
+                  <h4 class="text-base font-bold text-slate-900">{step.title}</h4>
+                  <p class="mt-1 text-sm text-slate-600">{step.how}</p>
+                </div>
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-slate-500">Tu medida</span>
+                  <div class="relative max-w-[12rem]">
+                    <input
+                      type="number"
+                      name={step.field}
+                      inputmode="decimal"
+                      step="0.1"
+                      min="8"
+                      max="30"
+                      placeholder={step.placeholder}
+                      required
+                      data-measure-input={step.field}
+                      class="w-full rounded-xl border border-slate-300 px-3 py-2.5 pr-10 text-sm text-slate-900 outline-none transition-colors focus:border-aguamarina focus:ring-2 focus:ring-aguamarina/20"
+                    />
+                    <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-400">
+                      cm
+                    </span>
+                  </div>
+                </label>
+                <div class="rounded-xl bg-slate-50 px-3 py-2.5">
+                  <p class="mb-1.5 text-xs font-semibold text-slate-800">Evita</p>
+                  <ul class="space-y-1 text-xs leading-snug text-slate-600">
+                    {step.mistakes.map((mistake) => (
+                      <li class="flex gap-1.5">
+                        <span class="mt-0.5 shrink-0 font-bold text-fucsia" aria-hidden="true">
+                          ×
+                        </span>
+                        <span>{mistake}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+
+        <fieldset class="rounded-2xl border border-slate-200 p-4">
+          <legend class="px-1 text-sm font-bold text-slate-900">Contorno de mandíbula</legend>
+          <p class="mb-3 text-[11px] text-slate-500">
+            Sirve para distinguir redondo vs cuadrado cuando largo y ancho son parecidos.
+          </p>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label
+              class="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 transition-colors has-[:checked]:border-aguamarina has-[:checked]:bg-aguamarina/10"
+            >
+              <input type="radio" name="jawContour" value="suave" checked class="mt-0.5 accent-[#00B4B0]" data-measure-jaw />
+              <span>
+                <span class="font-semibold text-slate-900">Suave / redondeada</span>
+                <span class="mt-0.5 block text-xs text-slate-500">Sin ángulos marcados</span>
+              </span>
+            </label>
+            <label
+              class="flex cursor-pointer items-start gap-2 rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 transition-colors has-[:checked]:border-aguamarina has-[:checked]:bg-aguamarina/10"
+            >
+              <input type="radio" name="jawContour" value="angular" class="mt-0.5 accent-[#00B4B0]" data-measure-jaw />
+              <span>
+                <span class="font-semibold text-slate-900">Angular / marcada</span>
+                <span class="mt-0.5 block text-xs text-slate-500">Esquinas definidas</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <p class="hidden text-xs font-medium text-fucsia" data-facetest-measure-error role="alert"></p>
+
+        <button
+          type="submit"
+          class="w-full rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+          data-facetest-submit-quiz
+          disabled
+        >
+          Calcular mi forma de rostro
+        </button>
+      </form>
+    </div>
+
+    <!-- Paso 2b: cámara -->
+    <div class="hidden" data-facetest-step="camera">
+      <div class="mb-3 rounded-xl bg-aguamarina/10 p-3 text-xs text-slate-700">
+        <p class="mb-1 font-semibold text-slate-900">Para un resultado más preciso:</p>
+        <ul class="list-disc space-y-0.5 pl-4">
+          <li>Mira directo a la cámara, con la cabeza derecha (ni girada ni inclinada)</li>
+          <li>Usa buena luz de frente — evita la luz a contraluz</li>
+          <li>Recoge el cabello para que se vean tu frente y tus orejas</li>
+          <li>Quítate las gafas, pon la <strong>punta de tu nariz en el círculo</strong> y tus ojos sobre la línea</li>
+          <li>Cuando la guía se ponga verde, toma la foto</li>
+        </ul>
+      </div>
+      <div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-900">
+        <video data-facetest-video autoplay playsinline muted class="h-full w-full -scale-x-100 object-cover"></video>
+        <canvas data-facetest-canvas class="hidden"></canvas>
+
+        <!-- viewBox 400x300 = proporción 4:3 del contenedor; coordenadas alineadas con GUIDE en faceShapeCamera.ts -->
+        <svg
+          class="pointer-events-none absolute inset-0 h-full w-full text-white/80 transition-colors"
+          viewBox="0 0 400 300"
+          aria-hidden="true"
+          data-facetest-guide
+        >
+          <ellipse cx="200" cy="150" rx="104" ry="112.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5" />
+          <line x1="200" y1="45" x2="200" y2="255" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" opacity="0.6" />
+          <line x1="130" y1="132" x2="270" y2="132" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" opacity="0.6" />
+          <text x="276" y="135" fill="currentColor" font-size="10" font-weight="600">ojos</text>
+          <circle cx="200" cy="174" r="14" fill="none" stroke="currentColor" stroke-width="2" />
+          <text x="220" y="178" fill="currentColor" font-size="10" font-weight="600">nariz</text>
+          <text x="200" y="278" fill="currentColor" font-size="10" font-weight="600" text-anchor="middle">mentón</text>
+          <circle r="4" class="hidden fill-fucsia" data-facetest-nose-dot />
+        </svg>
+
+        <p
+          class="pointer-events-none absolute inset-x-0 top-2 mx-auto hidden w-fit max-w-[90%] rounded-full bg-slate-900/80 px-3 py-1 text-center text-xs font-medium text-white"
+          role="status"
+          aria-live="polite"
+          data-facetest-hint
+        ></p>
+
+        <div
+          class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-sm font-medium text-white"
+          data-facetest-camera-loading
+        >
+          Cargando cámara…
+        </div>
+
+        <div
+          class="absolute inset-0 z-10 hidden flex-col items-center justify-center gap-3 bg-slate-900/95 p-6 text-center text-sm text-white"
+          data-facetest-camera-error
+        >
+          <p data-facetest-camera-error-message>No pudimos acceder a tu cámara.</p>
+          <div class="flex gap-2">
+            <button type="button" class="rounded-full border border-white px-3 py-1.5 text-xs font-semibold" data-facetest-retry-camera>
+              Reintentar
+            </button>
+            <button
+              type="button"
+              class="rounded-full bg-verde-neon px-3 py-1.5 text-xs font-semibold text-slate-900"
+              data-facetest-switch-quiz
+            >
+              Medir con cinta
+            </button>
+          </div>
+        </div>
+
+        <p
+          class="absolute inset-x-0 bottom-0 hidden bg-slate-900/80 py-2 text-center text-xs font-medium text-white"
+          data-facetest-analyzing
+        >
+          Analizando tu rostro…
+        </p>
+      </div>
+      <p class="mt-2 text-center text-[11px] text-slate-400">
+        Tu foto se analiza en tu propio navegador — nunca se guarda ni se envía a ningún servidor.
+      </p>
+      <button
+        type="button"
+        class="mt-4 w-full rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+        data-facetest-capture
+        disabled
+      >
+        Tomar foto
+      </button>
+    </div>
+
+    <!-- Paso 3: resultado -->
+    <div class="hidden" data-facetest-step="result">
+      <div class="mb-4 flex items-center gap-4">
+        {
+          faceShapeIds.map((id) => (
+            <img
+              src={faceShapeInfo[id].image}
+              alt={`Rostro ${faceShapeInfo[id].label}`}
+              class="hidden h-16 w-16 object-contain"
+              data-facetest-result-image={id}
+            />
+          ))
+        }
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-aguamarina">Tu forma de rostro es</p>
+          {
+            faceShapeIds.map((id) => (
+              <h4 class="hidden text-xl font-bold text-slate-900" data-facetest-result-label={id}>
+                {faceShapeInfo[id].label}
+              </h4>
+            ))
+          }
+          <p class="mt-0.5 hidden text-sm font-medium text-aguamarina" data-facetest-result-subtype></p>
+        </div>
+      </div>
+
+      {
+        faceShapeIds.map((id) => (
+          <p class="hidden mb-3 text-sm text-slate-600" data-facetest-result-description={id}>
+            {faceShapeInfo[id].description}
+          </p>
+        ))
+      }
+
+      <p class="mb-3 hidden text-sm text-slate-600" data-facetest-result-summary></p>
+
+      <div
+        class="mb-4 hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
+        data-facetest-result-ratios
+      ></div>
+
+      <p class="mb-5 hidden text-sm text-slate-500" data-facetest-uncertainty>
+        ¿No estás seguro/a?{' '}
+        <button
+          type="button"
+          class="font-semibold text-aguamarina underline-offset-2 hover:underline"
+          data-facetest-goto-manual
+        >
+          Intenta con la guía de medición
+        </button>
+      </p>
+
+      {
+        faceShapeResults.map(({ shapeId, matches }) => (
+          <div class="hidden" data-facetest-result-grid={shapeId}>
+            {matches.length > 0 ? (
+              <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                {matches.map((item) => (
+                  <article class="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="aspect-[4/3] bg-aguamarina/10">
+                      <img src={item.image} alt={item.imageAlt} loading="lazy" class="h-full w-full object-cover" />
+                    </div>
+                    <div class="flex flex-1 flex-col gap-1 p-3">
+                      <h5 class="text-sm font-semibold text-slate-900">{item.name}</h5>
+                      <p class="text-xs text-slate-500">{item.brand}</p>
+                      <p class="text-sm font-medium text-aguamarina">
+                        {item.price !== null ? `Desde $${item.price.toLocaleString('es-CO')}` : 'Consultar precio'}
+                      </p>
+                      <a
+                        href={`https://wa.me/${site.telefono}?text=${encodeURIComponent(`Hola, hice el test de rostro y me interesa ${item.name}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="mt-auto inline-block rounded-full bg-verde-neon px-3 py-1.5 text-center text-xs font-semibold text-slate-900 transition-shadow hover:shadow-md"
+                      >
+                        Me interesa
+                      </a>
+                      {item.tryOnSku && (
+                        <button
+                          type="button"
+                          class="inline-flex items-center justify-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-center text-xs font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
+                          data-tryon-open
+                          data-sku={item.tryOnSku}
+                          data-name={item.name}
+                        >
+                          <Icon name="eye" class="h-3.5 w-3.5" />
+                          Probar
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p class="text-sm text-slate-500">
+                Aún no tenemos monturas de esta forma cargadas en el catálogo — escríbenos y te asesoramos
+                directamente.
+              </p>
+            )}
+          </div>
+        ))
+      }
+
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 rounded-full bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          data-facetest-result-whatsapp
+        >
+          Quiero asesoría personalizada
+        </a>
+        <button
+          type="button"
+          class="rounded-full border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
+          data-facetest-retry
+        >
+          Volver a intentar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { calculateFaceShape, isValidMeasurement } from '../data/faceShapeQuiz';
+  import type { FaceMeasurements, FaceShapeResult, JawContour } from '../data/faceShapeQuiz';
+  import {
+    checkAlignment,
+    detectFaceShape,
+    preloadFaceLandmarker,
+    FaceShapeCameraError,
+    type AlignmentResult,
+  } from '../scripts/faceShapeCamera';
+
+  const modal = document.querySelector<HTMLElement>('[data-facetest-modal]');
+  const telefono = modal?.dataset.telefono ?? '';
+
+  if (modal) {
+    const steps = ['intro', 'quiz', 'camera', 'result'] as const;
+    type Step = (typeof steps)[number];
+
+    const showStep = (step: Step) => {
+      steps.forEach((s) => {
+        modal.querySelector<HTMLElement>(`[data-facetest-step="${s}"]`)?.classList.toggle('hidden', s !== step);
+      });
+    };
+
+    const video = modal.querySelector<HTMLVideoElement>('[data-facetest-video]');
+    const canvas = modal.querySelector<HTMLCanvasElement>('[data-facetest-canvas]');
+    const captureBtn = modal.querySelector<HTMLButtonElement>('[data-facetest-capture]');
+    const cameraLoading = modal.querySelector<HTMLElement>('[data-facetest-camera-loading]');
+    const cameraError = modal.querySelector<HTMLElement>('[data-facetest-camera-error]');
+    const cameraErrorMessage = modal.querySelector<HTMLElement>('[data-facetest-camera-error-message]');
+    const analyzing = modal.querySelector<HTMLElement>('[data-facetest-analyzing]');
+
+    const guide = modal.querySelector<SVGElement>('[data-facetest-guide]');
+    const noseDot = modal.querySelector<SVGCircleElement>('[data-facetest-nose-dot]');
+    const hint = modal.querySelector<HTMLElement>('[data-facetest-hint]');
+
+    let stream: MediaStream | null = null;
+    let alignTimer: number | undefined;
+    let capturing = false;
+
+    const ALIGN_INTERVAL_MS = 200;
+
+    const hintText = ({ issue, direction }: AlignmentResult): string => {
+      switch (issue) {
+        case 'NO_FACE':
+          return 'Ubica tu rostro frente a la cámara';
+        case 'TOO_FAR':
+          return 'Acércate un poco a la cámara';
+        case 'TOO_CLOSE':
+          return 'Aléjate un poco de la cámara';
+        case 'OFF_CENTER':
+          return `Mueve tu rostro hacia ${direction === 'arriba' || direction === 'abajo' ? '' : 'la '}${direction}: la punta de tu nariz va en el círculo`;
+        case 'TURNED':
+          return 'Gira un poco: mira directo a la cámara';
+        case 'TILTED':
+          return 'Endereza la cabeza, sin inclinarla hacia un hombro';
+        case 'PITCHED':
+          return 'Mantén la barbilla recta, ni arriba ni abajo';
+        default:
+          return '¡Perfecto! Quédate quieto y toma la foto';
+      }
+    };
+
+    const renderAlignment = (alignment: AlignmentResult) => {
+      const ok = alignment.issue === null;
+      guide?.classList.toggle('text-emerald-400', ok);
+      guide?.classList.toggle('text-white/80', !ok);
+      if (noseDot) {
+        noseDot.classList.toggle('hidden', !alignment.nose);
+        if (alignment.nose) {
+          noseDot.setAttribute('cx', alignment.nose.x.toFixed(1));
+          noseDot.setAttribute('cy', alignment.nose.y.toFixed(1));
+        }
+      }
+      if (hint) {
+        hint.textContent = hintText(alignment);
+        hint.classList.remove('hidden');
+      }
+      if (captureBtn) captureBtn.disabled = !ok;
+    };
+
+    const resetAlignment = () => {
+      window.clearTimeout(alignTimer);
+      alignTimer = undefined;
+      guide?.classList.remove('text-emerald-400');
+      guide?.classList.add('text-white/80');
+      noseDot?.classList.add('hidden');
+      hint?.classList.add('hidden');
+    };
+
+    // Revisión en vivo del encuadre (~5 veces por segundo). Si el analizador no
+    // carga, se habilita el botón igual y el error se maneja al capturar.
+    const alignLoop = async () => {
+      const current = stream;
+      if (!current || !video) return;
+      if (!capturing) {
+        try {
+          const alignment = await checkAlignment(video);
+          if (stream !== current) return;
+          renderAlignment(alignment);
+        } catch {
+          if (stream !== current) return;
+          resetAlignment();
+          if (captureBtn) captureBtn.disabled = false;
+          return;
+        }
+      }
+      alignTimer = window.setTimeout(alignLoop, ALIGN_INTERVAL_MS);
+    };
+
+    const showCameraError = (message: string) => {
+      if (cameraErrorMessage) cameraErrorMessage.textContent = message;
+      cameraError?.classList.remove('hidden');
+      cameraError?.classList.add('flex');
+    };
+
+    const hideCameraError = () => {
+      cameraError?.classList.add('hidden');
+      cameraError?.classList.remove('flex');
+    };
+
+    const stopCamera = () => {
+      stream?.getTracks().forEach((track) => track.stop());
+      stream = null;
+      resetAlignment();
+    };
+
+    const startCamera = async () => {
+      stopCamera();
+      hideCameraError();
+      cameraLoading?.classList.remove('hidden');
+      if (captureBtn) captureBtn.disabled = true;
+      preloadFaceLandmarker();
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        if (video) {
+          video.srcObject = stream;
+          await video.play();
+        }
+        cameraLoading?.classList.add('hidden');
+        if (hint) {
+          hint.textContent = 'Preparando la guía…';
+          hint.classList.remove('hidden');
+        }
+        alignLoop();
+      } catch {
+        cameraLoading?.classList.add('hidden');
+        showCameraError('No pudimos acceder a tu cámara. Verifica los permisos de tu navegador e intenta de nuevo.');
+      }
+    };
+
+    captureBtn?.addEventListener('click', async () => {
+      if (!stream || !video || !canvas) return;
+      captureBtn.disabled = true;
+      capturing = true;
+      analyzing?.classList.remove('hidden');
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      try {
+        const shape = await detectFaceShape(canvas);
+        stopCamera();
+        renderResult(shape, 'camera');
+        showStep('result');
+      } catch (err) {
+        let message = 'No pudimos analizar tu rostro ahora mismo. Prueba con la guía de medición.';
+        if (err instanceof FaceShapeCameraError) {
+          if (err.code === 'NO_FACE') {
+            message = 'No detectamos tu rostro con claridad. Ubícate frente a la cámara con buena luz e intenta de nuevo.';
+          } else if (err.code === 'BAD_ANGLE') {
+            message = 'Gira tu rostro para mirar directo a la cámara, sin inclinarlo, y toma la foto de nuevo.';
+          }
+        }
+        showCameraError(message);
+      } finally {
+        capturing = false;
+        analyzing?.classList.add('hidden');
+        if (captureBtn) captureBtn.disabled = false;
+      }
+    });
+
+    modal.querySelectorAll('[data-facetest-retry-camera]').forEach((btn) => btn.addEventListener('click', startCamera));
+    modal.querySelectorAll('[data-facetest-switch-quiz]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        stopCamera();
+        resetMeasureForm();
+        showStep('quiz');
+      }),
+    );
+
+    // --- Calculadora de medidas ---
+    const measureForm = modal.querySelector<HTMLFormElement>('[data-facetest-measure-form]');
+    const measureInputs = modal.querySelectorAll<HTMLInputElement>('[data-measure-input]');
+    const submitMeasureBtn = modal.querySelector<HTMLButtonElement>('[data-facetest-submit-quiz]');
+    const measureError = modal.querySelector<HTMLElement>('[data-facetest-measure-error]');
+
+    const parseCm = (raw: string): number => {
+      const normalized = raw.trim().replace(',', '.');
+      return Number.parseFloat(normalized);
+    };
+
+    const fieldValue = (name: string): string => {
+      const el = measureForm?.elements.namedItem(name);
+      return el instanceof HTMLInputElement ? el.value : '';
+    };
+
+    const readMeasurements = (): FaceMeasurements | null => {
+      const forehead = parseCm(fieldValue('forehead'));
+      const cheekbones = parseCm(fieldValue('cheekbones'));
+      const jaw = parseCm(fieldValue('jaw'));
+      const length = parseCm(fieldValue('length'));
+
+      const jawRadio = measureForm?.querySelector<HTMLInputElement>('input[name="jawContour"]:checked');
+      const jawContour = (jawRadio?.value === 'angular' ? 'angular' : 'suave') as JawContour;
+
+      if (![forehead, cheekbones, jaw, length].every(isValidMeasurement)) return null;
+
+      return { forehead, cheekbones, jaw, length, jawContour };
+    };
+
+    const updateMeasureValidity = () => {
+      const values = Array.from(measureInputs).map((input) => parseCm(input.value));
+      const ok = values.length === 4 && values.every((v) => isValidMeasurement(v));
+      if (submitMeasureBtn) submitMeasureBtn.disabled = !ok;
+      if (measureError) {
+        measureError.classList.add('hidden');
+        measureError.textContent = '';
+      }
+    };
+
+    const resetMeasureForm = () => {
+      measureForm?.reset();
+      const soft = measureForm?.querySelector<HTMLInputElement>('input[name="jawContour"][value="suave"]');
+      if (soft) soft.checked = true;
+      if (submitMeasureBtn) submitMeasureBtn.disabled = true;
+      if (measureError) {
+        measureError.classList.add('hidden');
+        measureError.textContent = '';
+      }
+    };
+
+    measureInputs.forEach((input) => {
+      input.addEventListener('input', updateMeasureValidity);
+      input.addEventListener('change', updateMeasureValidity);
+    });
+    measureForm?.querySelectorAll<HTMLInputElement>('input[name="jawContour"]').forEach((radio) => {
+      radio.addEventListener('change', updateMeasureValidity);
+    });
+
+    measureForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const measurements = readMeasurements();
+      if (!measurements) {
+        if (measureError) {
+          measureError.textContent =
+            'Revisa las medidas: usa centímetros entre 8 y 30 (ej. 13,5). Las 4 casillas son obligatorias.';
+          measureError.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const result = calculateFaceShape(measurements);
+      renderResult(result.shape, 'quiz', result);
+      showStep('result');
+    });
+
+    // --- Resultado ---
+    const uncertaintyNote = modal.querySelector<HTMLElement>('[data-facetest-uncertainty]');
+    const subtypeEl = modal.querySelector<HTMLElement>('[data-facetest-result-subtype]');
+    const summaryEl = modal.querySelector<HTMLElement>('[data-facetest-result-summary]');
+    const ratiosEl = modal.querySelector<HTMLElement>('[data-facetest-result-ratios]');
+
+    function renderResult(shapeId: string, source: 'camera' | 'quiz' | 'manual', detail?: FaceShapeResult) {
+      modal!.querySelectorAll<HTMLElement>('[data-facetest-result-image]').forEach((el) => {
+        el.classList.toggle('hidden', el.dataset.facetestResultImage !== shapeId);
+      });
+      modal!.querySelectorAll<HTMLElement>('[data-facetest-result-label]').forEach((el) => {
+        el.classList.toggle('hidden', el.dataset.facetestResultLabel !== shapeId);
+      });
+      modal!.querySelectorAll<HTMLElement>('[data-facetest-result-description]').forEach((el) => {
+        el.classList.toggle('hidden', el.dataset.facetestResultDescription !== shapeId);
+      });
+      modal!.querySelectorAll<HTMLElement>('[data-facetest-result-grid]').forEach((el) => {
+        el.classList.toggle('hidden', el.dataset.facetestResultGrid !== shapeId);
+      });
+      uncertaintyNote?.classList.toggle('hidden', source !== 'camera');
+
+      if (subtypeEl) {
+        if (detail?.subtype) {
+          subtypeEl.textContent = `Subtipo: ${detail.subtype}${detail.confidence === 'media' ? ' (aproximado)' : ''}`;
+          subtypeEl.classList.remove('hidden');
+        } else {
+          subtypeEl.textContent = '';
+          subtypeEl.classList.add('hidden');
+        }
+      }
+
+      if (summaryEl) {
+        if (detail?.summary) {
+          summaryEl.textContent = detail.summary;
+          summaryEl.classList.remove('hidden');
+        } else {
+          summaryEl.textContent = '';
+          summaryEl.classList.add('hidden');
+        }
+      }
+
+      if (ratiosEl) {
+        if (detail?.ratios) {
+          const r = detail.ratios;
+          ratiosEl.innerHTML = `
+            <p class="font-semibold text-slate-800 mb-1">Proporciones calculadas</p>
+            <ul class="grid grid-cols-2 gap-x-3 gap-y-0.5">
+              <li>Largo / ancho: <strong>${r.lengthToWidth}</strong></li>
+              <li>Frente / mandíbula: <strong>${r.foreheadToJaw}</strong></li>
+              <li>Pómulos / frente: <strong>${r.cheekToForehead}</strong></li>
+              <li>Pómulos / mandíbula: <strong>${r.cheekToJaw}</strong></li>
+            </ul>
+          `;
+          ratiosEl.classList.remove('hidden');
+        } else {
+          ratiosEl.innerHTML = '';
+          ratiosEl.classList.add('hidden');
+        }
+      }
+
+      const baseLabel =
+        modal!.querySelector<HTMLElement>(`[data-facetest-result-label="${shapeId}"]`)?.textContent ?? '';
+      const label = detail?.displayLabel ?? baseLabel;
+      const whatsapp = modal!.querySelector<HTMLAnchorElement>('[data-facetest-result-whatsapp]');
+      if (whatsapp) {
+        const text = encodeURIComponent(
+          `Hola, hice el test de rostro y mi resultado fue: ${label}. Quiero asesoría personalizada.`,
+        );
+        whatsapp.href = `https://wa.me/${telefono}?text=${text}`;
+      }
+    }
+
+    modal.querySelector('[data-facetest-goto-manual]')?.addEventListener('click', () => {
+      resetMeasureForm();
+      showStep('quiz');
+    });
+
+    // --- Navegación general del modal ---
+    const openModal = () => {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      showStep('intro');
+    };
+
+    const closeModal = () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      stopCamera();
+    };
+
+    modal.querySelector('[data-facetest-close]')?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+    });
+
+    modal.querySelector('[data-facetest-start="camera"]')?.addEventListener('click', () => {
+      showStep('camera');
+      startCamera();
+    });
+    modal.querySelector('[data-facetest-start="quiz"]')?.addEventListener('click', () => {
+      resetMeasureForm();
+      showStep('quiz');
+    });
+
+    modal.querySelectorAll('[data-facetest-retry]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        resetMeasureForm();
+        showStep('intro');
+      }),
+    );
+
+    // Disparadores en cualquier parte de la página.
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+
+      if (target.closest('[data-facetest-open]')) {
+        openModal();
+        return;
+      }
+
+      const manualBtn = target.closest<HTMLElement>('[data-facetest-manual]');
+      if (manualBtn) {
+        const shape = manualBtn.dataset.facetestManual;
+        if (shape) {
+          openModal();
+          renderResult(shape, 'manual');
+          showStep('result');
+        }
+      }
+    });
+  }
+</script>

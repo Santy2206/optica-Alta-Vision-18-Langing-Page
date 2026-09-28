@@ -1,0 +1,46 @@
+{
+  "name": "Flak",
+  "brand": "Oakley",
+  "category": "deportivas",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-deportivas.webp",
+  "imageAlt": "Oakley Flak — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "flak_black_blue",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "flak_black_blue",
+      "lenses": [
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "flak_black_blue"
+        },
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "flak_black_gray"
+        }
+      ]
+    },
+    {
+      "name": "Blanco",
+      "hex": "#F5F5F5",
+      "tryOnSku": "flak_white_blue",
+      "lenses": [
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "flak_white_blue"
+        },
+        {
+          "name": "Naranja",
+          "hex": "#E07A2F",
+          "tryOnSku": "flak_white_orange"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "Frogskins",
+  "brand": "Oakley",
+  "category": "deportivas",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-deportivas.webp",
+  "imageAlt": "Oakley Frogskins — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "frogskins_black_brown",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "frogskins_black_brown",
+      "lenses": [
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "frogskins_black_brown"
+        },
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "frogskins_black_gray"
+        }
+      ]
+    },
+    {
+      "name": "Transparente",
+      "hex": "#EAF6F5",
+      "tryOnSku": "frogskins_transparent_blue",
+      "lenses": [
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "frogskins_transparent_blue"
+        }
+      ]
+    },
+    {
+      "name": "Verde",
+      "hex": "#2E8B57",
+      "tryOnSku": "frogskins_green_brown",
+      "lenses": [
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "frogskins_green_brown"
+        }
+      ]
+    }
+  ]
+}

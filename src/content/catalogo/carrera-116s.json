@@ -1,0 +1,51 @@
+{
+  "name": "Rectangular Clásico",
+  "brand": "Carrera · Ref. 116/S",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Carrera · Ref. 116/S Rectangular Clásico — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "carrera_116s_black_blue",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "carrera_116s_black_blue",
+      "lenses": [
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "carrera_116s_black_blue"
+        },
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "carrera_116s_black_brown_gradient"
+        },
+        {
+          "name": "Gris degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "carrera_116s_black_gray_gradient"
+        },
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "carrera_116s_black_brown"
+        }
+      ]
+    },
+    {
+      "name": "Azul",
+      "hex": "#2A5CAA",
+      "tryOnSku": "carrera_116s_blue_gray",
+      "lenses": [
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "carrera_116s_blue_gray"
+        }
+      ]
+    }
+  ]
+}

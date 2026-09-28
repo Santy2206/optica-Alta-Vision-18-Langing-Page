@@ -1,0 +1,63 @@
+{
+  "name": "Piloto Metálico",
+  "brand": "Carrera · Ref. 113/S",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Carrera · Ref. 113/S Piloto Metálico — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "carrera_113S_gold_green",
+  "colors": [
+    {
+      "name": "Dorado",
+      "hex": "#C9A227",
+      "tryOnSku": "carrera_113S_gold_green",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "carrera_113S_gold_green"
+        },
+        {
+          "name": "Negro / Rojo",
+          "hex": "#1C1C1C",
+          "tryOnSku": "carrera_113S_gold_black_red"
+        },
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "carrera_113S_gold_brown"
+        },
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "carrera_113S_gold_brown_gradient"
+        }
+      ]
+    },
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "tryOnSku": "carrera_113S_silver_silver_mirror",
+      "lenses": [
+        {
+          "name": "Plateado espejado",
+          "hex": "#C0C0C0",
+          "tryOnSku": "carrera_113S_silver_silver_mirror"
+        }
+      ]
+    },
+    {
+      "name": "Azul",
+      "hex": "#2A5CAA",
+      "tryOnSku": "carrera_113S_blue",
+      "lenses": [
+        {
+          "name": "Original",
+          "hex": "#8E8E8E",
+          "tryOnSku": "carrera_113S_blue"
+        }
+      ]
+    }
+  ]
+}

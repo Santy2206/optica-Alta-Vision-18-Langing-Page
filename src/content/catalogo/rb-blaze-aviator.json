@@ -1,0 +1,83 @@
+{
+  "name": "Blaze Aviador",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Blaze Aviador — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "blazeaviator_argent_vertmiroir",
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "tryOnSku": "blazeaviator_argent_vertmiroir",
+      "lenses": [
+        {
+          "name": "Verde espejado",
+          "hex": "#2E8B57",
+          "tryOnSku": "blazeaviator_argent_vertmiroir"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "blazeaviator_noir_grisdegrade",
+      "lenses": [
+        {
+          "name": "Gris degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "blazeaviator_noir_grisdegrade"
+        }
+      ]
+    },
+    {
+      "name": "Dorado",
+      "hex": "#C9A227",
+      "tryOnSku": "blazeaviator_or_bleuclairdegrade",
+      "lenses": [
+        {
+          "name": "Azul claro degradado",
+          "hex": "#2A5CAA",
+          "tryOnSku": "blazeaviator_or_bleuclairdegrade"
+        },
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "blazeaviator_or_vertclassique"
+        },
+        {
+          "name": "Rosado espejado",
+          "hex": "#E8A0BF",
+          "tryOnSku": "blazeaviator_or_rosemiroir"
+        }
+      ]
+    },
+    {
+      "name": "Gunmetal",
+      "hex": "#4B4B4E",
+      "tryOnSku": "blazeaviator_gun_marrondegrade",
+      "lenses": [
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "blazeaviator_gun_marrondegrade"
+        }
+      ]
+    },
+    {
+      "name": "Bronce / Cobre",
+      "hex": "#8C7853",
+      "hex2": "#B87333",
+      "tryOnSku": "blazeaviator_bronzecuivre_violetmiroir",
+      "lenses": [
+        {
+          "name": "Violeta espejado",
+          "hex": "#6A3FA0",
+          "tryOnSku": "blazeaviator_bronzecuivre_violetmiroir"
+        }
+      ]
+    }
+  ]
+}

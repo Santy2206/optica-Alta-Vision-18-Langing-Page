@@ -20,16 +20,32 @@ const catalogo = defineCollection({
     image: z.string(),
     imageAlt: z.string(),
     featured: z.boolean().default(false),
-    /** Variaciones de color opcionales (swatches en la tarjeta del catálogo) */
+    /** SKU de la base gratuita de Jeeliz (jeelizGlassesVTOWidget) para "probar con cámara" */
+    tryOnSku: z.string().optional(),
+    /** Colores del MARCO (swatches en la tarjeta del catálogo) */
     colors: z
       .array(
         z.object({
           name: z.string(),
           hex: z.string(),
+          /** Segundo tono para marcos bicolor (el swatch se muestra partido en diagonal) */
+          hex2: z.string().optional(),
           /** Si se define, al hacer clic en el swatch cambia la foto de la tarjeta */
           image: z.string().optional(),
           /** Si se define, al pasar el mouse por la foto se muestra un modelo usando esta montura en este color */
           modelImage: z.string().optional(),
+          /** SKU de Jeeliz por defecto para este color de marco */
+          tryOnSku: z.string().optional(),
+          /** Colores de LENTE disponibles para este marco (se eligen dentro de "probar con cámara") */
+          lenses: z
+            .array(
+              z.object({
+                name: z.string(),
+                hex: z.string(),
+                tryOnSku: z.string(),
+              }),
+            )
+            .default([]),
         }),
       )
       .default([]),

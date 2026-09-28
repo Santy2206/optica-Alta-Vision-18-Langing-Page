@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" role="img" aria-label="Cómo medir el ancho de la frente">
+  <defs>
+    <linearGradient id="skin" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#F0C9A8"/>
+      <stop offset="45%" stop-color="#E4B48E"/>
+      <stop offset="100%" stop-color="#D09A72"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#4A3428"/>
+      <stop offset="55%" stop-color="#2C1D16"/>
+      <stop offset="100%" stop-color="#1A100C"/>
+    </linearGradient>
+    <linearGradient id="lip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C98986"/>
+      <stop offset="100%" stop-color="#A86562"/>
+    </linearGradient>
+    <radialGradient id="iris" cx="45%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#6B5344"/>
+      <stop offset="70%" stop-color="#3D2A20"/>
+      <stop offset="100%" stop-color="#1A100C"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="640" height="460" rx="28" fill="#E8F7F6"/>
+
+  <text x="320" y="36" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="24" font-weight="800" fill="#0f172a">Frente · sien a sien</text>
+
+  <!-- neck -->
+  <path d="M268 350 C278 372 302 388 320 388 C338 388 362 372 372 350 L390 430 L250 430 Z" fill="url(#skin)"/>
+  <path d="M278 355 C290 375 308 385 320 385 C332 385 350 375 362 355" fill="none" stroke="#C48A66" stroke-width="1.2" opacity="0.5"/>
+
+  <!-- ears -->
+  <path d="M198 210 C185 200 178 220 182 245 C186 268 198 278 210 272 C205 250 202 228 198 210 Z" fill="url(#skin)"/>
+  <path d="M190 225 C186 235 188 255 198 262" fill="none" stroke="#C48A66" stroke-width="1.5" opacity="0.55"/>
+  <path d="M442 210 C455 200 462 220 458 245 C454 268 442 278 430 272 C435 250 438 228 442 210 Z" fill="url(#skin)"/>
+  <path d="M450 225 C454 235 452 255 442 262" fill="none" stroke="#C48A66" stroke-width="1.5" opacity="0.55"/>
+
+  <!-- face shape (more natural oval, soft jaw) -->
+  <path d="M210 195
+    C210 120 250 72 320 68
+    C390 72 430 120 430 195
+    C430 250 415 300 385 335
+    C360 360 340 372 320 374
+    C300 372 280 360 255 335
+    C225 300 210 250 210 195 Z" fill="url(#skin)"/>
+
+  <!-- subtle cheek shading -->
+  <ellipse cx="245" cy="255" rx="28" ry="36" fill="#C48A66" opacity="0.12"/>
+  <ellipse cx="395" cy="255" rx="28" ry="36" fill="#C48A66" opacity="0.12"/>
+  <!-- forehead highlight -->
+  <ellipse cx="320" cy="140" rx="70" ry="40" fill="#F6DCC4" opacity="0.35"/>
+
+  <!-- hair mass + receding-aware hairline -->
+  <path d="M205 195
+    C200 130 235 70 290 58
+    C305 54 315 62 320 62
+    C325 62 335 54 350 58
+    C405 70 440 130 435 195
+    C430 155 405 118 360 105
+    C340 100 330 112 320 112
+    C310 112 300 100 280 105
+    C235 118 210 155 205 195 Z" fill="url(#hair)"/>
+  <!-- hair strands suggestion -->
+  <path d="M250 70 C270 95 275 115 268 130" fill="none" stroke="#1A100C" stroke-width="2" opacity="0.35"/>
+  <path d="M320 58 C325 90 318 115 310 130" fill="none" stroke="#1A100C" stroke-width="2" opacity="0.3"/>
+  <path d="M385 72 C370 98 368 120 375 135" fill="none" stroke="#1A100C" stroke-width="2" opacity="0.35"/>
+
+  <!-- eyebrows (natural arch) -->
+  <path d="M248 172 C268 158 290 156 308 168" fill="none" stroke="#2C1D16" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M252 175 C270 164 290 162 305 171" fill="none" stroke="#4A3428" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+  <path d="M332 168 C350 156 372 158 392 172" fill="none" stroke="#2C1D16" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M335 171 C352 162 372 164 388 175" fill="none" stroke="#4A3428" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- eye sockets / lids -->
+  <path d="M252 198 C262 188 278 186 292 192 C288 204 272 210 258 206 Z" fill="#F6DCC4"/>
+  <path d="M348 192 C362 186 378 188 388 198 C382 206 368 210 352 206 Z" fill="#F6DCC4"/>
+  <!-- eye whites (almond) -->
+  <path d="M256 198 C264 191 276 190 288 196 C280 205 266 206 256 198 Z" fill="#fff"/>
+  <path d="M352 196 C364 190 376 191 384 198 C374 206 360 205 352 196 Z" fill="#fff"/>
+  <!-- iris + pupil -->
+  <circle cx="272" cy="198" r="6.5" fill="url(#iris)"/>
+  <circle cx="272" cy="198" r="2.8" fill="#0a0604"/>
+  <circle cx="274" cy="196" r="1.6" fill="#fff" opacity="0.85"/>
+  <circle cx="368" cy="198" r="6.5" fill="url(#iris)"/>
+  <circle cx="368" cy="198" r="2.8" fill="#0a0604"/>
+  <circle cx="370" cy="196" r="1.6" fill="#fff" opacity="0.85"/>
+  <!-- upper lash line -->
+  <path d="M256 196 C268 188 280 189 288 196" fill="none" stroke="#1A100C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M352 196 C360 189 372 188 384 196" fill="none" stroke="#1A100C" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- nose (bridged, realistic) -->
+  <path d="M320 200
+    C316 220 312 238 310 250
+    C306 256 308 262 314 264
+    L320 266
+    L326 264
+    C332 262 334 256 330 250
+    C328 238 324 220 320 200 Z" fill="#D4A07A" opacity="0.55"/>
+  <path d="M320 205 C316 230 312 248 311 255" fill="none" stroke="#C48A66" stroke-width="2" stroke-linecap="round"/>
+  <path d="M311 256 C308 260 310 264 315 264" fill="none" stroke="#B67A58" stroke-width="2" stroke-linecap="round"/>
+  <path d="M329 256 C332 260 330 264 325 264" fill="none" stroke="#B67A58" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="314" cy="261" rx="5" ry="3.5" fill="#C48A66" opacity="0.35"/>
+  <ellipse cx="326" cy="261" rx="5" ry="3.5" fill="#C48A66" opacity="0.35"/>
+
+  <!-- mouth -->
+  <path d="M295 298 C305 294 315 293 320 293 C325 293 335 294 345 298
+    C338 308 328 312 320 312 C312 312 302 308 295 298 Z" fill="url(#lip)"/>
+  <path d="M298 300 C308 297 314 296 320 296 C326 296 332 297 342 300" fill="none" stroke="#9A5552" stroke-width="1.2" opacity="0.6"/>
+
+  <!-- measure line temples -->
+  <line x1="208" y1="148" x2="432" y2="148" stroke="#00B4B0" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- end caps -->
+  <circle cx="208" cy="148" r="11" fill="#39FF14" stroke="#0f172a" stroke-width="2.5"/>
+  <circle cx="432" cy="148" r="11" fill="#39FF14" stroke="#0f172a" stroke-width="2.5"/>
+  <!-- small rulers ticks -->
+  <path d="M250 142 V154 M290 142 V154 M320 140 V156 M350 142 V154 M390 142 V154" stroke="#007a77" stroke-width="1.5" opacity="0.55"/>
+
+  <text x="190" y="153" text-anchor="end" font-family="system-ui,Segoe UI,sans-serif" font-size="18" font-weight="700" fill="#0f172a">sien</text>
+  <text x="450" y="153" text-anchor="start" font-family="system-ui,Segoe UI,sans-serif" font-size="18" font-weight="700" fill="#0f172a">sien</text>
+  <text x="320" y="135" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#007a77">línea recta</text>
+
+  <rect x="100" y="405" width="440" height="38" rx="19" fill="#ffffff" stroke="#00B4B0" stroke-width="2"/>
+  <text x="320" y="430" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#0f172a">Entre las cejas y el nacimiento del cabello</text>
+</svg>

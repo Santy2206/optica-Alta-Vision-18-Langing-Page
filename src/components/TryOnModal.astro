@@ -1,0 +1,300 @@
+---
+import site from '../content/configuracion/site.json';
+import Icon from './Icon.astro';
+---
+
+<!--
+  Modal de prueba virtual compartido. Cualquier botón en la página con
+  data-tryon-open + data-sku + data-name (y opcionalmente data-frame + data-lenses JSON)
+  abre este modal (delegación de eventos).
+-->
+<div
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/70 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Prueba virtual de gafas"
+  data-tryon-modal
+>
+  <div class="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+    <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-4">
+      <div>
+        <p class="text-sm font-bold text-slate-900">Prueba virtual — demo</p>
+        <p class="text-xs text-slate-500">
+          <span data-tryon-current-label>—</span>
+        </p>
+      </div>
+      <button
+        type="button"
+        class="rounded-full p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+        aria-label="Cerrar"
+        data-tryon-close
+      >
+        <Icon name="close" class="h-5 w-5" />
+      </button>
+    </div>
+
+    <p class="border-b border-slate-100 bg-fucsia/10 px-4 py-2 text-center text-xs text-slate-600">
+      Vista de referencia con una montura de muestra — aún no es la foto real de este producto.
+    </p>
+
+    <div id="JeelizVTOWidget" class="relative aspect-[4/3] w-full bg-slate-900">
+      <canvas id="JeelizVTOWidgetCanvas" class="absolute inset-0 h-full w-full"></canvas>
+
+      <div id="JeelizVTOWidgetLoading" class="absolute inset-0 z-30 flex items-center justify-center bg-slate-900/80 text-sm font-medium text-white">
+        Cargando cámara…
+      </div>
+
+      <div id="JeelizVTOWidgetAdjustNotice" class="absolute inset-x-0 bottom-0 z-20 hidden items-center justify-center gap-3 bg-slate-900/70 px-4 py-3 text-xs text-white">
+        <span>Mueve las gafas para ajustarlas.</span>
+        <button
+          type="button"
+          id="JeelizVTOWidgetAdjustExit"
+          class="rounded-full border border-white px-3 py-1 font-semibold"
+        >
+          Listo
+        </button>
+      </div>
+
+      <!-- Elementos requeridos por el widget que no usamos en esta integración mínima -->
+      <div class="hidden">
+        <button id="JeelizVTOWidgetAdjust" type="button">Ajustar</button>
+        <button id="buttonResizeCanvas" type="button">Redimensionar</button>
+        <div id="JeelizVTOWidgetChangeModelContainer"></div>
+      </div>
+
+      <div
+        class="absolute inset-0 z-40 hidden flex-col items-center justify-center gap-3 bg-slate-900/95 p-6 text-center text-sm text-white"
+        data-tryon-error
+      >
+        <p data-tryon-error-message>No pudimos acceder a tu cámara.</p>
+        <p class="text-xs text-white/70">
+          Verifica los permisos de cámara del navegador e intenta de nuevo.
+        </p>
+      </div>
+    </div>
+
+    <div class="hidden border-t border-slate-100 p-4" data-tryon-lens-panel>
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        Color del lente: <span class="normal-case text-slate-900" data-tryon-lens-label>—</span>
+      </p>
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Color del lente" data-tryon-lenses></div>
+    </div>
+
+    <div class="border-t border-slate-100 p-4">
+      <a
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="block rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
+        data-tryon-whatsapp
+      >
+        Me interesa esta montura — escribir por WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ telefono: site.telefono }}>
+  const WIDGET_SRC = '/vendor/jeeliz-vto/JeelizVTOWidget.js';
+
+  const modal = document.querySelector('[data-tryon-modal]');
+  const closeButton = document.querySelector('[data-tryon-close]');
+  const currentLabel = document.querySelector('[data-tryon-current-label]');
+  const errorPanel = document.querySelector('[data-tryon-error]');
+  const errorMessage = document.querySelector('[data-tryon-error-message]');
+  const whatsappLink = document.querySelector('[data-tryon-whatsapp]');
+
+  let scriptPromise = null;
+  let isStarted = false;
+
+  const loadScript = () => {
+    if (scriptPromise) return scriptPromise;
+    scriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = WIDGET_SRC;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('load-failed'));
+      document.body.appendChild(script);
+    });
+    return scriptPromise;
+  };
+
+  const showError = (message) => {
+    if (errorMessage) errorMessage.textContent = message;
+    errorPanel?.classList.remove('hidden');
+    errorPanel?.classList.add('flex');
+  };
+
+  const hideError = () => {
+    errorPanel?.classList.add('hidden');
+    errorPanel?.classList.remove('flex');
+  };
+
+  const errorLabels = {
+    WEBCAM_UNAVAILABLE: 'No detectamos una cámara o no diste permiso para usarla.',
+    INVALID_SKU: 'No pudimos cargar la vista previa de esta montura.',
+    PLACEHOLDER_NULL_WIDTH: 'Hubo un problema mostrando la ventana de prueba.',
+    PLACEHOLDER_NULL_HEIGHT: 'Hubo un problema mostrando la ventana de prueba.',
+    FATAL: 'Ocurrió un error inesperado. Intenta de nuevo.',
+  };
+
+  const lensPanel = document.querySelector('[data-tryon-lens-panel]');
+  const lensContainer = document.querySelector('[data-tryon-lenses]');
+  const lensLabel = document.querySelector('[data-tryon-lens-label]');
+
+  let current = { name: '', frame: '', lens: '' };
+
+  const updateTexts = () => {
+    const montura = current.frame ? `${current.name} — marco ${current.frame}` : current.name;
+    if (currentLabel) currentLabel.textContent = montura;
+    if (lensLabel) lensLabel.textContent = current.lens || '—';
+    if (whatsappLink) {
+      const lente = current.lens ? ` con lente ${current.lens}` : '';
+      const text = encodeURIComponent(
+        `Hola, probé virtualmente la montura ${montura}${lente} y quiero más información`,
+      );
+      whatsappLink.href = `https://wa.me/${telefono}?text=${text}`;
+    }
+  };
+
+  const selectLens = (lens) => {
+    current.lens = lens.name;
+    updateTexts();
+    lensContainer?.querySelectorAll('button').forEach((b) => {
+      const active = b.dataset.sku === lens.tryOnSku;
+      b.classList.toggle('border-slate-900', active);
+      b.classList.toggle('border-slate-300', !active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    if (isStarted && window.JEELIZVTOWIDGET) window.JEELIZVTOWIDGET.load(lens.tryOnSku);
+  };
+
+  const renderLenses = (lenses, activeSku) => {
+    if (!lensContainer || !lensPanel) return;
+    lensContainer.replaceChildren();
+    lensPanel.classList.toggle('hidden', lenses.length === 0);
+
+    lenses.forEach((lens) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.sku = lens.tryOnSku;
+      button.className =
+        'inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-aguamarina';
+      const dot = document.createElement('span');
+      dot.className = 'h-3.5 w-3.5 rounded-full border border-slate-300';
+      dot.style.backgroundColor = lens.hex;
+      button.append(dot, document.createTextNode(lens.name));
+      button.addEventListener('click', () => selectLens(lens));
+      lensContainer.appendChild(button);
+    });
+
+    const active = lenses.find((l) => l.tryOnSku === activeSku) ?? lenses[0];
+    if (active) {
+      current.lens = active.name;
+      lensContainer.querySelectorAll('button').forEach((b) => {
+        const isActive = b.dataset.sku === active.tryOnSku;
+        b.classList.toggle('border-slate-900', isActive);
+        b.classList.toggle('border-slate-300', !isActive);
+        b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+  };
+
+  const openModal = async ({ sku, name, frame, lenses }) => {
+    if (!modal) return;
+    hideError();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    current = { name, frame, lens: '' };
+    renderLenses(lenses, sku);
+    updateTexts();
+
+    try {
+      await loadScript();
+    } catch {
+      showError('No se pudo cargar la herramienta de prueba virtual.');
+      return;
+    }
+
+    if (!window.JEELIZVTOWIDGET) {
+      showError('No se pudo cargar la herramienta de prueba virtual.');
+      return;
+    }
+
+    if (!isStarted) {
+      isStarted = true;
+      window.JEELIZVTOWIDGET.start({
+        sku,
+        isShadow: true,
+        searchImageMask: 'https://appstatic.jeeliz.com/jeewidget/images/target512.jpg',
+        searchImageColor: 0xeeeeee,
+        callbackReady: () => hideError(),
+        onError: (errorLabel) => {
+          showError(errorLabels[errorLabel] ?? 'Ocurrió un error con la cámara.');
+        },
+      });
+    } else {
+      window.JEELIZVTOWIDGET.load(sku);
+    }
+  };
+
+  const closeModal = () => {
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    if (isStarted && window.JEELIZVTOWIDGET) {
+      window.JEELIZVTOWIDGET.destroy();
+      isStarted = false;
+    }
+  };
+
+  // Delegación de eventos: cualquier botón [data-tryon-open] en la página abre este modal,
+  // sin importar qué componente lo haya renderizado (catálogo, más vendidas, etc).
+  const parseLenses = (raw) => {
+    try {
+      return JSON.parse(raw || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-tryon-open]');
+    if (button?.dataset.sku) {
+      openModal({
+        sku: button.dataset.sku,
+        name: button.dataset.name || 'esta montura',
+        frame: button.dataset.frame || '',
+        lenses: parseLenses(button.dataset.lenses),
+      });
+      return;
+    }
+
+    // Elegir un color de marco en la tarjeta deja listo "Probar con cámara"
+    // con ese marco y sus opciones de lente.
+    const swatch = event.target.closest('[data-swatch]');
+    const tryOnButton = swatch?.closest('article')?.querySelector('[data-tryon-open]');
+    if (swatch && tryOnButton && swatch.dataset.tryonSku) {
+      tryOnButton.dataset.sku = swatch.dataset.tryonSku;
+      tryOnButton.dataset.frame = swatch.title;
+      tryOnButton.dataset.lenses = swatch.dataset.lenses || '[]';
+    }
+  });
+
+  closeButton?.addEventListener('click', closeModal);
+
+  modal?.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeModal();
+  });
+
+  // El widget a veces rechaza la promesa de la cámara sin pasar por onError,
+  // dejando al usuario viendo "Cargando cámara…" indefinidamente.
+  window.addEventListener('unhandledrejection', () => {
+    if (!isStarted || modal?.classList.contains('hidden')) return;
+    showError('No pudimos acceder a tu cámara. Verifica los permisos de tu navegador e intenta de nuevo.');
+  });
+</script>

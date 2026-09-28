@@ -1,0 +1,41 @@
+{
+  "name": "Rectangular Moderno",
+  "brand": "Carrera · Ref. 5029",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Carrera · Ref. 5029 Rectangular Moderno — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "carrera_5029_black_green",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "carrera_5029_black_green",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "carrera_5029_black_green"
+        }
+      ]
+    },
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "carrera_5029_havana_brown_gradient",
+      "lenses": [
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "carrera_5029_havana_brown_gradient"
+        },
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "carrera_5029_havana_blue_1"
+        }
+      ]
+    }
+  ]
+}

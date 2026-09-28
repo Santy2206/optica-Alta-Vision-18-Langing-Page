@@ -1,0 +1,84 @@
+{
+  "name": "Blaze Doublebridge",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Blaze Doublebridge — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "blaze_db_noir_grisdegrade",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "blaze_db_noir_grisdegrade",
+      "lenses": [
+        {
+          "name": "Gris degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "blaze_db_noir_grisdegrade"
+        }
+      ]
+    },
+    {
+      "name": "Marrón",
+      "hex": "#6B4423",
+      "tryOnSku": "blaze_db_marron_rosemiroir",
+      "lenses": [
+        {
+          "name": "Rosado espejado",
+          "hex": "#E8A0BF",
+          "tryOnSku": "blaze_db_marron_rosemiroir"
+        }
+      ]
+    },
+    {
+      "name": "Blanco",
+      "hex": "#F5F5F5",
+      "tryOnSku": "blaze_db_blanc_vertmiroir",
+      "lenses": [
+        {
+          "name": "Verde espejado",
+          "hex": "#2E8B57",
+          "tryOnSku": "blaze_db_blanc_vertmiroir"
+        }
+      ]
+    },
+    {
+      "name": "Transparente",
+      "hex": "#EAF6F5",
+      "tryOnSku": "blaze_db_transparent_vertclassic",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "blaze_db_transparent_vertclassic"
+        }
+      ]
+    },
+    {
+      "name": "Gris",
+      "hex": "#8E8E8E",
+      "tryOnSku": "blaze_db_gris_violetmiroir",
+      "lenses": [
+        {
+          "name": "Violeta espejado",
+          "hex": "#6A3FA0",
+          "tryOnSku": "blaze_db_gris_violetmiroir"
+        }
+      ]
+    },
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "blaze_db_havane_marrondegrade",
+      "lenses": [
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "blaze_db_havane_marrondegrade"
+        }
+      ]
+    }
+  ]
+}

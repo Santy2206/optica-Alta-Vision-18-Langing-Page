@@ -1,0 +1,76 @@
+{
+  "name": "Caravan",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Caravan — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "rayban_caravan_bronze_cuivre_bleu_miroir",
+  "colors": [
+    {
+      "name": "Bronce / Cobre",
+      "hex": "#8C7853",
+      "hex2": "#B87333",
+      "tryOnSku": "rayban_caravan_bronze_cuivre_bleu_miroir",
+      "lenses": [
+        {
+          "name": "Azul espejado",
+          "hex": "#2A5CAA",
+          "tryOnSku": "rayban_caravan_bronze_cuivre_bleu_miroir"
+        },
+        {
+          "name": "Lila espejado",
+          "hex": "#9B7EDE",
+          "tryOnSku": "rayban_caravan_bronze_cuivre_lilas_mirroir"
+        },
+        {
+          "name": "Violeta espejado",
+          "hex": "#6A3FA0",
+          "tryOnSku": "rayban_caravan_bronze_cuivre_violet_mirroir"
+        }
+      ]
+    },
+    {
+      "name": "Dorado",
+      "hex": "#C9A227",
+      "tryOnSku": "rayban_caravan_or_vert_classique",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_caravan_or_vert_classique"
+        },
+        {
+          "name": "Verde flash",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_caravan_or_vert_flash"
+        }
+      ]
+    },
+    {
+      "name": "Gunmetal",
+      "hex": "#4B4B4E",
+      "tryOnSku": "rayban_caravan_gun_vert_classique_2",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_caravan_gun_vert_classique_2"
+        }
+      ]
+    },
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "tryOnSku": "rayban_caravan_argent_argent_flash",
+      "lenses": [
+        {
+          "name": "Plateado flash",
+          "hex": "#C0C0C0",
+          "tryOnSku": "rayban_caravan_argent_argent_flash"
+        }
+      ]
+    }
+  ]
+}

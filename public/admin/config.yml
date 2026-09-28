@@ -105,15 +105,25 @@ collections:
         widget: boolean
         default: false
         hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio."
-      - label: Colores disponibles
+      - label: SKU de prueba virtual (Jeeliz)
+        name: tryOnSku
+        widget: string
+        required: false
+        hint: "Opcional. Código de la base gratuita de Jeeliz para el botón 'Probar con cámara'. Déjalo vacío para ocultar el botón."
+      - label: Colores del marco
         name: colors
         widget: list
         required: false
         default: []
-        hint: "Opcional. Cada color se muestra como un círculo debajo del nombre. Si le pones foto, al hacer clic cambia la imagen de la tarjeta."
+        hint: "Opcional. Cada color de MARCO se muestra como un círculo debajo del nombre. Los colores de lente van dentro de cada marco."
         fields:
-          - { label: Nombre del color, name: name, widget: string, hint: "Ej. Negro, Dorado, Carey" }
+          - { label: Nombre del color del marco, name: name, widget: string, hint: "Ej. Negro, Dorado, Habano" }
           - { label: Color (swatch), name: hex, widget: color }
+          - label: Segundo tono (marcos bicolor)
+            name: hex2
+            widget: color
+            required: false
+            hint: "Opcional. Si el marco es de dos colores, el círculo se muestra partido."
           - label: Foto de este color (opcional)
             name: image
             widget: image
@@ -127,6 +137,21 @@ collections:
             media_folder: /public/uploads/catalogo
             public_folder: /uploads/catalogo
             hint: "Foto de una persona usando esta montura en este color. Se muestra al pasar el mouse sobre la foto."
+          - label: SKU de prueba virtual por defecto (opcional)
+            name: tryOnSku
+            widget: string
+            required: false
+            hint: "SKU que se carga al abrir 'Probar con cámara' con este color de marco."
+          - label: Colores de lente
+            name: lenses
+            widget: list
+            required: false
+            default: []
+            hint: "Opciones de lente para este marco. El cliente las cambia dentro de 'Probar con cámara'."
+            fields:
+              - { label: Nombre del lente, name: name, widget: string, hint: "Ej. Verde clásico, Azul espejado" }
+              - { label: Color (swatch), name: hex, widget: color }
+              - { label: SKU de prueba virtual, name: tryOnSku, widget: string }
 
   # --- Promociones activables ---
   - name: promociones

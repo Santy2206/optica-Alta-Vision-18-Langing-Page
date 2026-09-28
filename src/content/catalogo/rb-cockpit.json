@@ -1,0 +1,70 @@
+{
+  "name": "Cockpit",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Cockpit — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "rayban_cockpit_or_vert_classique",
+  "colors": [
+    {
+      "name": "Dorado",
+      "hex": "#C9A227",
+      "tryOnSku": "rayban_cockpit_or_vert_classique",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_cockpit_or_vert_classique"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "rayban_cockpit_noir_orange_gradient_flash",
+      "lenses": [
+        {
+          "name": "Naranja degradado flash",
+          "hex": "#E07A2F",
+          "tryOnSku": "rayban_cockpit_noir_orange_gradient_flash"
+        },
+        {
+          "name": "Verde degradado flash",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_cockpit_noir_vert_gradient_flash"
+        },
+        {
+          "name": "Azul degradado flash",
+          "hex": "#2A5CAA",
+          "tryOnSku": "rayban_cockpit_noir_bleu_gradient_flash"
+        }
+      ]
+    },
+    {
+      "name": "Marrón claro",
+      "hex": "#6B4423",
+      "tryOnSku": "rayban_cockpit_marron_clair_degrade",
+      "lenses": [
+        {
+          "name": "Degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "rayban_cockpit_marron_clair_degrade"
+        }
+      ]
+    },
+    {
+      "name": "Gunmetal",
+      "hex": "#4B4B4E",
+      "tryOnSku": "rayban_cockpit_gun_vert_classique",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_cockpit_gun_vert_classique"
+        }
+      ]
+    }
+  ]
+}

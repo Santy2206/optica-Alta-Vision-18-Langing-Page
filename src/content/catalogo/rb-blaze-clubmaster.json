@@ -1,0 +1,104 @@
+{
+  "name": "Blaze Clubmaster",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Blaze Clubmaster — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "blaze_clubmaster_bronze_rougedegrademiroir",
+  "colors": [
+    {
+      "name": "Bronce",
+      "hex": "#8C7853",
+      "tryOnSku": "blaze_clubmaster_bronze_rougedegrademiroir",
+      "lenses": [
+        {
+          "name": "Rojo degradado espejado",
+          "hex": "#C0392B",
+          "tryOnSku": "blaze_clubmaster_bronze_rougedegrademiroir"
+        },
+        {
+          "name": "Violeta espejado",
+          "hex": "#6A3FA0",
+          "tryOnSku": "blaze_clubmaster_bronze_violetmiroir"
+        }
+      ]
+    },
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "tryOnSku": "blaze_clubmaster_argent_vertargentmiroir",
+      "lenses": [
+        {
+          "name": "Verde / Plateado espejado",
+          "hex": "#2E8B57",
+          "tryOnSku": "blaze_clubmaster_argent_vertargentmiroir"
+        }
+      ]
+    },
+    {
+      "name": "Gunmetal",
+      "hex": "#4B4B4E",
+      "tryOnSku": "blaze_clubmaster_gun_marrondegrade",
+      "lenses": [
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "blaze_clubmaster_gun_marrondegrade"
+        }
+      ]
+    },
+    {
+      "name": "Azul",
+      "hex": "#2A5CAA",
+      "tryOnSku": "blaze_clubmaster_bleu_orangemiroir",
+      "lenses": [
+        {
+          "name": "Naranja espejado",
+          "hex": "#E07A2F",
+          "tryOnSku": "blaze_clubmaster_bleu_orangemiroir"
+        }
+      ]
+    },
+    {
+      "name": "Dorado",
+      "hex": "#C9A227",
+      "tryOnSku": "blaze_clubmaster_or_vertclassic",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "blaze_clubmaster_or_vertclassic"
+        },
+        {
+          "name": "Rosado espejado",
+          "hex": "#E8A0BF",
+          "tryOnSku": "blaze_clubmaster_or_rosemiroir"
+        },
+        {
+          "name": "Azul degradado espejado",
+          "hex": "#2A5CAA",
+          "tryOnSku": "blaze_clubmaster_or_bleudegrademiroir"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "blaze_clubmaster_noir_grisdegrade",
+      "lenses": [
+        {
+          "name": "Gris degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "blaze_clubmaster_noir_grisdegrade"
+        },
+        {
+          "name": "Violeta / Azul espejado",
+          "hex": "#6A3FA0",
+          "tryOnSku": "blaze_clubmaster_noir_violetbleumiroir"
+        }
+      ]
+    }
+  ]
+}

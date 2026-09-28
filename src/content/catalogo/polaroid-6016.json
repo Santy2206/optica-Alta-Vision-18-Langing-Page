@@ -1,0 +1,48 @@
+{
+  "name": "Brisa",
+  "brand": "Polaroid · Ref. 6016",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Polaroid · Ref. 6016 Brisa — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "polaroid_6016_red_grey",
+  "colors": [
+    {
+      "name": "Rojo",
+      "hex": "#C0392B",
+      "tryOnSku": "polaroid_6016_red_grey",
+      "lenses": [
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "polaroid_6016_red_grey"
+        }
+      ]
+    },
+    {
+      "name": "Azul",
+      "hex": "#2A5CAA",
+      "tryOnSku": "polaroid_6016_blue_grey",
+      "lenses": [
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "polaroid_6016_blue_grey"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "polaroid_6016_black_grey",
+      "lenses": [
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "polaroid_6016_black_grey"
+        }
+      ]
+    }
+  ]
+}

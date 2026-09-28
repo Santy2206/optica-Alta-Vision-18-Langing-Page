@@ -1,0 +1,58 @@
+{
+  "name": "Ferrari",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Ferrari — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "rayban_ferrari_gris_noir_gris_mirror_chromance",
+  "colors": [
+    {
+      "name": "Gris",
+      "hex": "#8E8E8E",
+      "tryOnSku": "rayban_ferrari_gris_noir_gris_mirror_chromance",
+      "lenses": [
+        {
+          "name": "Negro / Gris espejado cromado",
+          "hex": "#1C1C1C",
+          "tryOnSku": "rayban_ferrari_gris_noir_gris_mirror_chromance"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "rayban_ferrari_noir_vert_classique",
+      "lenses": [
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_ferrari_noir_vert_classique"
+        },
+        {
+          "name": "Plateado espejado cromado",
+          "hex": "#C0C0C0",
+          "tryOnSku": "rayban_ferrari_noir_argent_mirror_chromance"
+        },
+        {
+          "name": "Dorado espejado cromado",
+          "hex": "#C9A227",
+          "tryOnSku": "rayban_ferrari_noir_or_mirror_chromance"
+        }
+      ]
+    },
+    {
+      "name": "Azul",
+      "hex": "#2A5CAA",
+      "tryOnSku": "rayban_ferrari_blue_bleu_mirror_chromance",
+      "lenses": [
+        {
+          "name": "Azul espejado cromado",
+          "hex": "#2A5CAA",
+          "tryOnSku": "rayban_ferrari_blue_bleu_mirror_chromance"
+        }
+      ]
+    }
+  ]
+}

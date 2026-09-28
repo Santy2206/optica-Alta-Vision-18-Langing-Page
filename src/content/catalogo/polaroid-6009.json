@@ -1,0 +1,41 @@
+{
+  "name": "Metro",
+  "brand": "Polaroid · Ref. 6009",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Polaroid · Ref. 6009 Metro — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "polaroid_6009_black_gold",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "polaroid_6009_black_gold",
+      "lenses": [
+        {
+          "name": "Dorado",
+          "hex": "#C9A227",
+          "tryOnSku": "polaroid_6009_black_gold"
+        },
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "polaroid_6009_black_blue"
+        }
+      ]
+    },
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "polaroid_6009_havana_orange",
+      "lenses": [
+        {
+          "name": "Naranja",
+          "hex": "#E07A2F",
+          "tryOnSku": "polaroid_6009_havana_orange"
+        }
+      ]
+    }
+  ]
+}

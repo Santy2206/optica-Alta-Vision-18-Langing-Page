@@ -1,0 +1,58 @@
+{
+  "name": "Cuadrado Deportivo",
+  "brand": "Carrera · Ref. 119/S",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Carrera · Ref. 119/S Cuadrado Deportivo — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "carrera_119S_havana_blue",
+  "colors": [
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "carrera_119S_havana_blue",
+      "lenses": [
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "carrera_119S_havana_blue"
+        },
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "carrera_119S_havana_brown"
+        }
+      ]
+    },
+    {
+      "name": "Azul",
+      "hex": "#2A5CAA",
+      "tryOnSku": "carrera_119S_blue_gray_gradient",
+      "lenses": [
+        {
+          "name": "Gris degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "carrera_119S_blue_gray_gradient"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "carrera_119S_black_green",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "carrera_119S_black_green"
+        },
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "carrera_119S_black_gray"
+        }
+      ]
+    }
+  ]
+}

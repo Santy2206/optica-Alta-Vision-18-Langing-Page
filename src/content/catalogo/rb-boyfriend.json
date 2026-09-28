@@ -1,0 +1,66 @@
+{
+  "name": "Boyfriend",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Boyfriend — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "rayban_boyfriend_noir_marron_degrade",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "rayban_boyfriend_noir_marron_degrade",
+      "lenses": [
+        {
+          "name": "Marrón degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "rayban_boyfriend_noir_marron_degrade"
+        },
+        {
+          "name": "Gris clásico",
+          "hex": "#8E8E8E",
+          "tryOnSku": "rayban_boyfriend_noir_gris_classique"
+        },
+        {
+          "name": "Gris claro degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "rayban_boyfriend_noir_gris_clair_degrade"
+        },
+        {
+          "name": "Verde clásico",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_boyfriend_noir_vert_classique"
+        },
+        {
+          "name": "Gris degradado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "rayban_boyfriend_noir_gris_degrade"
+        }
+      ]
+    },
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "rayban_boyfriend_havane_marron_clair_degrade",
+      "lenses": [
+        {
+          "name": "Marrón claro degradado",
+          "hex": "#6B4423",
+          "tryOnSku": "rayban_boyfriend_havane_marron_clair_degrade"
+        },
+        {
+          "name": "Gris degradado espejado",
+          "hex": "#8E8E8E",
+          "tryOnSku": "rayban_boyfriend_havane_gris_degrade_mirroir"
+        },
+        {
+          "name": "Marrón clásico",
+          "hex": "#6B4423",
+          "tryOnSku": "rayban_boyfriend_havane_marron_classique"
+        }
+      ]
+    }
+  ]
+}

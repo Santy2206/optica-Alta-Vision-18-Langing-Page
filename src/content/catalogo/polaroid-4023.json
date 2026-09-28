@@ -1,0 +1,41 @@
+{
+  "name": "Costa",
+  "brand": "Polaroid · Ref. 4023",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Polaroid · Ref. 4023 Costa — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "polaroid_4023_black_green",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "polaroid_4023_black_green",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "polaroid_4023_black_green"
+        },
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "polaroid_4023_black_grey"
+        }
+      ]
+    },
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "polaroid_4023_havana_brown",
+      "lenses": [
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "polaroid_4023_havana_brown"
+        }
+      ]
+    }
+  ]
+}

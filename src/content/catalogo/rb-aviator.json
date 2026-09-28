@@ -1,0 +1,90 @@
+{
+  "name": "Aviador",
+  "brand": "Ray-Ban",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Ray-Ban Aviador — vista de referencia (demo de prueba virtual)",
+  "featured": true,
+  "tryOnSku": "rayban_aviator_or_vertFlash",
+  "colors": [
+    {
+      "name": "Dorado",
+      "hex": "#C9A227",
+      "tryOnSku": "rayban_aviator_or_vertFlash",
+      "lenses": [
+        {
+          "name": "Verde flash",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_aviator_or_vertFlash"
+        },
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_aviator_or_vert"
+        },
+        {
+          "name": "Naranja flash",
+          "hex": "#E07A2F",
+          "tryOnSku": "rayban_aviator_or_orangeFlash"
+        },
+        {
+          "name": "Marrón",
+          "hex": "#6B4423",
+          "tryOnSku": "rayban_aviator_or_marron"
+        },
+        {
+          "name": "Rosado",
+          "hex": "#E8A0BF",
+          "tryOnSku": "rayban_aviator_or_rose"
+        }
+      ]
+    },
+    {
+      "name": "Gunmetal",
+      "hex": "#4B4B4E",
+      "tryOnSku": "rayban_aviator_gun_vert",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_aviator_gun_vert"
+        },
+        {
+          "name": "Plateado flash",
+          "hex": "#C0C0C0",
+          "tryOnSku": "rayban_aviator_gun_argentFlash"
+        },
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "rayban_aviator_gun_gris"
+        }
+      ]
+    },
+    {
+      "name": "Cobre",
+      "hex": "#B87333",
+      "tryOnSku": "rayban_aviator_cuivre_bleuMirroir",
+      "lenses": [
+        {
+          "name": "Azul espejado",
+          "hex": "#2A5CAA",
+          "tryOnSku": "rayban_aviator_cuivre_bleuMirroir"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "rayban_aviator_noir_vert",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "rayban_aviator_noir_vert"
+        }
+      ]
+    }
+  ]
+}

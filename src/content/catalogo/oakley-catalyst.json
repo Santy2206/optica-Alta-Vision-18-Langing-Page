@@ -1,0 +1,46 @@
+{
+  "name": "Catalyst",
+  "brand": "Oakley",
+  "category": "deportivas",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-deportivas.webp",
+  "imageAlt": "Oakley Catalyst — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "catalyst_black_orange",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "catalyst_black_orange",
+      "lenses": [
+        {
+          "name": "Naranja",
+          "hex": "#E07A2F",
+          "tryOnSku": "catalyst_black_orange"
+        },
+        {
+          "name": "Rojo",
+          "hex": "#C0392B",
+          "tryOnSku": "catalyst_black_red"
+        },
+        {
+          "name": "Amarillo / Gris",
+          "hex": "#E8C547",
+          "tryOnSku": "catalyst_black_yellow_gray"
+        }
+      ]
+    },
+    {
+      "name": "Gris",
+      "hex": "#8E8E8E",
+      "tryOnSku": "catalyst_gray_silver",
+      "lenses": [
+        {
+          "name": "Plateado",
+          "hex": "#C0C0C0",
+          "tryOnSku": "catalyst_gray_silver"
+        }
+      ]
+    }
+  ]
+}

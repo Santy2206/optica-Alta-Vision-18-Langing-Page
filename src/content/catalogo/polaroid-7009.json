@@ -1,0 +1,34 @@
+{
+  "name": "Sport",
+  "brand": "Polaroid · Ref. 7009",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Polaroid · Ref. 7009 Sport — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "polaroid_7009_black_yellow_grey",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "polaroid_7009_black_yellow_grey",
+      "lenses": [
+        {
+          "name": "Amarillo / Gris",
+          "hex": "#E8C547",
+          "tryOnSku": "polaroid_7009_black_yellow_grey"
+        },
+        {
+          "name": "Rojo / Gris",
+          "hex": "#C0392B",
+          "tryOnSku": "polaroid_7009_black_red_grey"
+        },
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "polaroid_7009_black_grey"
+        }
+      ]
+    }
+  ]
+}

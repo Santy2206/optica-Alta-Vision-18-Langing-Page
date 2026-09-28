@@ -1,15 +1,10 @@
 ---
-import site from '../content/configuracion/site.json';
-
-const whatsappHref = (mensaje: string) =>
-  `https://wa.me/${site.telefono}?text=${encodeURIComponent(mensaje)}`;
-
 const formas = [
-  { imagen: '/images/rostros/redondo.svg', label: 'Redondo' },
-  { imagen: '/images/rostros/corazon.svg', label: 'Corazón' },
-  { imagen: '/images/rostros/diamante.svg', label: 'Diamante' },
-  { imagen: '/images/rostros/ovalado.svg', label: 'Ovalado' },
-  { imagen: '/images/rostros/cuadrado.svg', label: 'Cuadrado' },
+  { id: 'redondo', imagen: '/images/rostros/redondo.svg', label: 'Redondo' },
+  { id: 'corazon', imagen: '/images/rostros/corazon.svg', label: 'Corazón' },
+  { id: 'diamante', imagen: '/images/rostros/diamante.svg', label: 'Diamante' },
+  { id: 'ovalado', imagen: '/images/rostros/ovalado.svg', label: 'Ovalado' },
+  { id: 'cuadrado', imagen: '/images/rostros/cuadrado.svg', label: 'Cuadrado' },
 ] as const;
 ---
 
@@ -22,25 +17,19 @@ const formas = [
           Cada rostro luce mejor con ciertas monturas — te ayudamos a encontrar la tuya.
         </p>
       </div>
-      <a
-        href={whatsappHref('Hola, quiero que me recomienden monturas según mi forma de rostro')}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        data-facetest-open
         class="inline-block whitespace-nowrap rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
       >
-        Pide tu recomendación
-      </a>
+        Haz el test de tu rostro
+      </button>
     </div>
 
     <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
       {
         formas.map((forma) => (
-          <a
-            href={whatsappHref(`Hola, tengo rostro ${forma.label.toLowerCase()} y quiero que me recomienden monturas`)}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="group flex flex-col items-center gap-3"
-          >
+          <button type="button" data-facetest-manual={forma.id} class="group flex flex-col items-center gap-3">
             <div class="aspect-square w-full max-w-[9rem] overflow-hidden">
               <img
                 src={forma.imagen}
@@ -52,9 +41,16 @@ const formas = [
             <span class="text-center text-sm font-bold uppercase tracking-wide text-slate-900">
               {forma.label}
             </span>
-          </a>
+          </button>
         ))
       }
     </div>
+    <p class="mt-4 text-center text-xs text-slate-500">
+      ¿No sabes cuál es tu forma? Elige una manualmente o{' '}
+      <button type="button" data-facetest-open class="font-semibold text-aguamarina underline-offset-2 hover:underline">
+        haz el test completo
+      </button>
+      .
+    </p>
   </div>
 </section>

@@ -1,0 +1,34 @@
+{
+  "name": "M2 Frame",
+  "brand": "Oakley",
+  "category": "deportivas",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-deportivas.webp",
+  "imageAlt": "Oakley M2 Frame — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "oakley_m2_black_gray",
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "oakley_m2_black_gray",
+      "lenses": [
+        {
+          "name": "Gris",
+          "hex": "#8E8E8E",
+          "tryOnSku": "oakley_m2_black_gray"
+        },
+        {
+          "name": "Blanco / Naranja",
+          "hex": "#F5F5F5",
+          "tryOnSku": "oakley_m2_black_white_orange"
+        },
+        {
+          "name": "Rojo / Rosado",
+          "hex": "#C0392B",
+          "tryOnSku": "oakley_m2_black_red_pink"
+        }
+      ]
+    }
+  ]
+}

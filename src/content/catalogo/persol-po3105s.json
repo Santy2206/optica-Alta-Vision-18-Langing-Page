@@ -1,0 +1,41 @@
+{
+  "name": "Vintage Cuadrado",
+  "brand": "Persol · Ref. PO3105S",
+  "category": "sol",
+  "price": null,
+  "image": "/uploads/catalogo/placeholder-sol.webp",
+  "imageAlt": "Persol · Ref. PO3105S Vintage Cuadrado — vista de referencia (demo de prueba virtual)",
+  "featured": false,
+  "tryOnSku": "persol_PO3105S_havana_blue",
+  "colors": [
+    {
+      "name": "Habano",
+      "hex": "#8B5A2B",
+      "tryOnSku": "persol_PO3105S_havana_blue",
+      "lenses": [
+        {
+          "name": "Azul",
+          "hex": "#2A5CAA",
+          "tryOnSku": "persol_PO3105S_havana_blue"
+        },
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "persol_PO3105S_havana_green"
+        }
+      ]
+    },
+    {
+      "name": "Negro",
+      "hex": "#1C1C1C",
+      "tryOnSku": "persol_PO3105S_black_green",
+      "lenses": [
+        {
+          "name": "Verde",
+          "hex": "#2E8B57",
+          "tryOnSku": "persol_PO3105S_black_green"
+        }
+      ]
+    }
+  ]
+}

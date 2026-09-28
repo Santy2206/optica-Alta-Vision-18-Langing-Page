@@ -4,6 +4,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import WhatsAppFloat from '../components/WhatsAppFloat.astro';
 import Icon from '../components/Icon.astro';
+import TryOnModal from '../components/TryOnModal.astro';
+import FaceShapeTest from '../components/FaceShapeTest.astro';
 import site from '../content/configuracion/site.json';
 import { getCollection } from 'astro:content';
 
@@ -34,6 +36,13 @@ const categorias = [
     <div class="mx-auto max-w-6xl px-4">
       <h1 class="text-2xl font-bold md:text-3xl">Catálogo completo</h1>
       <p class="mt-2 text-white/90">Filtra por categoría y encuentra tu montura ideal.</p>
+      <button
+        type="button"
+        data-facetest-open
+        class="mt-4 inline-block rounded-full bg-verde-neon px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
+      >
+        ¿No sabes cuál elegir? Haz el test de tu rostro
+      </button>
     </div>
   </section>
 
@@ -72,6 +81,7 @@ const categorias = [
                 item.data.price !== null
                   ? `Desde $${item.data.price.toLocaleString('es-CO')}`
                   : 'Consultar precio';
+              const tryOnSku = item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null;
 
               return (
                 <article
@@ -97,7 +107,7 @@ const categorias = [
                     </div>
 
                     {item.data.colors.length > 0 && (
-                      <div class="flex flex-wrap gap-2" role="group" aria-label="Colores disponibles">
+                      <div class="flex flex-wrap gap-2" role="group" aria-label="Colores del marco">
                         {item.data.colors.map((color, ci) => (
                           <button
                             type="button"
@@ -105,12 +115,18 @@ const categorias = [
                               'h-6 w-6 rounded-full border border-slate-300 transition-shadow',
                               ci === 0 && 'ring-2 ring-offset-2 ring-slate-900',
                             ]}
-                            style={`background-color: ${color.hex}`}
+                            style={
+                              color.hex2
+                                ? `background: linear-gradient(135deg, ${color.hex} 50%, ${color.hex2} 50%)`
+                                : `background-color: ${color.hex}`
+                            }
                             title={color.name}
-                            aria-label={color.name}
+                            aria-label={`Marco ${color.name}`}
                             data-swatch
                             data-image={color.image ?? ''}
                             data-model-image={color.modelImage ?? ''}
+                            data-tryon-sku={color.tryOnSku ?? ''}
+                            data-lenses={JSON.stringify(color.lenses)}
                           />
                         ))}
                       </div>
@@ -125,6 +141,20 @@ const categorias = [
                     >
                       Me interesa
                     </a>
+                    {tryOnSku && (
+                      <button
+                        type="button"
+                        class="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
+                        data-tryon-open
+                        data-sku={tryOnSku}
+                        data-name={item.data.name}
+                        data-frame={item.data.colors[0]?.name ?? ''}
+                        data-lenses={JSON.stringify(item.data.colors[0]?.lenses ?? [])}
+                      >
+                        <Icon name="eye" class="h-4 w-4" />
+                        Probar con cámara
+                      </button>
+                    )}
                   </div>
                 </article>
               );
@@ -145,6 +175,8 @@ const categorias = [
 
   <Footer />
   <WhatsAppFloat />
+  <TryOnModal />
+  <FaceShapeTest />
 </BaseLayout>
 
 <script>

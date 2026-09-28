@@ -102,6 +102,7 @@ const productSchemas = items.map((item) => {
                 item.data.price !== null
                   ? `Desde $${item.data.price.toLocaleString('es-CO')}`
                   : 'Consultar precio';
+              const tryOnSku = item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null;
 
               return (
                 <article
@@ -127,7 +128,7 @@ const productSchemas = items.map((item) => {
                     </div>
 
                     {item.data.colors.length > 0 && (
-                      <div class="flex flex-wrap gap-2" role="group" aria-label="Colores disponibles">
+                      <div class="flex flex-wrap gap-2" role="group" aria-label="Colores del marco">
                         {item.data.colors.map((color, ci) => (
                           <button
                             type="button"
@@ -135,12 +136,18 @@ const productSchemas = items.map((item) => {
                               'h-6 w-6 rounded-full border border-slate-300 transition-shadow',
                               ci === 0 && 'ring-2 ring-offset-2 ring-slate-900',
                             ]}
-                            style={`background-color: ${color.hex}`}
+                            style={
+                              color.hex2
+                                ? `background: linear-gradient(135deg, ${color.hex} 50%, ${color.hex2} 50%)`
+                                : `background-color: ${color.hex}`
+                            }
                             title={color.name}
-                            aria-label={color.name}
+                            aria-label={`Marco ${color.name}`}
                             data-swatch
                             data-image={color.image ?? ''}
                             data-model-image={color.modelImage ?? ''}
+                            data-tryon-sku={color.tryOnSku ?? ''}
+                            data-lenses={JSON.stringify(color.lenses)}
                           />
                         ))}
                       </div>
@@ -155,6 +162,20 @@ const productSchemas = items.map((item) => {
                     >
                       Me interesa
                     </button>
+                    {tryOnSku && (
+                      <button
+                        type="button"
+                        class="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
+                        data-tryon-open
+                        data-sku={tryOnSku}
+                        data-name={item.data.name}
+                        data-frame={item.data.colors[0]?.name ?? ''}
+                        data-lenses={JSON.stringify(item.data.colors[0]?.lenses ?? [])}
+                      >
+                        <Icon name="eye" class="h-4 w-4" />
+                        Probar con cámara
+                      </button>
+                    )}
                   </div>
                 </article>
               );

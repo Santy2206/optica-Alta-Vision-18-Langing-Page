@@ -13,8 +13,11 @@ const make = async (w, h, label, out) => {
 };
 
 (async () => {
-  await make(800, 600, 'Foto pendiente', `${dir}/rayban-aviator.webp`);
-  await make(800, 600, 'Foto pendiente', `${dir}/oakley-radar.webp`);
-  await make(800, 600, 'Foto pendiente', `${dir}/kids-flexible.webp`);
   await make(1200, 630, 'Promo - foto pendiente', `${promoDir}/examen-visual.webp`);
+
+  // Placeholders compartidos por categoría para el catálogo generado desde Jeeliz
+  // (monturas de muestra sin foto real todavía — ver scripts/generate-catalogo-jeeliz.cjs).
+  await make(800, 600, 'Foto pendiente', `${dir}/placeholder-sol.webp`);
+  await make(800, 600, 'Foto pendiente', `${dir}/placeholder-deportivas.webp`);
+  await make(800, 600, 'Foto pendiente', `${dir}/placeholder-ninos.webp`);
 })();
