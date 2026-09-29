@@ -17,7 +17,9 @@ interface Props {
     | 'layers'
     | 'monitor'
     | 'sun'
-    | 'list';
+    | 'list'
+    | 'instagram'
+    | 'facebook';
   class?: string;
   filled?: boolean;
 }
@@ -76,6 +78,14 @@ const icons: Record<string, { path: string; filled?: boolean }> = {
   },
   list: {
     path: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  },
+  instagram: {
+    path: 'M16 2H8a6 6 0 0 0-6 6v8a6 6 0 0 0 6 6h8a6 6 0 0 0 6-6V8a6 6 0 0 0-6-6Zm-8 18a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8Zm4-12a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm6.5-2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z',
+    filled: true,
+  },
+  facebook: {
+    path: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z',
+    filled: true,
   },
 };
 

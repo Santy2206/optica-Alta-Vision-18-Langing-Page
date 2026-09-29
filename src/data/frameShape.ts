@@ -33,3 +33,13 @@ export function getFrameShape(item: CatalogItem): FrameShape | null {
 
   return CATEGORY_DEFAULTS[item.category] ?? null;
 }
+
+/** Nombre legible en plural, para "Te quedan: {estilos}". */
+export const frameShapeLabel: Record<FrameShape, string> = {
+  aviador: 'Aviador',
+  cuadrada: 'Cuadradas',
+  redonda: 'Redondas',
+  rectangular: 'Rectangulares',
+  'cat-eye': 'Ojo de gato',
+  ovalada: 'Ovaladas',
+};

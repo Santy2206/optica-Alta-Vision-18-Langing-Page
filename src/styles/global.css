@@ -4,7 +4,9 @@
    Tailwind v4: theme lives in CSS (@theme), not tailwind.config.mjs
    - aguamarina: dominante (60-70%) — fondos, header, secciones
    - verde-neon: SOLO botones CTA sólidos (texto blanco/negro encima; nunca como color de texto suelto)
-   - fucsia: acento secundario — badges de promo, hover states
+   - fucsia: acento secundario — badges de promo, hover states, resaltados de texto
+   Fase 8 (60-30-10): 60% blanco/slate-50, 30% slate-900, 10% aguamarina+fucsia.
+   Aguamarina NUNCA como fondo de sección completa (solo formas decorativas/bloques chicos).
    - font-display: titulares (h1-h3) — Sora, inspirada en la tipografía de titulares de Zenni Optical
      ("Sons", tipografía propietaria de Zenni no disponible para uso libre; Sora es su fallback
      público y el sustituto abierto más cercano en forma y peso)
@@ -12,7 +14,7 @@
 @theme {
   --color-aguamarina: #00b4b0;
   --color-verde-neon: #39ff14;
-  --color-fucsia: #ff1493;
+  --color-fucsia: #c1096f; /* tono exacto muestreado del logo (public/logo.png) */
 
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", "Poppins", ui-sans-serif, system-ui, sans-serif;
@@ -32,5 +34,31 @@
   h3 {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
+  }
+}
+
+/* Fondos de marca: reemplazan el gris neutro (slate-50/900) por tintes/gradientes
+   sutiles de aguamarina + fucsia. Siguen la regla de contraste existente:
+   aguamarina/fucsia solo como tinte o glow, nunca como color sólido de fondo. */
+@layer utilities {
+  .bg-brand-tint {
+    background-color: color-mix(in srgb, var(--color-aguamarina) 6%, white);
+  }
+
+  .bg-brand-mesh {
+    background-color: #fff;
+    background-image:
+      radial-gradient(ellipse 60% 55% at 12% 10%, color-mix(in srgb, var(--color-aguamarina) 16%, transparent), transparent 70%),
+      radial-gradient(ellipse 55% 50% at 92% 90%, color-mix(in srgb, var(--color-fucsia) 12%, transparent), transparent 70%);
+  }
+
+  /* Fondo claro dominante de aguamarina para CTA final y footer (reemplaza el mesh oscuro). */
+  .bg-brand-footer {
+    background-color: color-mix(in srgb, var(--color-aguamarina) 15%, white);
+    background-image: radial-gradient(ellipse 55% 60% at 90% 100%, color-mix(in srgb, var(--color-fucsia) 10%, transparent), transparent 70%);
+  }
+
+  .brand-bar {
+    background-image: linear-gradient(90deg, var(--color-aguamarina), var(--color-fucsia) 50%, var(--color-verde-neon));
   }
 }

@@ -4,10 +4,13 @@ import sitemap from '@astrojs/sitemap';
 
 import tailwindcss from '@tailwindcss/vite';
 
+// URL pública del sitio: única fuente para canonical, og:url, schema, sitemap y robots.txt.
+// Al pasar a dominio propio, cambiar SOLO esta línea.
+export const SITE_URL = 'https://optica-alta-vision-18.netlify.app';
+
 // https://astro.build/config
 export default defineConfig({
-  // TODO: actualizar con el dominio real en sesión 11_Lanzamiento
-  site: 'https://optica-alta-vision-18.netlify.app',
+  site: SITE_URL,
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()]

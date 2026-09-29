@@ -8,8 +8,8 @@ import Promociones from '../components/Promociones.astro';
 import EncuentraTusGafas from '../components/EncuentraTusGafas.astro';
 import Catalogo from '../components/Catalogo.astro';
 import PruebaSocial from '../components/PruebaSocial.astro';
-import Confianza from '../components/Confianza.astro';
 import Servicios from '../components/Servicios.astro';
+import TiposLente from '../components/TiposLente.astro';
 import FAQ from '../components/FAQ.astro';
 import Ubicacion from '../components/Ubicacion.astro';
 import CtaFinal from '../components/CtaFinal.astro';
@@ -17,56 +17,61 @@ import Footer from '../components/Footer.astro';
 import WhatsAppFloat from '../components/WhatsAppFloat.astro';
 import TryOnModal from '../components/TryOnModal.astro';
 import FaceShapeTest from '../components/FaceShapeTest.astro';
-import site from '../content/configuracion/site.json';
+import site from '../utils/site';
+import { seo, zonaCompleta } from '../utils/seo';
 
-// TODO: reemplazar "Bogotá" por el barrio exacto cuando se confirme la dirección
-const title = 'Óptica Alta Visión 18 | Óptica en Bogotá';
-const description =
-  'Óptica en Bogotá: exámenes de optometría y monturas formuladas y de sol. Agenda tu cita por WhatsApp hoy.';
+const { title, description } = seo.home;
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
 
-// Mapeo básico para openingHoursSpecification (site.horario = "Lunes a Sábado, 11am - 8pm")
-const dayMap: Record<string, string> = {
-  lunes: 'Monday',
-  martes: 'Tuesday',
-  miércoles: 'Wednesday',
-  jueves: 'Thursday',
-  viernes: 'Friday',
-  sábado: 'Saturday',
-  domingo: 'Sunday',
-};
+// Mismo origen que el texto visible (site.horario): Configuración → Horario.
+// TODO: confirmar la hora de apertura con el cliente (Google Maps dice 10am).
+const { horarioSchema } = site;
 
-const daysOfWeek = Object.entries(dayMap)
-  .filter(([es]) => site.horario.toLowerCase().includes(es))
-  .map(([, en]) => en);
+const socialLinks = Object.values(site.redesSociales).filter(Boolean);
+const { calle, localidad } = site.direccionPostal;
+const { lat, lng } = site.geo;
 
-// TODO: ajustar días y horarios exactos cuando el cliente confirme
-const openingHours = {
-  '@type': 'OpeningHoursSpecification',
-  dayOfWeek: daysOfWeek,
-  opens: '11:00',
-  closes: '20:00',
-};
-
-const socialLinks = Object.values(site.redesSociales).filter((url) => url && url.trim() !== '');
-
+// Sin aggregateRating: las pautas de Google no permiten reseñas de terceros (Google Maps)
+// en el schema propio del negocio. La calificación se muestra solo en la página.
 const localBusiness = {
   '@context': 'https://schema.org',
   '@type': 'Optician',
+  '@id': new URL('/#optica', siteUrl).href,
   name: 'Óptica Alta Visión 18',
+  url: siteUrl.href,
+  image: new URL(site.heroImagen || '/og-default.png', siteUrl).href,
+  logo: new URL('/logo.png', siteUrl).href,
   telephone: `+${site.telefono}`,
-  // TODO (Fase 7): migrar a PostalAddress estructurado
-  ...(site.direccion.trim() && { address: site.direccion }),
-  url: 'https://optica-alta-vision-18.netlify.app',
-  openingHoursSpecification: [openingHours],
-  sameAs: socialLinks,
+  ...(calle && {
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: calle,
+      addressLocality: localidad,
+      addressRegion: 'Bogotá D.C.',
+      addressCountry: 'CO',
+    },
+  }),
+  ...(lat !== null &&
+    lng !== null && {
+      geo: { '@type': 'GeoCoordinates', latitude: lat, longitude: lng },
+    }),
+  ...(site.googleReviews.url && { hasMap: site.googleReviews.url }),
+  areaServed: zonaCompleta,
+  ...(horarioSchema && {
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: horarioSchema.dias,
+        opens: horarioSchema.abre,
+        closes: horarioSchema.cierra,
+      },
+    ],
+  }),
+  ...(socialLinks.length > 0 && { sameAs: socialLinks }),
 };
 ---
 
-<BaseLayout
-  title={title}
-  description={description}
-  canonical="https://optica-alta-vision-18.netlify.app"
->
+<BaseLayout title={title} description={description}>
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(localBusiness)} />
   </Fragment>
@@ -79,8 +84,8 @@ const localBusiness = {
   <EncuentraTusGafas />
   <Catalogo />
   <PruebaSocial />
-  <Confianza />
   <Servicios />
+  <TiposLente />
   <FAQ />
   <Ubicacion />
   <CtaFinal />

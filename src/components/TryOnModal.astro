@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import site from '../utils/site';
 ---
 
 <!--
@@ -8,13 +9,14 @@ import Icon from './Icon.astro';
   abre este modal (delegación de eventos).
 -->
 <div
-  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/70 p-4"
+  class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/70 p-4"
   role="dialog"
   aria-modal="true"
   aria-label="Prueba virtual de gafas"
   data-tryon-modal
+  data-cta-tried={site.probador.ctaTexto}
 >
-  <div class="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+  <div class="flex max-h-[92vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl bg-white shadow-xl">
     <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-4">
       <div>
         <p class="text-sm font-bold text-slate-900">Prueba virtual — demo</p>
@@ -79,15 +81,16 @@ import Icon from './Icon.astro';
       <div class="flex flex-wrap gap-2" role="group" aria-label="Color del lente" data-tryon-lenses></div>
     </div>
 
-    <div class="border-t border-slate-100 p-4">
+    <div class="sticky bottom-0 border-t border-slate-100 bg-white p-4" data-tryon-cta>
       <a
         href="#"
         target="_blank"
         rel="noopener noreferrer"
-        class="block rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
+        class="border-2 border-slate-900 flex items-center justify-center gap-2 rounded-full bg-verde-neon px-4 py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
         data-tryon-whatsapp
       >
-        Me interesa esta montura — escribir por WhatsApp
+        <Icon name="whatsapp" class="h-4 w-4" />
+        <span data-tryon-whatsapp-label>Pregúntanos por esta montura</span>
       </a>
     </div>
   </div>
@@ -152,19 +155,35 @@ import Icon from './Icon.astro';
   const lensLabel = document.querySelector('[data-tryon-lens-label]');
 
   let current = { name: '', slug: '', frame: '', lens: '' };
+  // true cuando el usuario ya se vio con la montura puesta (callbackReady del widget).
+  let hasTried = false;
+  const whatsappLabel = document.querySelector<HTMLElement>('[data-tryon-whatsapp-label]');
+  // Texto editable desde el CMS (Configuración → Probador virtual).
+  const ctaTried = modal?.dataset.ctaTried || 'Me gustan, ¿las tienen disponibles?';
 
   const updateTexts = () => {
     const montura = current.frame ? `${current.name} — marco ${current.frame}` : current.name;
     if (currentLabel) currentLabel.textContent = montura;
     if (lensLabel) lensLabel.textContent = current.lens || '—';
     if (whatsappLink) {
-      const lente = current.lens ? ` con lente ${current.lens}` : '';
+      const detalle = [
+        current.name,
+        current.frame && `color ${current.frame}`,
+        current.lens && `lente ${current.lens}`,
+      ]
+        .filter(Boolean)
+        .join(', ');
       const origen = `probador:${current.slug}`;
       whatsappLink.href = waLink(
         origen,
-        `Hola, probé virtualmente la montura ${montura}${lente} y quiero más información`,
+        hasTried
+          ? `Hola, me probé virtualmente las gafas ${detalle} y me gustan. ¿Las tienen disponibles?`
+          : `Hola, quiero información sobre las gafas ${detalle}.`,
       );
       whatsappLink.dataset.cta = origen;
+    }
+    if (whatsappLabel) {
+      whatsappLabel.textContent = hasTried ? ctaTried : 'Pregúntanos por esta montura';
     }
   };
 
@@ -229,6 +248,7 @@ import Icon from './Icon.astro';
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     current = { name, slug, frame, lens: '' };
+    hasTried = false;
     renderLenses(lenses, sku);
     updateTexts();
 
@@ -252,7 +272,11 @@ import Icon from './Icon.astro';
         isShadow: true,
         searchImageMask: 'https://appstatic.jeeliz.com/jeewidget/images/target512.jpg',
         searchImageColor: 0xeeeeee,
-        callbackReady: () => hideError(),
+        callbackReady: () => {
+          hideError();
+          hasTried = true;
+          updateTexts();
+        },
         onError: (errorLabel: string) => {
           showError(errorLabels[errorLabel] ?? 'Ocurrió un error con la cámara.');
         },

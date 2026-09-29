@@ -2,49 +2,104 @@
 import { getCollection } from 'astro:content';
 import site from '../utils/site';
 import { waLink } from '../utils/whatsapp';
+import { isPlaceholderImage } from '../utils/images';
 import Icon from './Icon.astro';
 
 const whatsappHref = waLink('hero', 'Hola, quiero agendar mi examen visual');
 
+const catalogo = await getCollection('catalogo');
+
 // CTA secundario: abre el probador (TryOnModal) con la primera montura destacada que tenga SKU.
 // Si no hay ninguna, el botón hace scroll al catálogo.
-const catalogo = await getCollection('catalogo');
 const tryOnItem = catalogo
   .filter((item) => item.data.featured)
   .map((item) => ({ item, color: item.data.colors[0], sku: item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku }))
   .find(({ sku }) => Boolean(sku));
 
-const microConfianza = ['Garantía de fábrica', 'Tarjeta y transferencia', site.horario].filter(Boolean);
-const hasImage = Boolean(site.heroImagen);
+// Visual derecho: foto real del local si existe; si no, un collage de hasta 3 destacadas
+// CON foto real (nunca placeholders "Foto pendiente"); si tampoco hay, una ilustración SVG.
+const featuredRealPhotos = catalogo
+  .filter((item) => item.data.featured && !isPlaceholderImage(item.data.image))
+  .slice(0, 3);
+
+const { rating, total, url: reviewsUrl } = site.googleReviews;
+const ratingText =
+  rating !== null
+    ? `${rating.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}${total !== null ? ` · ${total.toLocaleString('es-CO')} reseñas` : ''} en Google`
+    : '';
+const microConfianza = [
+  'Garantía de fábrica',
+  'Kit de cuidado incluido',
+  site.pagos.financiadores.length > 0
+    ? `Tarjeta, ${site.pagos.financiadores.join(' e ')}`
+    : 'Tarjeta y transferencia',
+  site.horario,
+].filter(Boolean);
+
+// Resalta el nombre del barrio en fucsia dentro del H1 ya interpolado.
+const tituloPartes =
+  site.barrio && site.hero.titulo.includes(site.barrio) ? site.hero.titulo.split(site.barrio) : null;
 
 const secondaryClass =
-  'inline-flex items-center justify-center gap-2 rounded-full border-2 border-white px-6 py-3 font-semibold text-white transition-colors hover:bg-white hover:text-aguamarina';
+  'inline-flex w-full items-center justify-center gap-2 rounded-full border-2 border-slate-900 px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-900 hover:text-white sm:w-auto sm:px-6 sm:text-base';
 ---
 
-<section class="bg-aguamarina py-14 md:py-20">
-  <div
-    class:list={[
-      'mx-auto px-4',
-      hasImage ? 'grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-12' : 'max-w-3xl text-center',
-    ]}
+<section class="relative overflow-hidden bg-brand-mesh py-10 sm:py-14 md:py-20">
+  <!-- Forma decorativa: bloque orgánico aguamarina detrás de la columna visual (no es fondo de sección). -->
+  <svg
+    class="pointer-events-none absolute -right-24 -top-24 hidden h-[34rem] w-[34rem] text-aguamarina/15 md:block"
+    viewBox="0 0 200 200"
+    aria-hidden="true"
   >
-    <div class="space-y-6">
-      <h1 class="font-display text-3xl font-extrabold leading-tight text-white md:text-5xl">
-        {site.hero.titulo}
+    <path
+      fill="currentColor"
+      d="M45.3,-58.8C58.6,-49.5,68.7,-34.8,72.9,-18.5C77.1,-2.3,75.4,15.6,67.5,30.2C59.6,44.8,45.5,56.2,29.8,63.6C14.1,71,-3.2,74.4,-19.6,71.1C-36,67.8,-51.5,57.7,-61.8,43.5C-72.1,29.2,-77.2,10.7,-74.8,-6.4C-72.4,-23.6,-62.5,-39.4,-49,-49C-35.5,-58.6,-18.5,-62,-0.8,-60.8C16.9,-59.6,33.9,-53.8,45.3,-58.8Z"
+      transform="translate(100 100)"
+    />
+  </svg>
+
+  <!-- Forma decorativa: eco fucsia en la esquina opuesta, para equilibrar el aguamarina. -->
+  <svg
+    class="pointer-events-none absolute -bottom-20 -left-16 hidden h-80 w-80 text-fucsia/10 md:block"
+    viewBox="0 0 200 200"
+    aria-hidden="true"
+  >
+    <path
+      fill="currentColor"
+      d="M45.3,-58.8C58.6,-49.5,68.7,-34.8,72.9,-18.5C77.1,-2.3,75.4,15.6,67.5,30.2C59.6,44.8,45.5,56.2,29.8,63.6C14.1,71,-3.2,74.4,-19.6,71.1C-36,67.8,-51.5,57.7,-61.8,43.5C-72.1,29.2,-77.2,10.7,-74.8,-6.4C-72.4,-23.6,-62.5,-39.4,-49,-49C-35.5,-58.6,-18.5,-62,-0.8,-60.8C16.9,-59.6,33.9,-53.8,45.3,-58.8Z"
+      transform="translate(100 100)"
+    />
+  </svg>
+
+  <div class="relative mx-auto grid max-w-6xl items-center gap-8 px-4 md:grid-cols-2 md:gap-12">
+    <div class="space-y-5 md:space-y-6">
+      <h1 class="font-display text-[1.9rem] font-extrabold leading-[1.15] text-slate-900 sm:text-3xl md:text-5xl md:leading-tight">
+        {
+          tituloPartes ? (
+            <>
+              {tituloPartes[0]}
+              <span class="text-fucsia">{site.barrio}</span>
+              {tituloPartes[1]}
+            </>
+          ) : (
+            site.hero.titulo
+          )
+        }
       </h1>
 
-      <p class="text-lg text-white/90 md:text-xl">{site.hero.subtitulo}</p>
+      <p class="text-base leading-relaxed text-slate-600 sm:text-lg md:text-xl">{site.hero.subtitulo}</p>
 
-      <div class:list={['flex flex-col gap-3 sm:flex-row', !hasImage && 'sm:justify-center']}>
+      <div class="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
         <a
           href={whatsappHref}
           data-cta="hero"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center justify-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-full border-2 border-slate-900 bg-verde-neon px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md sm:w-auto sm:px-6 sm:text-base"
         >
-          <Icon name="whatsapp" class="h-5 w-5" />
-          Agendar mi examen por WhatsApp
+          <Icon name="whatsapp" class="h-5 w-5 shrink-0" />
+          <span class="sm:hidden">Agendar examen por WhatsApp</span>
+          <span class="hidden sm:inline">Agendar mi examen por WhatsApp</span>
         </a>
 
         {
@@ -59,49 +114,111 @@ const secondaryClass =
               data-frame={tryOnItem.color?.name ?? ''}
               data-lenses={JSON.stringify(tryOnItem.color?.lenses ?? [])}
             >
-              <Icon name="eye" class="h-5 w-5" />
-              Pruébate gafas con tu cámara
+              <Icon name="eye" class="h-5 w-5 shrink-0" />
+              <span class="sm:hidden">Probar gafas con cámara</span>
+              <span class="hidden sm:inline">Pruébate gafas con tu cámara</span>
             </button>
           ) : (
             <a href="#catalogo" class={secondaryClass}>
-              <Icon name="eye" class="h-5 w-5" />
-              Pruébate gafas con tu cámara
+              <Icon name="eye" class="h-5 w-5 shrink-0" />
+              <span class="sm:hidden">Probar gafas con cámara</span>
+              <span class="hidden sm:inline">Pruébate gafas con tu cámara</span>
             </a>
           )
         }
       </div>
 
       <ul
-        class:list={[
-          'flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-white',
-          !hasImage && 'justify-center',
-        ]}
+        class="grid grid-cols-1 gap-2 text-sm font-medium text-slate-700 sm:flex sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1.5"
         aria-label="Garantías y formas de pago"
       >
         {
+          ratingText && (
+            <li class="flex items-center gap-1.5">
+              <Icon name="star" filled class="h-4 w-4 shrink-0 text-amber-500" />
+              {reviewsUrl ? (
+                <a
+                  href={reviewsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="underline underline-offset-2 hover:no-underline"
+                >
+                  {ratingText}
+                </a>
+              ) : (
+                ratingText
+              )}
+            </li>
+          )
+        }
+        {
           microConfianza.map((texto) => (
             <li class="flex items-center gap-1.5">
-              <Icon name="check" class="h-4 w-4 shrink-0" />
-              {texto}
+              <Icon name="check" class="h-4 w-4 shrink-0 text-aguamarina" />
+              <span class="leading-snug">{texto}</span>
             </li>
           ))
         }
       </ul>
     </div>
 
-    {
-      hasImage && (
-        <img
-          src={site.heroImagen}
-          alt="Local de Óptica Alta Visión 18"
-          width="1200"
-          height="900"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-          class="aspect-[4/3] w-full rounded-2xl object-cover shadow-lg"
-        />
-      )
-    }
+    <div class="relative">
+      {
+        site.heroImagen ? (
+          <div class="relative">
+            <img
+              src={site.heroImagen}
+              alt="Local de Óptica Alta Visión 18"
+              width="1200"
+              height="900"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              class="aspect-[4/3] w-full rounded-2xl object-cover shadow-lg"
+            />
+            {ratingText && (
+              <div class="absolute -bottom-5 left-4 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-lg sm:-left-6">
+                <Icon name="star" filled class="h-5 w-5 shrink-0 text-amber-500" />
+                <span class="text-sm font-bold text-slate-900">{ratingText}</span>
+              </div>
+            )}
+          </div>
+        ) : featuredRealPhotos.length > 0 ? (
+          <div class="grid grid-cols-3 gap-2 sm:gap-3">
+            {featuredRealPhotos.map((item, i) => (
+              <img
+                src={item.data.image}
+                alt={item.data.imageAlt}
+                width="300"
+                height="300"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                class:list={[
+                  'aspect-square w-full rounded-2xl object-cover shadow-md',
+                  i === 1 && 'mt-4 sm:mt-6',
+                  i === 2 && 'mt-8 sm:mt-12',
+                ]}
+              />
+            ))}
+          </div>
+        ) : (
+          <div class="flex aspect-[4/3] w-full items-center justify-center rounded-2xl bg-white shadow-sm">
+            <svg
+              viewBox="0 0 200 100"
+              class="h-2/3 w-2/3 text-aguamarina"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              aria-hidden="true"
+            >
+              <circle cx="55" cy="50" r="35" />
+              <path d="M90 50h20" />
+              <path d="M20 45 L2 35" />
+              <path d="M180 45 L198 35" />
+              <circle cx="145" cy="50" r="35" class="text-fucsia" stroke="currentColor" />
+            </svg>
+          </div>
+        )
+      }
+    </div>
   </div>
 </section>

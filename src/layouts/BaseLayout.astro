@@ -6,21 +6,28 @@ import '@fontsource/poppins/700.css';
 import '@fontsource/sora/700.css';
 import '@fontsource/sora/800.css';
 import '../styles/global.css';
+import soraExtraBold from '@fontsource/sora/files/sora-latin-800-normal.woff2?url';
+import poppinsRegular from '@fontsource/poppins/files/poppins-latin-400-normal.woff2?url';
+import poppinsMedium from '@fontsource/poppins/files/poppins-latin-500-normal.woff2?url';
+import poppinsSemiBold from '@fontsource/poppins/files/poppins-latin-600-normal.woff2?url';
+import site from '../utils/site';
+import { seo } from '../utils/seo';
 
 interface Props {
   title: string;
   description?: string;
-  canonical?: string;
 }
 
-const {
-  title,
-  description = 'Óptica Alta Visión — gafas, lentes y exámenes visuales en Bogotá.',
-  canonical = 'https://optica-alta-vision-18.netlify.app',
-} = Astro.props;
+const { title, description = seo.home.description } = Astro.props;
 
-// TODO: actualizar og:image cuando exista una imagen OG real con logo/foto del local
-const ogImage = '/og-placeholder.png';
+// Todas las URLs absolutas salen de `site` (SITE_URL en astro.config.mjs).
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, siteUrl).href;
+
+// og:image: foto real del local si existe; si no, la imagen de marca generada
+// con `npm run og` (public/og-default.png, 1200×630). WhatsApp exige URL absoluta.
+const ogImage = new URL(site.heroImagen || '/og-default.png', siteUrl).href;
+const ogImageIsDefault = !site.heroImagen;
 ---
 
 <!doctype html>
@@ -31,6 +38,11 @@ const ogImage = '/og-placeholder.png';
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
+    <!-- Precarga de las fuentes del hero (H1, texto, fila de confianza, botones): evita que cambie de alto (CLS) -->
+    <link rel="preload" href={soraExtraBold} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={poppinsRegular} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={poppinsMedium} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={poppinsSemiBold} as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -40,7 +52,18 @@ const ogImage = '/og-placeholder.png';
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Óptica Alta Visión 18" />
     <meta property="og:image" content={ogImage} />
+    {
+      ogImageIsDefault && (
+        <>
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+        </>
+      )
+    }
+    <meta property="og:image:alt" content={`Óptica Alta Visión 18 — ${title}`} />
     <meta property="og:locale" content="es_CO" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />

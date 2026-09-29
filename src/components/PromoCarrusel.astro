@@ -59,7 +59,7 @@ const slides = (await getCollection('carrusel', ({ data }) => data.active)).sort
           <button
             type="button"
             class:list={[
-              'h-2.5 w-2.5 rounded-full transition-colors',
+              'h-6 w-6 rounded-full bg-clip-content p-[7px] transition-colors',
               i === 0 ? 'bg-white' : 'bg-white/50',
             ]}
             role="tab"

@@ -1,0 +1,40 @@
+---
+import { tiposLente } from '../data/tiposLente';
+---
+
+<section id="tipos-de-lente" class="bg-brand-tint py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <p class="mb-2 text-center text-sm font-bold uppercase tracking-wide text-fucsia">Tecnología óptica</p>
+    <h2 class="mb-3 text-center text-2xl font-bold text-slate-900 md:text-3xl">Tipos de lentes que manejamos</h2>
+    <p class="mx-auto mb-10 max-w-2xl text-center text-sm text-slate-600 md:text-base">
+      Monofocales, progresivos, filtro de luz azul y fotocromáticos. Te ayudamos a elegir el lente ideal para tu fórmula y tu día a día.
+    </p>
+
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        tiposLente.map((tipo, i) => (
+          <li
+            class:list={[
+              'overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition-shadow hover:shadow-md',
+              i % 2 === 0 ? 'border-aguamarina/20' : 'border-fucsia/20',
+            ]}
+          >
+            <div class="aspect-[4/3] overflow-hidden bg-slate-50">
+              <img
+                src={tipo.imagen}
+                alt={`Lentes ${tipo.nombre}`}
+                width="480"
+                height="360"
+                loading="lazy"
+                class="h-full w-full object-cover"
+              />
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-base font-semibold text-slate-900">{tipo.nombre}</h3>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

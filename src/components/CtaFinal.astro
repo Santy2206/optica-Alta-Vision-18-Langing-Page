@@ -5,15 +5,17 @@ import Icon from './Icon.astro';
 const origen = 'cta-final';
 ---
 
-<section class="border-b border-slate-900/10 bg-aguamarina py-16 md:py-20">
+<section class="bg-brand-footer py-16 md:py-20">
   <div class="mx-auto max-w-3xl px-4 text-center">
-    <h2 class="text-2xl font-bold text-slate-900 md:text-4xl">¿Listo para ver mejor? Agenda tu examen hoy</h2>
+    <h2 class="text-2xl font-bold text-slate-900 md:text-4xl">
+      ¿Listo para ver <span class="underline decoration-fucsia decoration-4 underline-offset-4">mejor</span>? Agenda tu examen hoy
+    </h2>
     <a
       href={waLink(origen, 'Hola, quiero agendar mi examen visual')}
       data-cta={origen}
       target="_blank"
       rel="noopener noreferrer"
-      class="mt-8 inline-flex items-center gap-2 rounded-full bg-verde-neon px-8 py-4 text-lg font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+      class="mt-8 inline-flex items-center gap-2 rounded-full border-2 border-slate-900 bg-verde-neon px-8 py-4 text-lg font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
     >
       <Icon name="whatsapp" class="h-5 w-5" />
       Agendar mi examen por WhatsApp

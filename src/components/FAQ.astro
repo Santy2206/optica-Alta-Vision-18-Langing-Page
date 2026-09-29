@@ -1,31 +1,61 @@
 ---
+// FAQ ordenada por peso de la objeción: dinero → confianza → tiempo → logística.
+// Las respuestas de política del negocio salen de site.json; si el dato está vacío,
+// la pregunta no se muestra ni entra al schema FAQPage.
+import site from '../utils/site';
+import { formatCOP } from '../utils/precio';
+import { waLink } from '../utils/whatsapp';
+import Icon from './Icon.astro';
+
+const { examen, pagos, precioDesdeMontura, tiempoEntrega, faq } = site;
+
+const respuestaExamen = (() => {
+  const precio = examen.precio !== null ? formatCOP(examen.precio) : '';
+  if (examen.gratisConCompra && precio) {
+    return `Es gratis si compras tus gafas con nosotros. Si solo quieres el examen, cuesta ${precio}.`;
+  }
+  if (examen.gratisConCompra) return 'Es gratis si compras tus gafas con nosotros.';
+  if (precio) return `Cuesta ${precio}.`;
+  return '';
+})();
+
 const faqs = [
+  { q: '¿Cuánto cuesta el examen visual?', a: respuestaExamen },
   {
-    q: '¿El examen de optometría tiene costo?',
-    // TODO: validar respuesta exacta con el cliente
-    a: 'Depende de la promoción vigente. Muchas veces es gratuito si compras las gafas con nosotros.',
+    q: '¿Cuánto cuestan las gafas formuladas?',
+    a:
+      precioDesdeMontura !== null
+        ? `Monturas desde ${formatCOP(precioDesdeMontura)}; el valor final depende del lente.`
+        : '',
   },
   {
-    q: '¿Cuánto tarda la entrega de las gafas?',
-    // TODO: validar respuesta exacta con el cliente
-    a: 'Generalmente entre 3 y 5 días hábiles, según disponibilidad del laboratorio y receta.',
+    q: '¿Qué formas de pago aceptan?',
+    a: `Aceptamos ${pagos.mediosPagoTexto}.`,
   },
-  {
-    q: '¿Qué métodos de pago aceptan?',
-    // TODO: validar respuesta exacta con el cliente
-    a: 'Aceptamos efectivo, tarjetas débito/crédito y transferencias. Consulta si aplica cuotas.',
-  },
+  { q: '¿Qué pasa si mi fórmula no me queda bien?', a: faq.garantiaFormula },
   {
     q: '¿Qué garantía tienen las monturas?',
-    // TODO: validar respuesta exacta con el cliente
-    a: 'Ofrecemos garantía por defectos de fábrica. El periodo exacto varía por marca.',
+    a: 'Todas tienen garantía por defectos de fábrica. El periodo exacto varía según la marca.',
   },
   {
-    q: '¿Necesito cita previa?',
-    // TODO: validar respuesta exacta con el cliente
-    a: 'Recomendamos agendar por WhatsApp para atenderte con tiempo, aunque también recibimos walk-ins.',
+    q: '¿Qué tipos de lentes manejan?',
+    a: 'Monofocales, progresivos, con filtro de luz azul y fotocromáticos. Te asesoramos para elegir el que mejor se adapte a tu fórmula y uso diario.',
   },
-];
+  {
+    q: '¿Venden lentes blandos?',
+    a: 'Sí. Contamos con lentes de contacto blandos y te orientamos según tu fórmula y necesidades.',
+  },
+  { q: '¿Cuánto tarda la entrega?', a: `Tus gafas quedan listas en ${tiempoEntrega}.` },
+  {
+    q: '¿Qué incluye la compra de las gafas?',
+    a: 'Con tu compra te entregamos un kit de cuidado: limpiador, estuche y pañuelo, listo para proteger y mantener tus gafas.',
+  },
+  { q: '¿Atienden niños?', a: faq.ninos },
+  {
+    q: '¿Necesito cita previa?',
+    a: 'No es obligatoria. Te recomendamos agendar por WhatsApp para atenderte sin esperas; también te recibimos si llegas sin cita.',
+  },
+].filter((item) => item.a.trim() !== '');
 
 const schema = {
   '@context': 'https://schema.org',
@@ -39,9 +69,11 @@ const schema = {
     },
   })),
 };
+
+const origen = 'faq';
 ---
 
-<section class="bg-white py-16 md:py-24">
+<section id="faq" class="bg-white py-16 md:py-24">
   <div class="mx-auto max-w-3xl px-4">
     <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">
       Preguntas frecuentes
@@ -62,7 +94,21 @@ const schema = {
         ))
       }
     </div>
+
+    <div class="mt-10 flex flex-col items-center gap-4 text-center">
+      <p class="text-lg font-semibold text-slate-900">¿Tienes otra pregunta?</p>
+      <a
+        href={waLink(origen, 'Hola, tengo una pregunta')}
+        data-cta={origen}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="border-2 border-slate-900 inline-flex items-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+      >
+        <Icon name="whatsapp" class="h-5 w-5" />
+        Pregúntanos por WhatsApp
+      </a>
+    </div>
   </div>
 
-  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  {faqs.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
 </section>

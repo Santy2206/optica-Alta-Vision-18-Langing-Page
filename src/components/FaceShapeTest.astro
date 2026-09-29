@@ -214,7 +214,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
 
         <button
           type="submit"
-          class="w-full rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+          class="border-2 border-slate-900 w-full rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           data-facetest-submit-quiz
           disabled
         >
@@ -281,7 +281,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
             </button>
             <button
               type="button"
-              class="rounded-full bg-verde-neon px-3 py-1.5 text-xs font-semibold text-slate-900"
+              class="border-2 border-slate-900 rounded-full bg-verde-neon px-3 py-1.5 text-xs font-semibold text-slate-900"
               data-facetest-switch-quiz
             >
               Medir con cinta
@@ -301,7 +301,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
       </p>
       <button
         type="button"
-        class="mt-4 w-full rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+        class="border-2 border-slate-900 mt-4 w-full rounded-full bg-verde-neon px-4 py-2.5 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         data-facetest-capture
         disabled
       >
@@ -374,7 +374,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
                     <div class="flex flex-1 flex-col gap-1 p-3">
                       <h5 class="text-sm font-semibold text-slate-900">{item.name}</h5>
                       <p class="text-xs text-slate-500">{item.brand}</p>
-                      <p class="text-sm font-medium text-aguamarina">
+                      <p class="text-sm font-medium text-slate-900">
                         {priceLabel(item.price)}
                       </p>
                       <a
@@ -382,7 +382,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
                         data-cta={`test-rostro:${shapeId}:${item.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="mt-auto inline-block rounded-full bg-verde-neon px-3 py-1.5 text-center text-xs font-semibold text-slate-900 transition-shadow hover:shadow-md"
+                        class="border-2 border-slate-900 mt-auto inline-block rounded-full bg-verde-neon px-3 py-1.5 text-center text-xs font-semibold text-slate-900 transition-shadow hover:shadow-md"
                       >
                         Me interesa
                       </a>
@@ -405,8 +405,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
               </div>
             ) : (
               <p class="text-sm text-slate-500">
-                Aún no tenemos monturas de esta forma cargadas en el catálogo — escríbenos y te asesoramos
-                directamente.
+                Escríbenos y te recomendamos las monturas que mejor le van a tu forma de rostro.
               </p>
             )}
           </div>
@@ -418,10 +417,11 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
           href="#"
           target="_blank"
           rel="noopener noreferrer"
-          class="flex-1 rounded-full bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          class="border-2 border-slate-900 flex flex-1 items-center justify-center gap-2 rounded-full bg-verde-neon px-4 py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
           data-facetest-result-whatsapp
         >
-          Quiero asesoría personalizada
+          <Icon name="whatsapp" class="h-4 w-4 shrink-0" />
+          <span data-facetest-result-whatsapp-label>Pedir recomendaciones para mi rostro</span>
         </a>
         <button
           type="button"
@@ -770,11 +770,14 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
       const whatsapp = modal!.querySelector<HTMLAnchorElement>('[data-facetest-result-whatsapp]');
       if (whatsapp) {
         const origen = `test-rostro:${shapeId}`;
+        const forma = baseLabel.trim().toLowerCase();
         whatsapp.href = waLink(
           origen,
-          `Hola, hice el test de rostro y mi resultado fue: ${label}. Quiero asesoría personalizada.`,
+          `Hola, hice el test de rostro y mi resultado fue: ${label}. ¿Qué monturas me recomiendan para rostro ${forma}?`,
         );
         whatsapp.dataset.cta = origen;
+        const ctaLabel = whatsapp.querySelector<HTMLElement>('[data-facetest-result-whatsapp-label]');
+        if (ctaLabel) ctaLabel.textContent = `Pedir recomendaciones para rostro ${forma}`;
       }
     }
 

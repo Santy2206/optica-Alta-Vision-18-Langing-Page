@@ -87,7 +87,7 @@ collections:
           - { label: Sol, value: sol }
           - { label: Niños, value: ninos }
           - { label: Deportivas, value: deportivas }
-          - { label: Lentes de contacto, value: contacto }
+          - { label: Lentes blandos, value: contacto }
       - label: Precio (COP)
         name: price
         widget: number
@@ -198,6 +198,8 @@ collections:
         public_folder: /uploads/testimonios
       - { label: Estrellas, name: estrellas, widget: number, value_type: int, min: 1, max: 5, default: 5 }
       - { label: Mostrar en la página, name: active, widget: boolean, default: true }
+      - { label: Orden, name: order, widget: number, value_type: int, default: 0, hint: "Menor número = aparece primero en el carrusel" }
+      - { label: Link a la reseña (Google), name: url, widget: string, required: false, hint: "URL de la reseña o del perfil del autor en Google Maps" }
 
   # --- Configuración del sitio (archivo único, no carpeta) ---
   - name: configuracion
@@ -208,7 +210,26 @@ collections:
         file: src/content/configuracion/site.json
         fields:
           - { label: Teléfono (wa.me, sin +), name: telefono, widget: string, hint: "Ej. 573118812747" }
-          - { label: Horario, name: horario, widget: string }
+          - label: Horario de atención
+            name: horario
+            widget: object
+            hint: "Se usa en la página (hero, ubicación, footer) y en Google. Días consecutivos se muestran como 'Lunes a Sábado'."
+            fields:
+              - label: Días de atención
+                name: dias
+                widget: select
+                multiple: true
+                min: 1
+                options:
+                  - { label: Lunes, value: Monday }
+                  - { label: Martes, value: Tuesday }
+                  - { label: Miércoles, value: Wednesday }
+                  - { label: Jueves, value: Thursday }
+                  - { label: Viernes, value: Friday }
+                  - { label: Sábado, value: Saturday }
+                  - { label: Domingo, value: Sunday }
+              - { label: Hora de apertura, name: abre, widget: datetime, date_format: false, time_format: "HH:mm", format: "HH:mm", picker_utc: false, hint: "Formato 24 h. Ej. 11:00" }
+              - { label: Hora de cierre, name: cierra, widget: datetime, date_format: false, time_format: "HH:mm", format: "HH:mm", picker_utc: false, hint: "Formato 24 h. Ej. 20:00" }
           - label: Barrio
             name: barrio
             widget: string
@@ -219,6 +240,44 @@ collections:
             widget: string
             required: false
             hint: "Dirección exacta del local. Vacío = la fila de dirección se oculta."
+          - label: Dirección para Google (SEO)
+            name: direccionPostal
+            widget: object
+            collapsed: true
+            hint: "Datos estructurados para buscadores. La calle va sin barrio ni ciudad."
+            fields:
+              - { label: Calle y número, name: calle, widget: string, required: false, hint: "Ej. Cl. 18 #103A-40" }
+              - { label: Ciudad, name: localidad, widget: string, required: false, default: "Bogotá" }
+          - label: Coordenadas del local (SEO)
+            name: geo
+            widget: object
+            collapsed: true
+            hint: "Latitud y longitud del local en Google Maps (clic derecho sobre el pin → copiar coordenadas)."
+            fields:
+              - { label: Latitud, name: lat, widget: number, value_type: float, required: false }
+              - { label: Longitud, name: lng, widget: number, value_type: float, required: false }
+          - label: "Página Nosotros"
+            name: nosotros
+            widget: object
+            collapsed: true
+            hint: "Cada bloque de la página /nosotros se oculta si su campo queda vacío. No se inventa contenido: escribe tú la historia."
+            fields:
+              - label: Historia
+                name: historia
+                widget: text
+                required: false
+                hint: "Texto largo. Un párrafo por línea en blanco."
+              - label: Cita destacada
+                name: cita
+                widget: string
+                required: false
+                hint: "Una frase corta, del optómetra o del negocio. Se muestra resaltada."
+              - label: Fotos del local
+                name: fotosLocal
+                widget: list
+                field: { label: Foto, name: image, widget: image, media_folder: /public/uploads/nosotros, public_folder: /uploads/nosotros }
+                required: false
+                default: []
           - label: Redes sociales
             name: redesSociales
             widget: object
@@ -237,13 +296,14 @@ collections:
                 name: titulo
                 widget: string
                 required: false
-                default: "Tu examen visual y tus gafas listas en {tiempoEntrega}{barrio}"
-                hint: "{tiempoEntrega} se reemplaza por el tiempo de entrega. {barrio} se convierte en ', en <barrio>' o desaparece si el barrio está vacío."
+                default: "Ve mejor en {tiempoEntrega}{barrio}"
+                hint: "{tiempoEntrega} se reemplaza por el tiempo de entrega. {barrio} se convierte en ', aquí en <barrio>' o desaparece si el barrio está vacío. El nombre del barrio se resalta en fucsia."
               - label: Subtítulo
                 name: subtitulo
                 widget: text
                 required: false
-                default: "Optometría profesional, monturas formuladas y de sol, con pagos en cuotas."
+                default: "Optometría profesional, monturas formuladas y de sol{cuotas}."
+                hint: "{cuotas} se convierte en ', con pagos en cuotas' solo si 'Pagos → Acepta cuotas' está activo."
           - label: Foto del local (hero)
             name: heroImagen
             widget: image
@@ -268,6 +328,53 @@ collections:
                 name: gratisConCompra
                 widget: boolean
                 default: false
+          - label: Pagos
+            name: pagos
+            widget: object
+            collapsed: true
+            fields:
+              - label: Acepta pagos a cuotas
+                name: cuotas
+                widget: boolean
+                default: false
+                hint: "Activar SOLO si está confirmado. Controla el texto del titular y la respuesta de la FAQ de pagos."
+              - label: Acepta ADDI
+                name: addi
+                widget: boolean
+                default: false
+                hint: "Financiación ADDI. Se muestra en hero y FAQ."
+              - label: Acepta Sistecredito
+                name: sistecredito
+                widget: boolean
+                default: false
+                hint: "Financiación Sistecredito. Se muestra en hero y FAQ."
+          - label: Probador virtual
+            name: probador
+            widget: object
+            collapsed: true
+            fields:
+              - label: Texto del botón después de probarse
+                name: ctaTexto
+                widget: string
+                required: false
+                default: "Me gustan, ¿las tienen disponibles?"
+                hint: "Aparece cuando el cliente ya se vio con las gafas puestas. Abre WhatsApp con la montura, el color y el lente."
+          - label: Preguntas frecuentes
+            name: faq
+            widget: object
+            collapsed: true
+            hint: "Respuestas que dependen de la política del negocio. Si un campo queda vacío, esa pregunta NO se muestra."
+            fields:
+              - label: "¿Qué pasa si mi fórmula no me queda bien?"
+                name: garantiaFormula
+                widget: text
+                required: false
+                hint: "Ej. política de ajuste o cambio de lentes. Frases cortas, en segunda persona."
+              - label: "¿Atienden niños?"
+                name: ninos
+                widget: text
+                required: false
+                hint: "Ej. desde qué edad se hace el examen. Frases cortas, en segunda persona."
           - label: Precio desde (monturas, COP)
             name: precioDesdeMontura
             widget: number

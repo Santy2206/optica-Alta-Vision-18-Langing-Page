@@ -5,34 +5,63 @@ import Icon from './Icon.astro';
 
 const pasos = [
   { icon: 'eye', titulo: 'Te hacemos el examen visual' },
-  { icon: 'monitor', titulo: 'Eliges tu montura (o te la pruebas con tu cámara)' },
-  { icon: 'check', titulo: `Recoges tus gafas en ${site.tiempoEntrega}` },
+  {
+    icon: 'monitor',
+    titulo: 'Eliges tu montura y tu tipo de lente',
+    detalle: 'Más pequeño para tus gafas, o lentes de contacto blandos',
+  },
+  {
+    icon: 'check',
+    titulo: `Recoges tus gafas en ${site.tiempoEntrega}`,
+    detalle: 'Incluye kit de cuidado: limpiador, estuche y pañuelo',
+  },
 ] as const;
 
 const origen = 'como-funciona';
 ---
 
-<section id="como-funciona" class="bg-white py-16 md:py-24">
-  <div class="mx-auto max-w-6xl px-4">
+<section id="como-funciona" class="relative overflow-hidden bg-brand-tint py-16 md:py-24">
+  <svg
+    class="pointer-events-none absolute -right-20 -top-20 hidden h-72 w-72 text-fucsia/10 md:block"
+    viewBox="0 0 200 200"
+    aria-hidden="true"
+  >
+    <path
+      fill="currentColor"
+      d="M45.3,-58.8C58.6,-49.5,68.7,-34.8,72.9,-18.5C77.1,-2.3,75.4,15.6,67.5,30.2C59.6,44.8,45.5,56.2,29.8,63.6C14.1,71,-3.2,74.4,-19.6,71.1C-36,67.8,-51.5,57.7,-61.8,43.5C-72.1,29.2,-77.2,10.7,-74.8,-6.4C-72.4,-23.6,-62.5,-39.4,-49,-49C-35.5,-58.6,-18.5,-62,-0.8,-60.8C16.9,-59.6,33.9,-53.8,45.3,-58.8Z"
+      transform="translate(100 100)"
+    />
+  </svg>
+
+  <div class="relative mx-auto max-w-6xl px-4">
+    <p class="mb-2 text-center text-sm font-bold uppercase tracking-wide text-fucsia">Paso a paso</p>
     <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">Así de fácil funciona</h2>
 
     <ol class="grid gap-6 md:grid-cols-3">
       {
         pasos.map((paso, i) => (
-          <li class="relative flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
+          <li class="relative flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
             <span
               class="absolute -top-3 left-1/2 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white"
               aria-hidden="true"
             >
               {i + 1}
             </span>
-            <span class="mb-4 mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-aguamarina text-white">
+            <span
+              class:list={[
+                'mb-4 mt-2 flex h-14 w-14 items-center justify-center rounded-full text-white',
+                i % 2 === 0 ? 'bg-aguamarina' : 'bg-fucsia',
+              ]}
+            >
               <Icon name={paso.icon} class="h-7 w-7" />
             </span>
             <p class="text-base font-semibold text-slate-900">
               <span class="sr-only">Paso {i + 1}: </span>
               {paso.titulo}
             </p>
+            {'detalle' in paso && paso.detalle && (
+              <p class="mt-2 text-sm text-slate-600">{paso.detalle}</p>
+            )}
           </li>
         ))
       }
@@ -44,7 +73,7 @@ const origen = 'como-funciona';
         data-cta={origen}
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+        class="border-2 border-slate-900 inline-flex items-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
       >
         <Icon name="whatsapp" class="h-5 w-5" />
         Empezar: agendar mi examen

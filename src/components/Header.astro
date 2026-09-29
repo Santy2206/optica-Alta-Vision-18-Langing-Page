@@ -11,28 +11,31 @@ const navLinks = [
   { label: 'Servicios', href: '/#servicios' },
   { label: 'Ubicación', href: '/#ubicacion' },
 ];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => href === path || (href !== '/' && path.startsWith(href));
 ---
 
-<header class="sticky top-0 z-50 bg-aguamarina shadow-sm">
+<header
+  class="sticky top-0 z-50 bg-white transition-shadow"
+  data-header
+>
   <div class="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4">
-    <!-- Logo: guardar imagen en public/logo.png para activarla; el texto es fallback -->
-    <a href="/" class="flex shrink-0 items-center text-lg font-bold text-white tracking-tight">
-      <img
-        src="/logo.png"
-        alt="Alta Visión 18"
-        class="hidden h-8 w-auto sm:h-12"
-        onload="this.classList.remove('hidden'); this.nextElementSibling.classList.add('hidden');"
-        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
-      />
-      <span class="">Alta Visión 18</span>
+    <!-- Logo con dimensiones fijas (sin swap por onload) para evitar layout shift. -->
+    <a href="/" class="flex shrink-0 items-center">
+      <img src="/logo.webp" alt="Óptica Alta Visión 18 — inicio" width="310" height="96" class="h-10 w-auto md:h-14" />
     </a>
 
-    <nav class="hidden items-center gap-6 md:flex" aria-label="Navegación principal">
+    <nav class="hidden items-center gap-6 lg:flex" aria-label="Navegación principal">
       {
         navLinks.map((link) => (
           <a
             href={link.href}
-            class="text-sm font-medium text-white/90 hover:text-white hover:underline underline-offset-4 transition-colors"
+            aria-current={isActive(link.href) ? 'page' : undefined}
+            class:list={[
+              'text-sm font-medium transition-colors hover:text-aguamarina',
+              isActive(link.href) ? 'text-aguamarina' : 'text-slate-900',
+            ]}
           >
             {link.label}
           </a>
@@ -44,7 +47,7 @@ const navLinks = [
       <a
         href={whatsappHref}
         data-cta="header"
-        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-verde-neon px-3 py-2 text-sm font-semibold sm:px-4 text-slate-900 shadow-sm hover:shadow-md transition-all"
+        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-slate-900 bg-verde-neon px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md sm:px-4"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -54,7 +57,7 @@ const navLinks = [
 
       <button
         type="button"
-        class="inline-flex items-center justify-center rounded-full p-2 text-white hover:bg-white/10 md:hidden"
+        class="inline-flex items-center justify-center rounded-full p-2 text-slate-900 hover:bg-slate-100 lg:hidden"
         aria-label="Abrir menú"
         aria-expanded="false"
         aria-controls="mobile-menu"
@@ -66,9 +69,11 @@ const navLinks = [
     </div>
   </div>
 
+  <div class="h-[3px] w-full brand-bar" aria-hidden="true"></div>
+
   <nav
     id="mobile-menu"
-    class="hidden flex-col gap-1 border-t border-white/20 bg-aguamarina px-4 py-3 md:hidden"
+    class="hidden flex-col gap-1 border-t border-slate-200 bg-white px-4 py-3 lg:hidden"
     aria-label="Navegación móvil"
     data-mobile-menu
   >
@@ -76,7 +81,11 @@ const navLinks = [
       navLinks.map((link) => (
         <a
           href={link.href}
-          class="rounded-lg px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white"
+          aria-current={isActive(link.href) ? 'page' : undefined}
+          class:list={[
+            'rounded-lg px-3 py-2 text-sm font-medium hover:bg-slate-100',
+            isActive(link.href) ? 'text-aguamarina' : 'text-slate-900',
+          ]}
           data-mobile-link
         >
           {link.label}
@@ -116,5 +125,14 @@ const navLinks = [
     });
 
     links.forEach((link) => link.addEventListener('click', closeMenu));
+  }
+
+  // Sombra suave solo cuando la página está scrolleada (header sobre fondo blanco).
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    const SHADOW = ['shadow-md'];
+    const onScroll = () => header.classList.toggle(SHADOW[0], window.scrollY > 4);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
   }
 </script>

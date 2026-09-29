@@ -87,6 +87,10 @@ const testimonios = defineCollection({
     estrellas: z.number().int().min(1).max(5).default(5),
     /** Solo se muestran los activos (permite ocultar sin borrar) */
     active: z.boolean().default(true),
+    /** Menor número = aparece primero en el carrusel */
+    order: z.number().default(0),
+    /** Enlace a la reseña en Google (perfil del autor o URL share.google) */
+    url: z.string().url().optional(),
   }),
 });
 
