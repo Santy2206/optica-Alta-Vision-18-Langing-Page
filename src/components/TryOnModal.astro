@@ -1,11 +1,10 @@
 ---
-import site from '../content/configuracion/site.json';
 import Icon from './Icon.astro';
 ---
 
 <!--
   Modal de prueba virtual compartido. Cualquier botón en la página con
-  data-tryon-open + data-sku + data-name (y opcionalmente data-frame + data-lenses JSON)
+  data-tryon-open + data-sku + data-name + data-slug (y opcionalmente data-frame + data-lenses JSON)
   abre este modal (delegación de eventos).
 -->
 <div
@@ -94,22 +93,32 @@ import Icon from './Icon.astro';
   </div>
 </div>
 
-<script define:vars={{ telefono: site.telefono }}>
+<script>
+  import { waLink } from '../utils/whatsapp';
+
+  type Lens = { name: string; hex: string; tryOnSku: string };
+  type JeelizWidget = {
+    start: (options: Record<string, unknown>) => void;
+    load: (sku: string) => void;
+    destroy: () => void;
+  };
+  const getWidget = () => (window as unknown as { JEELIZVTOWIDGET?: JeelizWidget }).JEELIZVTOWIDGET;
+
   const WIDGET_SRC = '/vendor/jeeliz-vto/JeelizVTOWidget.js';
 
-  const modal = document.querySelector('[data-tryon-modal]');
+  const modal = document.querySelector<HTMLElement>('[data-tryon-modal]');
   const closeButton = document.querySelector('[data-tryon-close]');
   const currentLabel = document.querySelector('[data-tryon-current-label]');
   const errorPanel = document.querySelector('[data-tryon-error]');
-  const errorMessage = document.querySelector('[data-tryon-error-message]');
-  const whatsappLink = document.querySelector('[data-tryon-whatsapp]');
+  const errorMessage = document.querySelector<HTMLElement>('[data-tryon-error-message]');
+  const whatsappLink = document.querySelector<HTMLAnchorElement>('[data-tryon-whatsapp]');
 
-  let scriptPromise = null;
+  let scriptPromise: Promise<void> | null = null;
   let isStarted = false;
 
   const loadScript = () => {
     if (scriptPromise) return scriptPromise;
-    scriptPromise = new Promise((resolve, reject) => {
+    scriptPromise = new Promise<void>((resolve, reject) => {
       const script = document.createElement('script');
       script.src = WIDGET_SRC;
       script.onload = () => resolve();
@@ -119,7 +128,7 @@ import Icon from './Icon.astro';
     return scriptPromise;
   };
 
-  const showError = (message) => {
+  const showError = (message: string) => {
     if (errorMessage) errorMessage.textContent = message;
     errorPanel?.classList.remove('hidden');
     errorPanel?.classList.add('flex');
@@ -130,7 +139,7 @@ import Icon from './Icon.astro';
     errorPanel?.classList.remove('flex');
   };
 
-  const errorLabels = {
+  const errorLabels: Record<string, string> = {
     WEBCAM_UNAVAILABLE: 'No detectamos una cámara o no diste permiso para usarla.',
     INVALID_SKU: 'No pudimos cargar la vista previa de esta montura.',
     PLACEHOLDER_NULL_WIDTH: 'Hubo un problema mostrando la ventana de prueba.',
@@ -142,7 +151,7 @@ import Icon from './Icon.astro';
   const lensContainer = document.querySelector('[data-tryon-lenses]');
   const lensLabel = document.querySelector('[data-tryon-lens-label]');
 
-  let current = { name: '', frame: '', lens: '' };
+  let current = { name: '', slug: '', frame: '', lens: '' };
 
   const updateTexts = () => {
     const montura = current.frame ? `${current.name} — marco ${current.frame}` : current.name;
@@ -150,14 +159,16 @@ import Icon from './Icon.astro';
     if (lensLabel) lensLabel.textContent = current.lens || '—';
     if (whatsappLink) {
       const lente = current.lens ? ` con lente ${current.lens}` : '';
-      const text = encodeURIComponent(
+      const origen = `probador:${current.slug}`;
+      whatsappLink.href = waLink(
+        origen,
         `Hola, probé virtualmente la montura ${montura}${lente} y quiero más información`,
       );
-      whatsappLink.href = `https://wa.me/${telefono}?text=${text}`;
+      whatsappLink.dataset.cta = origen;
     }
   };
 
-  const selectLens = (lens) => {
+  const selectLens = (lens: Lens) => {
     current.lens = lens.name;
     updateTexts();
     lensContainer?.querySelectorAll('button').forEach((b) => {
@@ -166,10 +177,10 @@ import Icon from './Icon.astro';
       b.classList.toggle('border-slate-300', !active);
       b.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
-    if (isStarted && window.JEELIZVTOWIDGET) window.JEELIZVTOWIDGET.load(lens.tryOnSku);
+    if (isStarted) getWidget()?.load(lens.tryOnSku);
   };
 
-  const renderLenses = (lenses, activeSku) => {
+  const renderLenses = (lenses: Lens[], activeSku: string) => {
     if (!lensContainer || !lensPanel) return;
     lensContainer.replaceChildren();
     lensPanel.classList.toggle('hidden', lenses.length === 0);
@@ -200,12 +211,24 @@ import Icon from './Icon.astro';
     }
   };
 
-  const openModal = async ({ sku, name, frame, lenses }) => {
+  const openModal = async ({
+    sku,
+    name,
+    slug,
+    frame,
+    lenses,
+  }: {
+    sku: string;
+    name: string;
+    slug: string;
+    frame: string;
+    lenses: Lens[];
+  }) => {
     if (!modal) return;
     hideError();
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    current = { name, frame, lens: '' };
+    current = { name, slug, frame, lens: '' };
     renderLenses(lenses, sku);
     updateTexts();
 
@@ -216,25 +239,26 @@ import Icon from './Icon.astro';
       return;
     }
 
-    if (!window.JEELIZVTOWIDGET) {
+    const widget = getWidget();
+    if (!widget) {
       showError('No se pudo cargar la herramienta de prueba virtual.');
       return;
     }
 
     if (!isStarted) {
       isStarted = true;
-      window.JEELIZVTOWIDGET.start({
+      widget.start({
         sku,
         isShadow: true,
         searchImageMask: 'https://appstatic.jeeliz.com/jeewidget/images/target512.jpg',
         searchImageColor: 0xeeeeee,
         callbackReady: () => hideError(),
-        onError: (errorLabel) => {
+        onError: (errorLabel: string) => {
           showError(errorLabels[errorLabel] ?? 'Ocurrió un error con la cámara.');
         },
       });
     } else {
-      window.JEELIZVTOWIDGET.load(sku);
+      widget.load(sku);
     }
   };
 
@@ -242,15 +266,15 @@ import Icon from './Icon.astro';
     if (!modal) return;
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-    if (isStarted && window.JEELIZVTOWIDGET) {
-      window.JEELIZVTOWIDGET.destroy();
+    if (isStarted) {
+      getWidget()?.destroy();
       isStarted = false;
     }
   };
 
   // Delegación de eventos: cualquier botón [data-tryon-open] en la página abre este modal,
   // sin importar qué componente lo haya renderizado (catálogo, más vendidas, etc).
-  const parseLenses = (raw) => {
+  const parseLenses = (raw: string | undefined): Lens[] => {
     try {
       return JSON.parse(raw || '[]');
     } catch {
@@ -259,11 +283,13 @@ import Icon from './Icon.astro';
   };
 
   document.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-tryon-open]');
+    const target = event.target as Element | null;
+    const button = target?.closest<HTMLElement>('[data-tryon-open]');
     if (button?.dataset.sku) {
       openModal({
         sku: button.dataset.sku,
         name: button.dataset.name || 'esta montura',
+        slug: button.dataset.slug || 'sin-slug',
         frame: button.dataset.frame || '',
         lenses: parseLenses(button.dataset.lenses),
       });
@@ -272,8 +298,8 @@ import Icon from './Icon.astro';
 
     // Elegir un color de marco en la tarjeta deja listo "Probar con cámara"
     // con ese marco y sus opciones de lente.
-    const swatch = event.target.closest('[data-swatch]');
-    const tryOnButton = swatch?.closest('article')?.querySelector('[data-tryon-open]');
+    const swatch = target?.closest<HTMLElement>('[data-swatch]');
+    const tryOnButton = swatch?.closest('article')?.querySelector<HTMLElement>('[data-tryon-open]');
     if (swatch && tryOnButton && swatch.dataset.tryonSku) {
       tryOnButton.dataset.sku = swatch.dataset.tryonSku;
       tryOnButton.dataset.frame = swatch.title;

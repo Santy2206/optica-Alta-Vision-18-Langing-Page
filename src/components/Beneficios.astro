@@ -1,8 +1,5 @@
 ---
-import site from '../content/configuracion/site.json';
-
-const whatsappHref = (mensaje: string) =>
-  `https://wa.me/${site.telefono}?text=${encodeURIComponent(mensaje)}`;
+import { waLink } from '../utils/whatsapp';
 
 const beneficios = [
   {
@@ -23,7 +20,8 @@ const beneficios = [
   {
     imagen: '/images/beneficios/examen-visual.svg',
     titulo: 'Examen visual',
-    href: whatsappHref('Hola, quiero agendar un examen visual'),
+    href: waLink('beneficios:examen', 'Hola, quiero agendar un examen visual'),
+    cta: 'beneficios:examen',
   },
 ] as const;
 ---
@@ -43,6 +41,7 @@ const beneficios = [
               href={item.href}
               target={isExternal ? '_blank' : undefined}
               rel={isExternal ? 'noopener noreferrer' : undefined}
+              data-cta={'cta' in item ? item.cta : undefined}
               class="group relative block overflow-hidden rounded-2xl shadow-sm transition-shadow hover:shadow-md"
             >
               <div class="aspect-[4/5] w-full overflow-hidden bg-aguamarina">

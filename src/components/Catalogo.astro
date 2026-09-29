@@ -1,23 +1,15 @@
 ---
 import { getCollection } from 'astro:content';
-import site from '../content/configuracion/site.json';
 import Icon from './Icon.astro';
 import { tiposLente } from '../data/tiposLente';
+import { priceLabel } from '../utils/precio';
 
 const all = await getCollection('catalogo');
 const featured = all.filter((item) => item.data.featured);
-// Con menos de 2 monturas "destacadas" el carrusel se ve como una sola tarjeta suelta,
-// así que mostramos el catálogo completo para que siempre haya varias para deslizar.
-const items = featured.length > 1 ? featured : all;
-
-const categorias = [
-  { value: 'todos', label: 'Todos' },
-  { value: 'formuladas', label: 'Formuladas' },
-  { value: 'sol', label: 'Sol' },
-  { value: 'ninos', label: 'Niños' },
-  { value: 'deportivas', label: 'Deportivas' },
-  { value: 'contacto', label: 'Lentes de contacto' },
-] as const;
+// Home: máximo 6. Con menos de 2 "destacadas" el carrusel se ve como una tarjeta suelta,
+// así que completamos con el resto del catálogo.
+const MAX_HOME = 6;
+const items = (featured.length > 1 ? featured : all).slice(0, MAX_HOME);
 
 const productSchemas = items.map((item) => {
   const product: Record<string, unknown> = {
@@ -45,39 +37,19 @@ const productSchemas = items.map((item) => {
 });
 ---
 
+{items.length > 0 && (
 <section id="catalogo" class="bg-white py-16 md:py-24">
   <div class="mx-auto max-w-6xl px-4">
-    <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">
-      Monturas más vendidas
+    <h2 class="mb-3 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+      Monturas destacadas
     </h2>
+    <p class="mx-auto mb-10 max-w-xl text-center text-sm text-slate-600 md:text-base">
+      Elige tu montura y cotízala con el lente que necesitas, o pruébatela con tu cámara.
+    </p>
 
     {
-      items.length > 0 ? (
+      (
         <>
-          <div
-            class="mb-6 flex flex-wrap justify-center gap-2"
-            role="group"
-            aria-label="Filtrar por categoría"
-            data-catalogo-filter-group
-          >
-            {categorias.map((cat, i) => (
-              <button
-                type="button"
-                class:list={[
-                  'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-                  i === 0
-                    ? 'border-aguamarina bg-aguamarina text-white'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-aguamarina hover:text-aguamarina',
-                ]}
-                data-catalogo-filter-btn
-                data-filter={cat.value}
-                aria-pressed={i === 0 ? 'true' : 'false'}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
           <div class="relative" data-catalogo-wrapper>
           {items.length > 1 && (
             <button
@@ -98,10 +70,6 @@ const productSchemas = items.map((item) => {
             data-catalogo-track
           >
             {items.map((item) => {
-              const priceLabel =
-                item.data.price !== null
-                  ? `Desde $${item.data.price.toLocaleString('es-CO')}`
-                  : 'Consultar precio';
               const tryOnSku = item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null;
 
               return (
@@ -153,20 +121,22 @@ const productSchemas = items.map((item) => {
                       </div>
                     )}
 
-                    <p class="text-base font-medium text-aguamarina">{priceLabel}</p>
+                    <p class="text-base font-medium text-slate-900">{priceLabel(item.data.price)}</p>
                     <button
                       type="button"
                       class="mt-auto inline-block rounded-full bg-verde-neon px-4 py-2 text-center text-sm font-semibold text-slate-900 transition-shadow hover:shadow-md"
                       data-open-lens-modal
                       data-frame-name={item.data.name}
+                      data-slug={item.id}
                     >
-                      Me interesa
+                      Cotizar esta montura
                     </button>
                     {tryOnSku && (
                       <button
                         type="button"
                         class="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
                         data-tryon-open
+                        data-slug={item.id}
                         data-sku={tryOnSku}
                         data-name={item.data.name}
                         data-frame={item.data.colors[0]?.name ?? ''}
@@ -203,21 +173,14 @@ const productSchemas = items.map((item) => {
           )}
           </div>
 
-          <p class="mt-8 hidden text-center text-sm text-slate-500" data-catalogo-empty-message>
-            No hay monturas en esta categoría todavía.
-          </p>
         </>
-      ) : (
-        <p class="text-center text-sm text-slate-500">
-          Catálogo vacío — agrega monturas desde el CMS.
-        </p>
       )
     }
 
     <div class="mt-8 text-center">
       <a
         href="/catalogo"
-        class="inline-block rounded-full border border-aguamarina px-6 py-2.5 text-sm font-semibold text-aguamarina transition-colors hover:bg-aguamarina hover:text-white"
+        class="inline-block rounded-full border-2 border-aguamarina px-6 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-aguamarina"
       >
         Ver catálogo completo
       </a>
@@ -234,7 +197,6 @@ const productSchemas = items.map((item) => {
     aria-modal="true"
     aria-label="Elige el tipo de lente"
     data-lens-modal
-    data-telefono={site.telefono}
   >
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
       <div class="mb-4 flex items-start justify-between gap-4">
@@ -289,8 +251,11 @@ const productSchemas = items.map((item) => {
     </div>
   </div>
 </section>
+)}
 
 <script>
+  import { waLink } from '../utils/whatsapp';
+
   const wrapper = document.querySelector<HTMLElement>('[data-catalogo-wrapper]');
   const track = document.querySelector<HTMLElement>('[data-catalogo-track]');
   const prev = document.querySelector<HTMLButtonElement>('[data-catalogo-prev]');
@@ -392,38 +357,6 @@ const productSchemas = items.map((item) => {
     refreshCarousel = updateUI;
   }
 
-  const catalogoFilterButtons = document.querySelectorAll<HTMLButtonElement>('[data-catalogo-filter-btn]');
-  const catalogoItems = document.querySelectorAll<HTMLElement>('[data-catalogo-item]');
-  const catalogoEmptyMessage = document.querySelector<HTMLElement>('[data-catalogo-empty-message]');
-
-  catalogoFilterButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const filter = btn.dataset.filter ?? 'todos';
-      let visibleCount = 0;
-
-      catalogoItems.forEach((item) => {
-        const matches = filter === 'todos' || item.dataset.category === filter;
-        item.classList.toggle('hidden', !matches);
-        if (matches) visibleCount += 1;
-      });
-
-      catalogoEmptyMessage?.classList.toggle('hidden', visibleCount > 0);
-
-      catalogoFilterButtons.forEach((b) => {
-        const active = b === btn;
-        b.setAttribute('aria-pressed', active ? 'true' : 'false');
-        b.classList.toggle('border-aguamarina', active);
-        b.classList.toggle('bg-aguamarina', active);
-        b.classList.toggle('text-white', active);
-        b.classList.toggle('bg-white', !active);
-        b.classList.toggle('text-slate-700', !active);
-      });
-
-      if (track) track.scrollLeft = 0;
-      refreshCarousel?.();
-    });
-  });
-
   document.addEventListener('click', (e) => {
     const swatch = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-swatch]');
     if (!swatch) return;
@@ -467,12 +400,15 @@ const productSchemas = items.map((item) => {
   const openLensButtons = document.querySelectorAll<HTMLButtonElement>('[data-open-lens-modal]');
   const closeLensButton = document.querySelector<HTMLButtonElement>('[data-close-lens-modal]');
   const skipLensButton = document.querySelector<HTMLButtonElement>('[data-skip-lens]');
-  const telefono = lensModal?.dataset.telefono ?? '';
-
   let currentFrameName = '';
+  let currentOrigen = '';
 
-  const openLensModal = (frameName: string) => {
+  const openLensModal = (frameName: string, slug: string) => {
     currentFrameName = frameName;
+    currentOrigen = `cotizador:${slug}`;
+    // data-cta dinámico: el tracker de BaseLayout lo lee al hacer clic.
+    lensModalOptions.forEach((b) => (b.dataset.cta = currentOrigen));
+    if (skipLensButton) skipLensButton.dataset.cta = currentOrigen;
     if (lensModalFrame) lensModalFrame.textContent = frameName;
     lensModal?.classList.remove('hidden');
     lensModal?.classList.add('flex');
@@ -484,13 +420,12 @@ const productSchemas = items.map((item) => {
   };
 
   const sendWhatsApp = (message: string) => {
-    const text = encodeURIComponent(message);
-    window.open(`https://wa.me/${telefono}?text=${text}`, '_blank', 'noopener');
+    window.open(waLink(currentOrigen, message), '_blank', 'noopener');
   };
 
   openLensButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      openLensModal(button.dataset.frameName ?? '');
+      openLensModal(button.dataset.frameName ?? '', button.dataset.slug ?? '');
     });
   });
 

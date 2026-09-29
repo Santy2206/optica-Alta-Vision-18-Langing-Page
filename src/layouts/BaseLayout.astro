@@ -51,5 +51,19 @@ const ogImage = '/og-placeholder.png';
   </head>
   <body>
     <slot />
+
+    <script>
+      import { trackCta } from '../utils/whatsapp';
+
+      // Delegado: cualquier elemento con data-cta (links o botones que abren WhatsApp).
+      document.addEventListener(
+        'click',
+        (event) => {
+          const el = (event.target as Element | null)?.closest<HTMLElement>('[data-cta]');
+          if (el?.dataset.cta) trackCta(el.dataset.cta);
+        },
+        { capture: true },
+      );
+    </script>
   </body>
 </html>

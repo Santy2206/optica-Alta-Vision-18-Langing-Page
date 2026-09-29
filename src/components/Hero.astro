@@ -1,162 +1,107 @@
 ---
 import { getCollection } from 'astro:content';
-import site from '../content/configuracion/site.json';
+import site from '../utils/site';
+import { waLink } from '../utils/whatsapp';
+import Icon from './Icon.astro';
 
-const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+const whatsappHref = waLink('hero', 'Hola, quiero agendar mi examen visual');
 
-const slides = (await getCollection('carrusel', ({ data }) => data.active)).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+// CTA secundario: abre el probador (TryOnModal) con la primera montura destacada que tenga SKU.
+// Si no hay ninguna, el botón hace scroll al catálogo.
+const catalogo = await getCollection('catalogo');
+const tryOnItem = catalogo
+  .filter((item) => item.data.featured)
+  .map((item) => ({ item, color: item.data.colors[0], sku: item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku }))
+  .find(({ sku }) => Boolean(sku));
+
+const microConfianza = ['Garantía de fábrica', 'Tarjeta y transferencia', site.horario].filter(Boolean);
+const hasImage = Boolean(site.heroImagen);
+
+const secondaryClass =
+  'inline-flex items-center justify-center gap-2 rounded-full border-2 border-white px-6 py-3 font-semibold text-white transition-colors hover:bg-white hover:text-aguamarina';
 ---
 
-{
-  slides.length > 0 ? (
-    <section
-      class="relative w-full overflow-hidden bg-aguamarina"
-      aria-roledescription="carousel"
-      aria-label="Promociones destacadas"
-      data-carousel
-    >
-      <h1 class="sr-only">Óptica en Bogotá — Alta Visión 18</h1>
+<section class="bg-aguamarina py-14 md:py-20">
+  <div
+    class:list={[
+      'mx-auto px-4',
+      hasImage ? 'grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-12' : 'max-w-3xl text-center',
+    ]}
+  >
+    <div class="space-y-6">
+      <h1 class="font-display text-3xl font-extrabold leading-tight text-white md:text-5xl">
+        {site.hero.titulo}
+      </h1>
 
-      <div class="relative aspect-[4/3] w-full sm:aspect-[16/6]" data-carousel-track>
-        {slides.map((slide, i) => {
-          const href = slide.data.link?.trim() ? slide.data.link : whatsappHref;
-          const isExternal = href.startsWith('http');
-          return (
-            <a
-              href={href}
-              target={isExternal ? '_blank' : undefined}
-              rel={isExternal ? 'noopener noreferrer' : undefined}
-              class:list={[
-                'absolute inset-0 transition-opacity duration-700 ease-in-out',
-                i === 0 ? 'opacity-100' : 'pointer-events-none opacity-0',
-              ]}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`${i + 1} de ${slides.length}`}
-              data-carousel-slide
-            >
-              <img
-                src={slide.data.image}
-                alt={slide.data.imageAlt}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                class="h-full w-full object-cover"
-              />
-            </a>
-          );
-        })}
-      </div>
+      <p class="text-lg text-white/90 md:text-xl">{site.hero.subtitulo}</p>
 
-      {slides.length > 1 && (
-        <div
-          class="absolute inset-x-0 bottom-4 flex justify-center gap-2"
-          role="tablist"
-          aria-label="Seleccionar banner"
+      <div class:list={['flex flex-col gap-3 sm:flex-row', !hasImage && 'sm:justify-center']}>
+        <a
+          href={whatsappHref}
+          data-cta="hero"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
         >
-          {slides.map((_, i) => (
+          <Icon name="whatsapp" class="h-5 w-5" />
+          Agendar mi examen por WhatsApp
+        </a>
+
+        {
+          tryOnItem ? (
             <button
               type="button"
-              class:list={[
-                'h-2.5 w-2.5 rounded-full transition-colors',
-                i === 0 ? 'bg-white' : 'bg-white/50',
-              ]}
-              role="tab"
-              aria-label={`Ver banner ${i + 1}`}
-              aria-selected={i === 0 ? 'true' : 'false'}
-              data-carousel-dot
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  ) : (
-    <section class="bg-aguamarina py-16 md:py-24">
-      <div class="mx-auto max-w-6xl px-4">
-        <div class="grid items-center gap-10 md:grid-cols-2 md:gap-12">
-          <div class="space-y-6">
-            {/* H1: reemplazar "Bogotá" por barrio exacto cuando confirme dirección. SEO 08. */}
-            <h1 class="text-3xl font-bold leading-tight text-white md:text-5xl">
-              Óptica en Bogotá — Alta Visión 18
-            </h1>
-
-            <p class="text-lg text-white/90">
-              Exámenes de optometría y monturas formuladas, de sol y deportivas para toda la
-              familia.
-            </p>
-
-            <div class="flex flex-wrap gap-4">
-              <a
-                href={whatsappHref}
-                class="inline-block rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Escríbenos por WhatsApp
-              </a>
-            </div>
-          </div>
-
-          {/* Placeholder visual: se reemplaza solo por el carrusel en cuanto se suba un banner desde el CMS (colección "Carrusel de inicio"). */}
-          <div class="relative aspect-[4/3] w-full rounded-2xl bg-aguamarina/40 ring-1 ring-inset ring-white/20 flex items-center justify-center">
-            <span class="text-center text-white/80 px-6 text-sm uppercase tracking-wider font-medium">
-              Imagen próximamente
-            </span>
-          </div>
-        </div>
+              class={secondaryClass}
+              data-tryon-open
+              data-slug={tryOnItem.item.id}
+              data-sku={tryOnItem.sku}
+              data-name={tryOnItem.item.data.name}
+              data-frame={tryOnItem.color?.name ?? ''}
+              data-lenses={JSON.stringify(tryOnItem.color?.lenses ?? [])}
+            >
+              <Icon name="eye" class="h-5 w-5" />
+              Pruébate gafas con tu cámara
+            </button>
+          ) : (
+            <a href="#catalogo" class={secondaryClass}>
+              <Icon name="eye" class="h-5 w-5" />
+              Pruébate gafas con tu cámara
+            </a>
+          )
+        }
       </div>
-    </section>
-  )
-}
 
-<script>
-  const section = document.querySelector<HTMLElement>('[data-carousel]');
-  const slides = document.querySelectorAll<HTMLElement>('[data-carousel-slide]');
-  const dots = document.querySelectorAll<HTMLButtonElement>('[data-carousel-dot]');
+      <ul
+        class:list={[
+          'flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-white',
+          !hasImage && 'justify-center',
+        ]}
+        aria-label="Garantías y formas de pago"
+      >
+        {
+          microConfianza.map((texto) => (
+            <li class="flex items-center gap-1.5">
+              <Icon name="check" class="h-4 w-4 shrink-0" />
+              {texto}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
 
-  if (section && slides.length > 1) {
-    let current = 0;
-    let timer: ReturnType<typeof setInterval> | undefined;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const goTo = (index: number) => {
-      slides[current].classList.add('opacity-0', 'pointer-events-none');
-      slides[current].classList.remove('opacity-100');
-      dots[current]?.classList.replace('bg-white', 'bg-white/50');
-      dots[current]?.setAttribute('aria-selected', 'false');
-
-      current = index;
-
-      slides[current].classList.remove('opacity-0', 'pointer-events-none');
-      slides[current].classList.add('opacity-100');
-      dots[current]?.classList.replace('bg-white/50', 'bg-white');
-      dots[current]?.setAttribute('aria-selected', 'true');
-    };
-
-    const next = () => goTo((current + 1) % slides.length);
-
-    const stop = () => {
-      if (timer) clearInterval(timer);
-    };
-
-    const start = () => {
-      if (prefersReducedMotion) return;
-      stop();
-      timer = setInterval(next, 5000);
-    };
-
-    dots.forEach((dot, i) => {
-      dot.addEventListener('click', () => {
-        goTo(i);
-        start();
-      });
-    });
-
-    section.addEventListener('mouseenter', stop);
-    section.addEventListener('mouseleave', start);
-    section.addEventListener('focusin', stop);
-    section.addEventListener('focusout', start);
-
-    start();
-  }
-</script>
+    {
+      hasImage && (
+        <img
+          src={site.heroImagen}
+          alt="Local de Óptica Alta Visión 18"
+          width="1200"
+          height="900"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="aspect-[4/3] w-full rounded-2xl object-cover shadow-lg"
+        />
+      )
+    }
+  </div>
+</section>

@@ -14,7 +14,7 @@ const catalogo = defineCollection({
     name: z.string(),
     brand: z.string(),
     category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas', 'contacto']),
-    /** null = "Consultar precio" (WhatsApp) */
+    /** null = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp" */
     price: z.number().nullable(),
     /** Ruta pública, p.ej. /uploads/catalogo/rayban-aviator.webp */
     image: z.string(),
@@ -77,4 +77,17 @@ const carrusel = defineCollection({
   }),
 });
 
-export const collections = { catalogo, promociones, carrusel };
+const testimonios = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: './src/content/testimonios' }),
+  schema: z.object({
+    nombre: z.string(),
+    texto: z.string(),
+    /** Ruta pública opcional, p.ej. /uploads/testimonios/ana.webp */
+    foto: z.string().optional(),
+    estrellas: z.number().int().min(1).max(5).default(5),
+    /** Solo se muestran los activos (permite ocultar sin borrar) */
+    active: z.boolean().default(true),
+  }),
+});
+
+export const collections = { catalogo, promociones, carrusel, testimonios };

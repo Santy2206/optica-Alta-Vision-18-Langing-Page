@@ -4,13 +4,14 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import WhatsAppFloat from '../components/WhatsAppFloat.astro';
 import Icon from '../components/Icon.astro';
-import site from '../content/configuracion/site.json';
+import site from '../utils/site';
+import { waLink } from '../utils/whatsapp';
 
 const title = 'Acerca de nosotros | Óptica Alta Visión 18';
 const description =
   'Conoce la historia de Óptica Alta Visión 18: quiénes somos y por qué cuidamos tu visión como si fuera la de nuestra familia.';
 
-const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero saber más sobre Óptica Alta Visión 18')}`;
+const whatsappHref = waLink('nosotros', 'Hola, quiero saber más sobre Óptica Alta Visión 18');
 
 const valores = [
   {
@@ -18,20 +19,28 @@ const valores = [
     title: 'Atención personalizada',
     text: 'Cada examen visual se adapta a las necesidades de cada paciente, sin afán y con seguimiento.',
   },
-  {
-    icon: 'shield' as const,
-    title: 'Confianza y experiencia',
-    text: 'Años atendiendo a familias del barrio, recomendando siempre lo que el paciente realmente necesita.',
-  },
+  // Solo con dato real (Configuración → Años de experiencia).
+  ...(site.aniosExperiencia !== null
+    ? [
+        {
+          icon: 'shield' as const,
+          title: 'Confianza y experiencia',
+          text: `${site.aniosExperiencia} años atendiendo a familias${site.barrio ? ` de ${site.barrio}` : ''}, recomendando siempre lo que el paciente realmente necesita.`,
+        },
+      ]
+    : []),
   {
     icon: 'star' as const,
     title: 'Calidad garantizada',
     text: 'Trabajamos con monturas y lentes de marcas reconocidas, con garantía y soporte postventa.',
   },
 ];
+
+// La tarjeta de historia solo se muestra con datos reales del CMS (Configuración → Optómetra).
+// TODO: agregar un campo de historia/biografía cuando el cliente la entregue.
+const { nombre, cargo, tarjetaProfesional, foto } = site.optometra;
 ---
 
-<!-- TODO: reemplazar nombre, cargo e historia de la dueña con la información real del negocio -->
 <BaseLayout
   title={title}
   description={description}
@@ -48,48 +57,54 @@ const valores = [
     </div>
   </section>
 
-  <section class="bg-white py-12 md:py-20">
-    <div class="mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-2 md:items-center md:gap-14">
-      <div class="overflow-hidden rounded-2xl bg-aguamarina/10">
-        <img
-          src="/images/nosotros/duena-placeholder.svg"
-          alt="[Nombre de la dueña], fundadora de Óptica Alta Visión 18"
-          loading="lazy"
-          class="aspect-square w-full object-cover"
-        />
-      </div>
-
-      <div class="space-y-4">
-        <p class="text-sm font-semibold uppercase tracking-wide text-fucsia">Nuestra historia</p>
-        <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">[Nombre de la dueña]</h2>
-        <p class="font-medium text-aguamarina">[Cargo — ej. Optómetra y fundadora]</p>
-
-        <p class="text-slate-600">
-          Fundé Óptica Alta Visión 18 hace [número] años porque quería que mi barrio tuviera un
-          lugar donde cuidar su visión sin afanes ni letra pequeña. Desde entonces he atendido a
-          cientos de familias, y en cada examen pongo el mismo cuidado que le daría a alguien de
-          la mía.
-        </p>
-
-        <p class="text-slate-600">
-          Soy [profesión — ej. optómetra titulada] con [número] años de experiencia, y me
-          acompaña un equipo que comparte mi forma de trabajar: primero escuchar, después
-          recomendar. Si tienes dudas sobre tu visión o la de los tuyos, con gusto te cuento más
-          por WhatsApp.
-        </p>
-
-        <a
-          href={whatsappHref}
-          class="inline-flex items-center gap-1.5 rounded-full bg-verde-neon px-6 py-3 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
-          target="_blank"
-          rel="noopener noreferrer"
+  {
+    nombre && (
+      <section class="bg-white py-12 md:py-20">
+        <div
+          class:list={[
+            'mx-auto grid max-w-6xl gap-10 px-4 md:items-center md:gap-14',
+            foto && 'md:grid-cols-2',
+          ]}
         >
-          <Icon name="whatsapp" class="h-4 w-4" />
-          Conócenos por WhatsApp
-        </a>
-      </div>
-    </div>
-  </section>
+          {foto && (
+            <div class="overflow-hidden rounded-2xl bg-aguamarina/10">
+              <img
+                src={foto}
+                alt={cargo ? `${nombre}, ${cargo} de Óptica Alta Visión 18` : nombre}
+                width="600"
+                height="600"
+                loading="lazy"
+                class="aspect-square w-full object-cover"
+              />
+            </div>
+          )}
+
+          <div class="space-y-4">
+            <p class="text-sm font-semibold uppercase tracking-wide text-fucsia">Quién te atiende</p>
+            <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">{nombre}</h2>
+            {cargo && <p class="font-medium text-aguamarina">{cargo}</p>}
+            {tarjetaProfesional && (
+              <p class="text-sm text-slate-600">Tarjeta profesional {tarjetaProfesional}</p>
+            )}
+            {site.aniosExperiencia !== null && (
+              <p class="text-slate-600">{site.aniosExperiencia} años de experiencia.</p>
+            )}
+
+            <a
+              href={whatsappHref}
+              data-cta="nosotros"
+              class="inline-flex items-center gap-1.5 rounded-full bg-verde-neon px-6 py-3 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="whatsapp" class="h-4 w-4" />
+              Conócenos por WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <section class="bg-aguamarina/5 py-12 md:py-16">
     <div class="mx-auto max-w-6xl px-4">
@@ -97,7 +112,7 @@ const valores = [
         Lo que nos hace diferentes
       </h2>
 
-      <div class="mt-10 grid gap-6 sm:grid-cols-3">
+      <div class:list={['mt-10 grid gap-6', valores.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2']}>
         {
           valores.map((valor) => (
             <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">

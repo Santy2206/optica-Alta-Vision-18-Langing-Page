@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import site from '../content/configuracion/site.json';
+import { waLink } from '../utils/whatsapp';
 
 const promos = await getCollection('promociones', ({ data }) => data.active === true);
 ---
@@ -11,10 +11,8 @@ const promos = await getCollection('promociones', ({ data }) => data.active === 
       <div class="mx-auto max-w-6xl px-4">
         <div class="space-y-6">
           {promos.map((item) => {
-            const waText = encodeURIComponent(
-              `Hola, quiero aprovechar la promoción: ${item.data.title}`,
-            );
-            const waHref = `https://wa.me/${site.telefono}?text=${waText}`;
+            const origen = `promo:${item.id}`;
+            const waHref = waLink(origen, `Hola, quiero aprovechar la promoción: ${item.data.title}`);
 
             return (
               <article class="overflow-hidden rounded-2xl border border-fucsia/30 bg-fucsia/5 shadow-sm">
@@ -27,6 +25,7 @@ const promos = await getCollection('promociones', ({ data }) => data.active === 
                     <p class="text-sm text-slate-700 md:text-base">{item.data.description}</p>
                     <a
                       href={waHref}
+                      data-cta={origen}
                       class="inline-block rounded-full bg-verde-neon px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
                       target="_blank"
                       rel="noopener noreferrer"

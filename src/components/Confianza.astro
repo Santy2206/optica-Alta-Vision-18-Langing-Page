@@ -1,17 +1,25 @@
 ---
 import Icon from './Icon.astro';
-import site from '../content/configuracion/site.json';
+import site from '../utils/site';
+import { waLink } from '../utils/whatsapp';
 
-const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+const whatsappHref = waLink('confianza', 'Hola, quiero agendar un examen visual');
 
-// TODO: cuando el cliente confirme cifras reales (años de experiencia, clientes atendidos,
-// reseñas de Google), reemplazar el badge de reseñas por datos reales. Mientras tanto
-// usamos hechos ya validados en vez de placeholders inventados.
+// Cifras solo con datos reales del CMS (Configuración).
+const cifras = [
+  site.aniosExperiencia !== null && { valor: site.aniosExperiencia.toLocaleString('es-CO'), label: 'años de experiencia' },
+  site.clientesAtendidos !== null && {
+    valor: `+${site.clientesAtendidos.toLocaleString('es-CO')}`,
+    label: 'clientes atendidos',
+  },
+].filter((c): c is { valor: string; label: string } => Boolean(c));
+
+const { nombre, cargo } = site.optometra;
+
 const trustBadges = [
   { icon: 'whatsapp', label: 'Agenda por WhatsApp', href: whatsappHref },
   { icon: 'clock', label: site.horario },
   { icon: 'check', label: 'Efectivo, tarjeta o transferencia' },
-  { icon: 'star', label: 'Reseñas de Google — próximamente' },
 ] as const;
 ---
 
@@ -21,13 +29,35 @@ const trustBadges = [
       Por qué elegirnos
     </h2>
 
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-      <div class="col-span-2 flex flex-col justify-center rounded-2xl bg-aguamarina p-5 text-white sm:col-span-1">
-        <span class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
+    {
+      cifras.length > 0 && (
+        <dl class="mb-8 flex flex-wrap justify-center gap-x-16 gap-y-6 text-center">
+          {cifras.map((c) => (
+            <div class="flex flex-col-reverse">
+              <dt class="text-sm font-medium text-slate-600">{c.label}</dt>
+              <dd class="font-display text-4xl font-extrabold text-slate-900 md:text-5xl">{c.valor}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+
+    {
+      nombre && (
+        <p class="mb-8 text-center text-base text-slate-700">
+          Atendido por <strong class="text-slate-900">{nombre}</strong>
+          {cargo && `, ${cargo}`}
+        </p>
+      )
+    }
+
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div class="col-span-2 flex flex-col justify-center rounded-2xl bg-aguamarina p-5 text-slate-900 lg:col-span-1">
+        <span class="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/40">
           <Icon name="shield" class="h-4 w-4" />
         </span>
         <p class="text-base font-bold leading-snug">Garantía de fábrica</p>
-        <p class="text-sm text-white/80">en todas las monturas</p>
+        <p class="text-sm">en todas las monturas</p>
       </div>
 
       {
@@ -41,9 +71,10 @@ const trustBadges = [
             </>
           );
 
-          return badge.href ? (
+          return 'href' in badge ? (
             <a
               href={badge.href}
+              data-cta="confianza"
               target="_blank"
               rel="noopener noreferrer"
               class="flex flex-col justify-center rounded-2xl bg-white p-5 shadow-sm transition-shadow hover:shadow-md"

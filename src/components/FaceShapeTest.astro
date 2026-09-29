@@ -1,7 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Icon from './Icon.astro';
-import site from '../content/configuracion/site.json';
+import { waLink } from '../utils/whatsapp';
+import { priceLabel } from '../utils/precio';
 import { getFrameShape } from '../data/frameShape';
 import {
   faceShapeInfo,
@@ -14,6 +15,7 @@ import type { FaceShapeId } from '../data/faceShapeQuiz';
 const allItems = await getCollection('catalogo');
 
 const catalogForTest = allItems.map((item) => ({
+  slug: item.id,
   name: item.data.name,
   brand: item.data.brand,
   price: item.data.price,
@@ -43,7 +45,6 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
   aria-modal="true"
   aria-label="Test de forma de rostro"
   data-facetest-modal
-  data-telefono={site.telefono}
 >
   <div class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
     <div class="mb-4 flex items-start justify-between gap-4">
@@ -374,10 +375,11 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
                       <h5 class="text-sm font-semibold text-slate-900">{item.name}</h5>
                       <p class="text-xs text-slate-500">{item.brand}</p>
                       <p class="text-sm font-medium text-aguamarina">
-                        {item.price !== null ? `Desde $${item.price.toLocaleString('es-CO')}` : 'Consultar precio'}
+                        {priceLabel(item.price)}
                       </p>
                       <a
-                        href={`https://wa.me/${site.telefono}?text=${encodeURIComponent(`Hola, hice el test de rostro y me interesa ${item.name}`)}`}
+                        href={waLink(`test-rostro:${shapeId}:${item.slug}`, `Hola, hice el test de rostro y me interesa ${item.name}`)}
+                        data-cta={`test-rostro:${shapeId}:${item.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         class="mt-auto inline-block rounded-full bg-verde-neon px-3 py-1.5 text-center text-xs font-semibold text-slate-900 transition-shadow hover:shadow-md"
@@ -389,6 +391,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
                           type="button"
                           class="inline-flex items-center justify-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-center text-xs font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
                           data-tryon-open
+                          data-slug={item.slug}
                           data-sku={item.tryOnSku}
                           data-name={item.name}
                         >
@@ -435,6 +438,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
 <script>
   import { calculateFaceShape, isValidMeasurement } from '../data/faceShapeQuiz';
   import type { FaceMeasurements, FaceShapeResult, JawContour } from '../data/faceShapeQuiz';
+  import { waLink } from '../utils/whatsapp';
   import {
     checkAlignment,
     detectFaceShape,
@@ -444,7 +448,6 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
   } from '../scripts/faceShapeCamera';
 
   const modal = document.querySelector<HTMLElement>('[data-facetest-modal]');
-  const telefono = modal?.dataset.telefono ?? '';
 
   if (modal) {
     const steps = ['intro', 'quiz', 'camera', 'result'] as const;
@@ -766,10 +769,12 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
       const label = detail?.displayLabel ?? baseLabel;
       const whatsapp = modal!.querySelector<HTMLAnchorElement>('[data-facetest-result-whatsapp]');
       if (whatsapp) {
-        const text = encodeURIComponent(
+        const origen = `test-rostro:${shapeId}`;
+        whatsapp.href = waLink(
+          origen,
           `Hola, hice el test de rostro y mi resultado fue: ${label}. Quiero asesoría personalizada.`,
         );
-        whatsapp.href = `https://wa.me/${telefono}?text=${text}`;
+        whatsapp.dataset.cta = origen;
       }
     }
 

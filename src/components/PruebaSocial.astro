@@ -1,0 +1,77 @@
+---
+// Solo se renderiza si hay calificación real de Google o testimonios activos en el CMS.
+import { getCollection } from 'astro:content';
+import site from '../utils/site';
+import Icon from './Icon.astro';
+
+const testimonios = await getCollection('testimonios', ({ data }) => data.active);
+const { rating, total, url } = site.googleReviews;
+const show = rating !== null || testimonios.length > 0;
+
+const fmtRating = (n: number) => n.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+---
+
+{
+  show && (
+    <section id="opiniones" class="bg-white py-16 md:py-24">
+      <div class="mx-auto max-w-6xl px-4">
+        <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">
+          Lo que dicen nuestros clientes
+        </h2>
+
+        {rating !== null && (
+          <div class="mx-auto mb-10 flex max-w-md flex-col items-center gap-2 text-center">
+            <p class="font-display text-5xl font-extrabold text-slate-900 md:text-6xl">{fmtRating(rating)}</p>
+            <span class="flex gap-1 text-amber-500" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, i) => (
+                <Icon name="star" filled class={i < Math.round(rating) ? 'h-6 w-6' : 'h-6 w-6 opacity-30'} />
+              ))}
+            </span>
+            <p class="text-sm text-slate-600">
+              <span class="sr-only">{fmtRating(rating)} de 5 estrellas. </span>
+              {total !== null ? `${total.toLocaleString('es-CO')} reseñas en Google` : 'Calificación en Google'}
+            </p>
+            {url && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-1 text-sm font-semibold text-slate-900 underline underline-offset-4 hover:text-fucsia"
+              >
+                Ver reseñas en Google
+              </a>
+            )}
+          </div>
+        )}
+
+        {testimonios.length > 0 && (
+          <ul class="grid gap-6 md:grid-cols-3">
+            {testimonios.map(({ data }) => (
+              <li class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-6">
+                <span class="flex gap-0.5 text-amber-500" aria-label={`${data.estrellas} de 5 estrellas`}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Icon name="star" filled class={i < data.estrellas ? 'h-4 w-4' : 'h-4 w-4 opacity-30'} />
+                  ))}
+                </span>
+                <blockquote class="flex-1 text-sm text-slate-700">“{data.texto}”</blockquote>
+                <div class="flex items-center gap-3">
+                  {data.foto && (
+                    <img
+                      src={data.foto}
+                      alt=""
+                      width="40"
+                      height="40"
+                      loading="lazy"
+                      class="h-10 w-10 rounded-full object-cover"
+                    />
+                  )}
+                  <p class="text-sm font-semibold text-slate-900">{data.nombre}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}

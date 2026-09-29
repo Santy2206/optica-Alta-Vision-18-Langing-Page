@@ -1,6 +1,7 @@
 ---
-import site from '../content/configuracion/site.json';
+import site from '../utils/site';
 import Icon from './Icon.astro';
+import { waLink } from '../utils/whatsapp';
 
 // Formato legible del teléfono colombiano 573118812747 → +57 311 881 2747
 const raw = site.telefono;
@@ -11,7 +12,7 @@ const formatted = raw.startsWith('57')
 
 <section id="ubicacion" class="bg-aguamarina/10 py-16 md:py-24">
   <div class="mx-auto max-w-6xl px-4">
-    <div class="grid items-start gap-10 lg:grid-cols-2">
+    <div class:list={['grid items-start gap-10', site.googleMapsEmbedUrl && 'lg:grid-cols-2']}>
       <div class="space-y-6">
         <div>
           <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">Encuéntranos</h2>
@@ -19,12 +20,14 @@ const formatted = raw.startsWith('57')
         </div>
 
         <div class="space-y-3">
-          <div class="flex items-start gap-3 rounded-2xl border border-aguamarina/20 bg-white p-4">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-aguamarina text-white">
-              <Icon name="location" class="h-4 w-4" />
-            </span>
-            <p class="pt-1.5 text-sm text-slate-700 md:text-base">{site.direccion}</p>
-          </div>
+          {site.direccion && (
+            <div class="flex items-start gap-3 rounded-2xl border border-aguamarina/20 bg-white p-4">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-aguamarina text-white">
+                <Icon name="location" class="h-4 w-4" />
+              </span>
+              <p class="pt-1.5 text-sm text-slate-700 md:text-base">{site.direccion}</p>
+            </div>
+          )}
 
           <div class="flex items-start gap-3 rounded-2xl border border-aguamarina/20 bg-white p-4">
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-aguamarina text-white">
@@ -40,14 +43,25 @@ const formatted = raw.startsWith('57')
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-aguamarina text-white">
               <Icon name="phone" class="h-4 w-4" />
             </span>
-            <p class="text-sm font-medium text-aguamarina md:text-base">{formatted}</p>
+            <p class="text-sm font-medium text-slate-900 md:text-base">{formatted}</p>
           </a>
         </div>
+
+        <a
+        href={waLink('ubicacion', 'Hola, quiero agendar una visita a la óptica')}
+        data-cta="ubicacion"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+      >
+        <Icon name="whatsapp" class="h-5 w-5" />
+        Agendar mi visita
+      </a>
       </div>
 
-      <div class="rounded-2xl border border-aguamarina/20 bg-white p-2 shadow-sm">
-        {
-          site.googleMapsEmbedUrl ? (
+      {
+        site.googleMapsEmbedUrl && (
+          <div class="rounded-2xl border border-aguamarina/20 bg-white p-2 shadow-sm">
             <iframe
               src={site.googleMapsEmbedUrl}
               title="Ubicación de Alta Visión 18"
@@ -59,13 +73,9 @@ const formatted = raw.startsWith('57')
               referrerpolicy="no-referrer-when-downgrade"
               class="rounded-xl"
             />
-          ) : (
-            <div class="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-slate-100 text-slate-500">
-              <span>Mapa disponible próximamente</span>
-            </div>
-          )
-        }
-      </div>
+          </div>
+        )
+      }
     </div>
   </div>
 </section>

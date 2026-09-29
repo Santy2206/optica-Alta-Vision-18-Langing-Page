@@ -1,0 +1,127 @@
+---
+// Carrusel de banners del CMS (colección "carrusel"). Ya no es el hero:
+// va debajo de "Cómo funciona" y solo se renderiza si hay slides activos.
+import { getCollection } from 'astro:content';
+import { waLink } from '../utils/whatsapp';
+
+const slides = (await getCollection('carrusel', ({ data }) => data.active)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+
+{
+  slides.length > 0 && (
+  <section
+    class="relative w-full overflow-hidden bg-aguamarina"
+    aria-roledescription="carousel"
+    aria-label="Promociones destacadas"
+    data-carousel
+  >
+    <div class="relative aspect-[4/3] w-full sm:aspect-[16/6]" data-carousel-track>
+      {slides.map((slide, i) => {
+        const customLink = slide.data.link?.trim();
+        const href = customLink || waLink(`carrusel:${slide.id}`, 'Hola, vi el banner en la página y quiero más información');
+        const isExternal = href.startsWith('http');
+        return (
+          <a
+            href={href}
+            target={isExternal ? '_blank' : undefined}
+            rel={isExternal ? 'noopener noreferrer' : undefined}
+            data-cta={customLink ? undefined : `carrusel:${slide.id}`}
+            class:list={[
+              'absolute inset-0 transition-opacity duration-700 ease-in-out',
+              i === 0 ? 'opacity-100' : 'pointer-events-none opacity-0',
+            ]}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${i + 1} de ${slides.length}`}
+            data-carousel-slide
+          >
+            <img
+              src={slide.data.image}
+              alt={slide.data.imageAlt}
+              loading="lazy"
+              decoding="async"
+              class="h-full w-full object-cover"
+            />
+          </a>
+        );
+      })}
+    </div>
+
+    {slides.length > 1 && (
+      <div
+        class="absolute inset-x-0 bottom-4 flex justify-center gap-2"
+        role="tablist"
+        aria-label="Seleccionar banner"
+      >
+        {slides.map((_, i) => (
+          <button
+            type="button"
+            class:list={[
+              'h-2.5 w-2.5 rounded-full transition-colors',
+              i === 0 ? 'bg-white' : 'bg-white/50',
+            ]}
+            role="tab"
+            aria-label={`Ver banner ${i + 1}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            data-carousel-dot
+          />
+        ))}
+      </div>
+    )}
+  </section>
+  )
+}
+
+<script>
+  const section = document.querySelector<HTMLElement>('[data-carousel]');
+  const slides = document.querySelectorAll<HTMLElement>('[data-carousel-slide]');
+  const dots = document.querySelectorAll<HTMLButtonElement>('[data-carousel-dot]');
+
+  if (section && slides.length > 1) {
+    let current = 0;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const goTo = (index: number) => {
+      slides[current].classList.add('opacity-0', 'pointer-events-none');
+      slides[current].classList.remove('opacity-100');
+      dots[current]?.classList.replace('bg-white', 'bg-white/50');
+      dots[current]?.setAttribute('aria-selected', 'false');
+
+      current = index;
+
+      slides[current].classList.remove('opacity-0', 'pointer-events-none');
+      slides[current].classList.add('opacity-100');
+      dots[current]?.classList.replace('bg-white/50', 'bg-white');
+      dots[current]?.setAttribute('aria-selected', 'true');
+    };
+
+    const next = () => goTo((current + 1) % slides.length);
+
+    const stop = () => {
+      if (timer) clearInterval(timer);
+    };
+
+    const start = () => {
+      if (prefersReducedMotion) return;
+      stop();
+      timer = setInterval(next, 5000);
+    };
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        goTo(i);
+        start();
+      });
+    });
+
+    section.addEventListener('mouseenter', stop);
+    section.addEventListener('mouseleave', start);
+    section.addEventListener('focusin', stop);
+    section.addEventListener('focusout', start);
+
+    start();
+  }
+</script>

@@ -1,0 +1,54 @@
+---
+import site from '../utils/site';
+import { waLink } from '../utils/whatsapp';
+import Icon from './Icon.astro';
+
+const pasos = [
+  { icon: 'eye', titulo: 'Te hacemos el examen visual' },
+  { icon: 'monitor', titulo: 'Eliges tu montura (o te la pruebas con tu cámara)' },
+  { icon: 'check', titulo: `Recoges tus gafas en ${site.tiempoEntrega}` },
+] as const;
+
+const origen = 'como-funciona';
+---
+
+<section id="como-funciona" class="bg-white py-16 md:py-24">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="mb-10 text-center text-2xl font-bold text-slate-900 md:text-3xl">Así de fácil funciona</h2>
+
+    <ol class="grid gap-6 md:grid-cols-3">
+      {
+        pasos.map((paso, i) => (
+          <li class="relative flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
+            <span
+              class="absolute -top-3 left-1/2 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white"
+              aria-hidden="true"
+            >
+              {i + 1}
+            </span>
+            <span class="mb-4 mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-aguamarina text-white">
+              <Icon name={paso.icon} class="h-7 w-7" />
+            </span>
+            <p class="text-base font-semibold text-slate-900">
+              <span class="sr-only">Paso {i + 1}: </span>
+              {paso.titulo}
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="mt-10 text-center">
+      <a
+        href={waLink(origen, 'Hola, quiero agendar mi examen visual')}
+        data-cta={origen}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
+      >
+        <Icon name="whatsapp" class="h-5 w-5" />
+        Empezar: agendar mi examen
+      </a>
+    </div>
+  </div>
+</section>
