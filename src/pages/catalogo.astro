@@ -12,6 +12,8 @@ import { priceLabel as getPriceLabel, isFallbackPrice } from '../utils/precio';
 import { isPlaceholderImage } from '../utils/images';
 import { getFrameShape } from '../data/frameShape';
 import FrameShapeIcon from '../components/FrameShapeIcon.astro';
+import { findTryOnMatch } from '../utils/tryOnMatch';
+import { getDisplayImage } from '../utils/cutout';
 import { getCollection } from 'astro:content';
 
 const { title, description } = seo.catalogo;
@@ -78,7 +80,22 @@ const categorias = [
               const origen = `catalogo:${item.id}`;
               const waHref = waLink(origen, `Hola, quiero información sobre ${item.data.name}`);
               const priceLabel = getPriceLabel(item.data.price);
-              const tryOnSku = item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null;
+              const manualTryOnSku = item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null;
+              // Si el negocio agregó una montura real sin asignar un SKU a mano, buscamos
+              // automáticamente el modelo de Jeeliz más parecido por marca/nombre.
+              const tryOnMatch = manualTryOnSku
+                ? null
+                : findTryOnMatch(item.data.brand, item.data.name, item.data.category);
+              const tryOnSku = manualTryOnSku ?? tryOnMatch?.sku ?? null;
+              const tryOnFrame = item.data.colors[0]?.name ?? tryOnMatch?.frame ?? '';
+              const tryOnLenses = item.data.colors[0]?.lenses?.length
+                ? item.data.colors[0].lenses
+                : (tryOnMatch?.lenses ?? []);
+              // Foto con fondo recortado automáticamente (scripts/generate-cutouts.mjs),
+              // o la original si el recorte todavía no corrió para esta foto.
+              const displayImage = isPlaceholderImage(item.data.image)
+                ? item.data.image
+                : getDisplayImage(item.data.image);
 
               return (
                 <article
@@ -93,12 +110,12 @@ const categorias = [
                       </div>
                     ) : (
                       <img
-                        src={item.data.image}
+                        src={displayImage}
                         alt={item.data.imageAlt}
                         loading="lazy"
                         class="h-full w-full object-cover"
                         data-product-image
-                        data-default-image={item.data.image}
+                        data-default-image={displayImage}
                         data-hover-image={item.data.colors[0]?.modelImage ?? ''}
                       />
                     )}
@@ -153,8 +170,8 @@ const categorias = [
                         data-slug={item.id}
                         data-sku={tryOnSku}
                         data-name={item.data.name}
-                        data-frame={item.data.colors[0]?.name ?? ''}
-                        data-lenses={JSON.stringify(item.data.colors[0]?.lenses ?? [])}
+                        data-frame={tryOnFrame}
+                        data-lenses={JSON.stringify(tryOnLenses)}
                       >
                         <Icon name="eye" class="h-4 w-4" />
                         Probar con cámara

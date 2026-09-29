@@ -99,17 +99,18 @@ collections:
         widget: image
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
+        hint: "Sube la foto tal cual la tomaste. El sitio recorta el fondo automáticamente en el siguiente despliegue — no hace falta editarla."
       - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
       - label: Mostrar en "Más vendidas" (inicio)
         name: featured
         widget: boolean
         default: false
         hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio."
-      - label: SKU de prueba virtual (Jeeliz)
+      - label: SKU de prueba virtual (Jeeliz) — opcional, se autocompleta
         name: tryOnSku
         widget: string
         required: false
-        hint: "Opcional. Código de la base gratuita de Jeeliz para el botón 'Probar con cámara'. Déjalo vacío para ocultar el botón."
+        hint: "Déjalo vacío: el sitio busca solo un modelo 3D parecido según la marca y el nombre que escribiste arriba. Solo llénalo si quieres forzar un modelo exacto de la base gratuita de Jeeliz."
       - label: Colores del marco
         name: colors
         widget: list
