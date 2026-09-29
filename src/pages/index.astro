@@ -2,20 +2,21 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
-import Beneficios from '../components/Beneficios.astro';
-import TiposMarco from '../components/TiposMarco.astro';
+import ComoFunciona from '../components/ComoFunciona.astro';
+import PromoCarrusel from '../components/PromoCarrusel.astro';
+import Promociones from '../components/Promociones.astro';
+import EncuentraTusGafas from '../components/EncuentraTusGafas.astro';
 import Catalogo from '../components/Catalogo.astro';
-import TryOnModal from '../components/TryOnModal.astro';
-import FaceShapeTest from '../components/FaceShapeTest.astro';
-import CotizadorLentes from '../components/CotizadorLentes.astro';
-import TiposRostro from '../components/TiposRostro.astro';
+import PruebaSocial from '../components/PruebaSocial.astro';
 import Confianza from '../components/Confianza.astro';
 import Servicios from '../components/Servicios.astro';
-import Promociones from '../components/Promociones.astro';
 import FAQ from '../components/FAQ.astro';
 import Ubicacion from '../components/Ubicacion.astro';
+import CtaFinal from '../components/CtaFinal.astro';
 import Footer from '../components/Footer.astro';
 import WhatsAppFloat from '../components/WhatsAppFloat.astro';
+import TryOnModal from '../components/TryOnModal.astro';
+import FaceShapeTest from '../components/FaceShapeTest.astro';
 import site from '../content/configuracion/site.json';
 
 // TODO: reemplazar "Bogotá" por el barrio exacto cuando se confirme la dirección
@@ -53,8 +54,8 @@ const localBusiness = {
   '@type': 'Optician',
   name: 'Óptica Alta Visión 18',
   telephone: `+${site.telefono}`,
-  // TODO: migrar a PostalAddress estructurado (streetAddress, addressLocality, addressRegion, postalCode) cuando se confirme la dirección
-  address: site.direccion,
+  // TODO (Fase 7): migrar a PostalAddress estructurado
+  ...(site.direccion.trim() && { address: site.direccion }),
   url: 'https://optica-alta-vision-18.netlify.app',
   openingHoursSpecification: [openingHours],
   sameAs: socialLinks,
@@ -72,16 +73,17 @@ const localBusiness = {
 
   <Header />
   <Hero />
-  <Beneficios />
-  <TiposMarco />
+  <ComoFunciona />
+  <PromoCarrusel />
+  <Promociones />
+  <EncuentraTusGafas />
   <Catalogo />
-  <CotizadorLentes />
-  <TiposRostro />
+  <PruebaSocial />
   <Confianza />
   <Servicios />
-  <Promociones />
   <FAQ />
   <Ubicacion />
+  <CtaFinal />
   <Footer />
   <WhatsAppFloat />
   <TryOnModal />

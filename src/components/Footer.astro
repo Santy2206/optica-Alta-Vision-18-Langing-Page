@@ -1,8 +1,9 @@
 ---
-import site from '../content/configuracion/site.json';
+import site from '../utils/site';
+import { waLink } from '../utils/whatsapp';
 import Icon from './Icon.astro';
 
-const whatsappHref = `https://wa.me/${site.telefono}?text=${encodeURIComponent('Hola, quiero agendar una cita')}`;
+const whatsappHref = waLink('footer', 'Hola, quiero agendar un examen visual');
 
 // Formato legible del teléfono colombiano 573118812747 → +57 311 881 2747
 const raw = site.telefono;
@@ -29,7 +30,7 @@ const { instagram, facebook } = site.redesSociales;
           />
           <span class="">Alta Visión 18</span>
         </p>
-        <p class="text-white/90">{site.direccion}</p>
+        {site.direccion && <p class="text-white/90">{site.direccion}</p>}
         <p class="text-white/90">{site.horario}</p>
         <p>
           <a href={`tel:+${site.telefono}`} class="text-white/90 hover:text-white hover:underline">
@@ -38,7 +39,8 @@ const { instagram, facebook } = site.redesSociales;
         </p>
       </div>
 
-      <!-- Redes sociales (condicionales) -->
+      <!-- Redes sociales (solo si hay al menos una) -->
+      {(instagram || facebook) && (
       <div class="space-y-3">
         <p class="font-semibold">Síguenos</p>
         <ul class="flex flex-wrap gap-4">
@@ -70,14 +72,15 @@ const { instagram, facebook } = site.redesSociales;
               </li>
             )
           }
-          {!(instagram || facebook) && <li class="text-white/70 text-sm">Redes pendientes de configurar</li>}
         </ul>
       </div>
+      )}
 
       <!-- CTA -->
       <div class="md:text-right lg:text-right">
         <a
           href={whatsappHref}
+          data-cta="footer"
           class="inline-flex items-center justify-center gap-1.5 rounded-full bg-verde-neon px-6 py-3 font-semibold text-slate-900 shadow-sm hover:shadow-md transition-all"
           target="_blank"
           rel="noopener noreferrer"

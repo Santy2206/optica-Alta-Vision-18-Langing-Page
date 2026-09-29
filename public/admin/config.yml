@@ -93,7 +93,7 @@ collections:
         widget: number
         required: false
         value_type: int
-        hint: Dejar vacío = "Consultar precio" (WhatsApp)
+        hint: "Vacío = se muestra 'Monturas desde $X' (Configuración) o 'Cotiza por WhatsApp'."
       - label: Imagen
         name: image
         widget: image
@@ -176,6 +176,29 @@ collections:
       - { label: Activa, name: active, widget: boolean, default: false }
       - { label: Texto del CTA, name: ctaText, widget: string, default: "Aprovecha esta promo" }
 
+  # --- Testimonios de clientes (sección "Lo que dicen nuestros clientes") ---
+  - name: testimonios
+    label: Testimonios
+    label_singular: Testimonio
+    folder: src/content/testimonios
+    create: true
+    delete: true
+    extension: json
+    format: json
+    slug: "{{slug}}"
+    identifier_field: nombre
+    fields:
+      - { label: Nombre del cliente, name: nombre, widget: string, hint: "Solo con autorización del cliente. Ej. 'Ana M.'" }
+      - { label: Testimonio, name: texto, widget: text }
+      - label: Foto (opcional)
+        name: foto
+        widget: image
+        required: false
+        media_folder: /public/uploads/testimonios
+        public_folder: /uploads/testimonios
+      - { label: Estrellas, name: estrellas, widget: number, value_type: int, min: 1, max: 5, default: 5 }
+      - { label: Mostrar en la página, name: active, widget: boolean, default: true }
+
   # --- Configuración del sitio (archivo único, no carpeta) ---
   - name: configuracion
     label: Configuración
@@ -186,7 +209,16 @@ collections:
         fields:
           - { label: Teléfono (wa.me, sin +), name: telefono, widget: string, hint: "Ej. 573118812747" }
           - { label: Horario, name: horario, widget: string }
-          - { label: Dirección, name: direccion, widget: string }
+          - label: Barrio
+            name: barrio
+            widget: string
+            required: false
+            hint: "Ej. Kennedy. Se usa en el título del sitio (SEO) y en el titular principal. Vacío = no se muestra."
+          - label: Dirección
+            name: direccion
+            widget: string
+            required: false
+            hint: "Dirección exacta del local. Vacío = la fila de dirección se oculta."
           - label: Redes sociales
             name: redesSociales
             widget: object
@@ -194,3 +226,108 @@ collections:
               - { label: Instagram URL, name: instagram, widget: string, required: false }
               - { label: Facebook URL, name: facebook, widget: string, required: false }
           - { label: Google Maps embed URL, name: googleMapsEmbedUrl, widget: string, required: false }
+
+          # --- Titular principal (hero) ---
+          - label: Titular principal (hero)
+            name: hero
+            widget: object
+            collapsed: true
+            fields:
+              - label: Título
+                name: titulo
+                widget: string
+                required: false
+                default: "Tu examen visual y tus gafas listas en {tiempoEntrega}{barrio}"
+                hint: "{tiempoEntrega} se reemplaza por el tiempo de entrega. {barrio} se convierte en ', en <barrio>' o desaparece si el barrio está vacío."
+              - label: Subtítulo
+                name: subtitulo
+                widget: text
+                required: false
+                default: "Optometría profesional, monturas formuladas y de sol, con pagos en cuotas."
+          - label: Foto del local (hero)
+            name: heroImagen
+            widget: image
+            required: false
+            media_folder: /public/uploads/hero
+            public_folder: /uploads/hero
+            hint: "Foto REAL del local, en WebP (~1200x900px). Vacío = el titular se muestra centrado sin imagen."
+
+          # --- Precios y tiempos ---
+          - label: Examen visual
+            name: examen
+            widget: object
+            collapsed: true
+            fields:
+              - label: Precio del examen (COP)
+                name: precio
+                widget: number
+                value_type: int
+                required: false
+                hint: "Vacío = no se muestra precio."
+              - label: Gratis si compra las gafas
+                name: gratisConCompra
+                widget: boolean
+                default: false
+          - label: Precio desde (monturas, COP)
+            name: precioDesdeMontura
+            widget: number
+            value_type: int
+            required: false
+            hint: "Se muestra como 'Monturas desde $X' en productos sin precio. Vacío = 'Cotiza por WhatsApp'."
+          - label: Tiempo de entrega
+            name: tiempoEntrega
+            widget: string
+            required: false
+            default: "3 a 5 días hábiles"
+
+          # --- Confianza ---
+          - label: Años de experiencia
+            name: aniosExperiencia
+            widget: number
+            value_type: int
+            required: false
+            hint: "Vacío = no se muestra."
+          - label: Clientes atendidos
+            name: clientesAtendidos
+            widget: number
+            value_type: int
+            required: false
+            hint: "Vacío = no se muestra."
+          - label: Reseñas de Google
+            name: googleReviews
+            widget: object
+            collapsed: true
+            fields:
+              - label: Calificación (ej. 4.8)
+                name: rating
+                widget: number
+                value_type: float
+                min: 0
+                max: 5
+                step: 0.1
+                required: false
+                hint: "Copiar la calificación real del perfil de Google. Vacío = no se muestran reseñas."
+              - label: Total de reseñas
+                name: total
+                widget: number
+                value_type: int
+                required: false
+              - label: Enlace al perfil de Google
+                name: url
+                widget: string
+                required: false
+          - label: Optómetra
+            name: optometra
+            widget: object
+            collapsed: true
+            hint: "Vacío = se ocultan los bloques que presentan al optómetra."
+            fields:
+              - { label: Nombre, name: nombre, widget: string, required: false }
+              - { label: Cargo, name: cargo, widget: string, required: false, hint: "Ej. Optómetra" }
+              - { label: Tarjeta profesional, name: tarjetaProfesional, widget: string, required: false }
+              - label: Foto
+                name: foto
+                widget: image
+                required: false
+                media_folder: /public/uploads/equipo
+                public_folder: /uploads/equipo
