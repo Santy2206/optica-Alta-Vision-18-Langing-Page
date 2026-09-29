@@ -83,7 +83,7 @@ export const measurementSteps = [
     field: 'forehead' as const,
     title: 'Ancho de la frente',
     how: 'Cinta en línea recta de sien a sien, a mitad entre cejas y nacimiento del cabello.',
-    image: '/images/medicion/frente.svg',
+    image: '/images/medicion/frente.webp',
     imageAlt: 'Ilustración: medir el ancho de la frente de sien a sien',
     placeholder: 'Ej. 13.5',
     mistakes: [
@@ -97,7 +97,7 @@ export const measurementSteps = [
     field: 'cheekbones' as const,
     title: 'Ancho de los pómulos',
     how: 'Punto más ancho de las mejillas, justo debajo del borde externo de cada ojo.',
-    image: '/images/medicion/pomulos.svg',
+    image: '/images/medicion/pomulos.webp',
     imageAlt: 'Ilustración: medir el ancho de los pómulos de hueso a hueso',
     placeholder: 'Ej. 14.0',
     mistakes: [
@@ -111,7 +111,7 @@ export const measurementSteps = [
     field: 'jaw' as const,
     title: 'Ancho de la mandíbula',
     how: 'De esquina a esquina del maxilar (abajo de cada oreja, donde el hueso hace ángulo), en recto.',
-    image: '/images/medicion/mandibula.svg',
+    image: '/images/medicion/mandibula.webp',
     imageAlt: 'Ilustración: medir la mandíbula en línea recta, no por el mentón',
     placeholder: 'Ej. 12.5',
     mistakes: [
@@ -125,7 +125,7 @@ export const measurementSteps = [
     field: 'length' as const,
     title: 'Largo del rostro',
     how: 'Desde el centro de la línea del cabello hasta la punta del mentón, cabeza derecha.',
-    image: '/images/medicion/largo.svg',
+    image: '/images/medicion/largo.webp',
     imageAlt: 'Ilustración: medir el largo del rostro de la línea del cabello al mentón',
     placeholder: 'Ej. 19.0',
     mistakes: [
