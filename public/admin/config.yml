@@ -78,7 +78,11 @@ collections:
     identifier_field: name
     fields:
       - { label: Nombre, name: name, widget: string }
-      - { label: Marca, name: brand, widget: string }
+      - label: Marca
+        name: brand
+        widget: string
+        default: "Óptica Alta Visión 18"
+        hint: "Por defecto la marca de la casa. Cámbiala solo si es de otra marca."
       - label: Categoría
         name: category
         widget: select
@@ -101,6 +105,13 @@ collections:
         public_folder: /uploads/catalogo
         hint: "Sube la foto tal cual la tomaste. El sitio recorta el fondo automáticamente en el siguiente despliegue (no hace falta editarla) y ese recorte es también lo que se usa para 'Probar con cámara'."
       - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
+      - label: Imagen al pasar el mouse (hover)
+        name: hoverImage
+        widget: image
+        required: false
+        media_folder: /public/uploads/catalogo
+        public_folder: /uploads/catalogo
+        hint: "Opcional. Segunda foto de la montura (otro ángulo o en modelo). Se muestra al pasar el mouse sobre la foto principal. Si un color tiene su propia 'Segunda foto', esa tiene prioridad."
       - label: Mostrar en "Más vendidas" (inicio)
         name: featured
         widget: boolean

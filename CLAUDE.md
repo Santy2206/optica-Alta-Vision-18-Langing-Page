@@ -46,8 +46,8 @@ public/uploads/{catalogo,promociones}/
 ## Content schema (contrato)
 
 **catalogo** (`getCollection('catalogo')`):
-`name`, `brand`, `category` enum `formuladas|sol|ninos|deportivas`,
-`price` number|null (`null` → "Consultar precio"), `image`, `imageAlt`, `featured`.
+`name`, `brand` default `"Óptica Alta Visión 18"`, `category` enum `formuladas|sol|ninos|deportivas|contacto`,
+`price` number|null (`null` → "Consultar precio"), `image`, `imageAlt`, `hoverImage?` (foto al pasar el mouse), `featured`.
 
 **promociones** (`getCollection('promociones')`):
 `title`, `description`, `image?`, `active` default false, `ctaText` default "Aprovecha esta promo".

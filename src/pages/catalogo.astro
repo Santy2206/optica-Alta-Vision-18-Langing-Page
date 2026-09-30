@@ -91,9 +91,10 @@ const categorias = [
               const displayImage = isPlaceholderImage(item.data.image)
                 ? item.data.image
                 : getDisplayImage(item.data.image);
-              // Misma foto de fondo recortado que displayImage: si no, el fondo blanco de
-              // esta foto no combina con el bg-slate-100 de la tarjeta al pasar el mouse.
-              const hoverImage = firstColor?.modelImage ? getDisplayImage(firstColor.modelImage) : '';
+              // Hover: modelImage del color tiene prioridad; si no, hoverImage de la montura.
+              // Misma foto de fondo recortado que displayImage para que combine con bg-slate-100.
+              const hoverSource = firstColor?.modelImage || item.data.hoverImage;
+              const hoverImage = hoverSource ? getDisplayImage(hoverSource) : '';
 
               return (
                 <article
@@ -115,6 +116,7 @@ const categorias = [
                         data-product-image
                         data-default-image={displayImage}
                         data-hover-image={hoverImage}
+                        data-product-hover-image={item.data.hoverImage ? getDisplayImage(item.data.hoverImage) : ''}
                       />
                     )}
                   </div>
@@ -253,7 +255,8 @@ const categorias = [
         image.src = swatch.dataset.image;
         image.dataset.defaultImage = swatch.dataset.image;
       }
-      image.dataset.hoverImage = swatch.dataset.modelImage ?? '';
+      // modelImage del color, o si no la hoverImage original de la montura
+      image.dataset.hoverImage = swatch.dataset.modelImage || image.dataset.productHoverImage || '';
     }
 
     article.querySelectorAll<HTMLButtonElement>('[data-swatch]').forEach((s) => {

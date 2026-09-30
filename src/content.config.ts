@@ -12,7 +12,8 @@ const catalogo = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/catalogo' }),
   schema: z.object({
     name: z.string(),
-    brand: z.string(),
+    /** Marca del marco. Por defecto la casa (monturas propias). */
+    brand: z.string().default('Óptica Alta Visión 18'),
     category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas', 'contacto']),
     /** null/omitido = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp".
      * Decap deja el campo ausente si no se llena (required: false); no envía null. */
@@ -20,6 +21,9 @@ const catalogo = defineCollection({
     /** Ruta pública, p.ej. /uploads/catalogo/rayban-aviator.webp */
     image: z.string(),
     imageAlt: z.string(),
+    /** Segunda foto de la montura (otro ángulo o en modelo). Se muestra al pasar el mouse.
+     * Si un color define modelImage, esa tiene prioridad al seleccionar el swatch. */
+    hoverImage: z.string().optional(),
     featured: z.boolean().default(false),
     /** Colores del MARCO (swatches en la tarjeta del catálogo) */
     colors: z
