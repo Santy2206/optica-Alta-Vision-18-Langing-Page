@@ -14,8 +14,9 @@ const catalogo = defineCollection({
     name: z.string(),
     brand: z.string(),
     category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas', 'contacto']),
-    /** null = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp" */
-    price: z.number().nullable(),
+    /** null/omitido = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp".
+     * Decap deja el campo ausente si no se llena (required: false); no envía null. */
+    price: z.number().nullable().optional().default(null),
     /** Ruta pública, p.ej. /uploads/catalogo/rayban-aviator.webp */
     image: z.string(),
     imageAlt: z.string(),

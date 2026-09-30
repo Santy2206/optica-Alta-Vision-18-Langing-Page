@@ -21,7 +21,7 @@ const items = formuladasPrimero(featured.length > 1 ? featured : all).slice(0, M
 const siteUrl = Astro.site ?? new URL(Astro.url.origin);
 
 // Solo monturas con precio: Google exige offers/review/aggregateRating en Product.
-const productSchemas = items.filter((item) => item.data.price !== null).map((item) => {
+const productSchemas = items.filter((item) => item.data.price != null).map((item) => {
   const product: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',

@@ -1,4 +1,4 @@
-import type { FaceShapeId } from '../data/faceShapeQuiz';
+import { calculateFaceShape, type FaceShapeId, type JawContour } from '../data/faceShapeQuiz';
 
 // Detección de forma de rostro 100% en el navegador: la foto nunca se sube a
 // ningún servidor, solo se usa para calcular unas proporciones y se descarta.
@@ -13,16 +13,25 @@ const MODEL_URL =
 // Índices del mesh canónico de 468 puntos de MediaPipe usados para estimar
 // proporciones del rostro. Son puntos de referencia estándar, no una medición
 // clínica — el resultado es una guía orientativa de estilo.
+//
+// Para frente/mandíbula usamos varios puntos del contorno (no solo un par):
+// un solo índice suele quedar muy adentro y aplana las diferencias de forma.
 const POINTS = {
   noseTip: 1,
   foreheadTop: 10,
   chin: 152,
+  // Pómulos / mejillas (lado derecho e izquierdo del ovalo).
   cheekRight: 234,
   cheekLeft: 454,
-  templeRight: 127,
-  templeLeft: 356,
-  jawRight: 58,
-  jawLeft: 288,
+  // Sienes / frente lateral (más altos que 127/356, que caen cerca del ojo).
+  templeRight: [54, 21, 162, 127] as const,
+  templeLeft: [284, 251, 389, 356] as const,
+  // Ángulo de mandíbula (gonion aproximado + vecinos del contorno).
+  jawRight: [172, 136, 150, 58] as const,
+  jawLeft: [397, 365, 379, 288] as const,
+  // Mentón lateral: ayuda a estimar si la mandíbula es angular o suave.
+  chinRight: 176,
+  chinLeft: 400,
 };
 
 // Si la nariz queda mucho más cerca de un lado del rostro que del otro, la
@@ -78,11 +87,49 @@ export function preloadFaceLandmarker() {
   });
 }
 
-// Distancia 3D (no solo x/y): la profundidad (z) que da MediaPipe compensa
-// buena parte del escorzo que introduce girar o inclinar la cabeza, así que
-// las medidas cambian menos según el ángulo de la foto.
+// MediaPipe devuelve x/y normalizados 0–1 por el ancho y el alto de la imagen
+// por separado. Sin multiplicar por el aspect ratio, el largo del rostro se
+// infla en fotos verticales (casi todas las selfies) y casi todo sale "ovalado".
+type ImageSize = { width: number; height: number };
+
+function toImageSpace(p: Landmark, size: ImageSize): Landmark {
+  // MediaPipe: x,y ∈ [0,1] por eje; z usa aproximadamente la misma escala que x
+  // (unidad ≈ ancho de imagen). Hay que reescalar o el largo se infla en vertical.
+  return {
+    x: p.x * size.width,
+    y: p.y * size.height,
+    z: p.z * size.width,
+  };
+}
+
+// Distancia 3D en espacio de imagen: la profundidad (z) compensa parte del
+// escorzo al girar o inclinar la cabeza.
 function distance(a: Landmark, b: Landmark) {
   return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+function avgLandmark(landmarks: Landmark[], indices: readonly number[]): Landmark {
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  for (const i of indices) {
+    const p = landmarks[i];
+    x += p.x;
+    y += p.y;
+    z += p.z;
+  }
+  const n = indices.length || 1;
+  return { x: x / n, y: y / n, z: z / n };
+}
+
+function widthBetween(
+  landmarks: Landmark[],
+  left: readonly number[] | number,
+  right: readonly number[] | number,
+): number {
+  const l = typeof left === 'number' ? landmarks[left] : avgLandmark(landmarks, left);
+  const r = typeof right === 'number' ? landmarks[right] : avgLandmark(landmarks, right);
+  return distance(l, r);
 }
 
 // Si la cabeza está girada hacia un lado, la nariz queda mucho más cerca de
@@ -90,10 +137,12 @@ function distance(a: Landmark, b: Landmark) {
 // ancho no son confiables y es mejor pedir otra foto en vez de adivinar.
 function isFacingCamera(landmarks: Landmark[]): boolean {
   const nose = landmarks[POINTS.noseTip];
+  const jawR = avgLandmark(landmarks, POINTS.jawRight);
+  const jawL = avgLandmark(landmarks, POINTS.jawLeft);
 
   const cheekRatio =
     distance(nose, landmarks[POINTS.cheekRight]) / distance(nose, landmarks[POINTS.cheekLeft]);
-  const jawRatio = distance(nose, landmarks[POINTS.jawRight]) / distance(nose, landmarks[POINTS.jawLeft]);
+  const jawRatio = distance(nose, jawR) / distance(nose, jawL);
 
   const worseRatio = Math.max(cheekRatio, 1 / cheekRatio, jawRatio, 1 / jawRatio);
   return worseRatio <= MAX_ASYMMETRY_RATIO;
@@ -174,35 +223,38 @@ export async function checkAlignment(video: HTMLVideoElement): Promise<Alignment
   return { issue: poseIssue(landmarks, headPose(result)), nose };
 }
 
-function classify(landmarks: Landmark[]): FaceShapeId {
+/**
+ * Convierte landmarks MediaPipe → medidas relativas y reusa calculateFaceShape
+ * (misma heurística que la cinta métrica). El bug previo era:
+ * 1) x/y normalizados sin aspect ratio → length/width inflado → siempre ovalado
+ * 2) umbrales muy altos (length/width >= 1.35 = ovalado) en coordenadas rotas
+ * 3) un solo punto de sien/mandíbula subestimaba anchos reales
+ */
+function classify(rawLandmarks: Landmark[], size: ImageSize): FaceShapeId {
+  const landmarks = rawLandmarks.map((p) => toImageSpace(p, size));
+
   const faceLength = distance(landmarks[POINTS.foreheadTop], landmarks[POINTS.chin]);
-  const cheekWidth = distance(landmarks[POINTS.cheekRight], landmarks[POINTS.cheekLeft]);
-  const foreheadWidth = distance(landmarks[POINTS.templeRight], landmarks[POINTS.templeLeft]);
-  const jawWidth = distance(landmarks[POINTS.jawRight], landmarks[POINTS.jawLeft]);
+  const cheekWidth = widthBetween(landmarks, POINTS.cheekLeft, POINTS.cheekRight);
+  const foreheadWidth = widthBetween(landmarks, POINTS.templeLeft, POINTS.templeRight);
+  const jawWidth = widthBetween(landmarks, POINTS.jawLeft, POINTS.jawRight);
 
-  const ratioLengthWidth = faceLength / cheekWidth;
+  // Medidas en "cm" ficticios: solo importan los ratios. Escala ~cara adulta.
+  const scale = 14 / Math.max(cheekWidth, 1e-6);
+  const forehead = foreheadWidth * scale;
+  const cheekbones = cheekWidth * scale;
+  const jaw = jawWidth * scale;
+  const length = faceLength * scale;
 
-  if (foreheadWidth > cheekWidth * 1.02 && jawWidth < foreheadWidth * 0.85) {
-    return 'corazon';
-  }
+  // Contorno de mandíbula (aprox.):
+  // - angular: mandíbula ancha vs pómulos + poco afina hacia el mentón
+  // - suave: se estrecha hacia el mentón o es claramente más angosta
+  const chinSideWidth = widthBetween(landmarks, POINTS.chinLeft, POINTS.chinRight);
+  const jawToCheek = cheekWidth > 0 ? jawWidth / cheekWidth : 1;
+  const jawTaper = jawWidth > 0 ? chinSideWidth / jawWidth : 1;
+  const jawContour: JawContour =
+    jawToCheek >= 0.9 && jawTaper >= 0.68 ? 'angular' : 'suave';
 
-  if (cheekWidth > foreheadWidth * 1.08 && cheekWidth > jawWidth * 1.08) {
-    return 'diamante';
-  }
-
-  if (ratioLengthWidth >= 1.35) {
-    return 'ovalado';
-  }
-
-  if (jawWidth >= cheekWidth * 0.92 && ratioLengthWidth < 1.15) {
-    return 'cuadrado';
-  }
-
-  if (ratioLengthWidth < 1.2) {
-    return 'redondo';
-  }
-
-  return 'ovalado';
+  return calculateFaceShape({ forehead, cheekbones, jaw, length, jawContour }).shape;
 }
 
 export class FaceShapeCameraError extends Error {
@@ -232,5 +284,10 @@ export async function detectFaceShape(source: HTMLCanvasElement): Promise<FaceSh
     throw new FaceShapeCameraError('BAD_ANGLE', 'El rostro no está mirando directo a la cámara.');
   }
 
-  return classify(landmarks);
+  const size: ImageSize = {
+    width: source.width || 1,
+    height: source.height || 1,
+  };
+
+  return classify(landmarks, size);
 }

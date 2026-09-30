@@ -2,8 +2,9 @@
   "featured": true,
   "colors": [],
   "image": "/uploads/catalogo/vintage.jpg",
-  "name": "Vintage ",
+  "name": "Vintage",
   "imageAlt": "Marco Vintage",
-  "brand": "Óptica Alata Vision 18",
-  "category": "formuladas"
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null
 }

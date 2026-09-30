@@ -186,7 +186,9 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
   const equalWidths = widthsSimilar(forehead, cheekbones, jaw, 0.1);
   const cheeksWidest = cheekbones >= forehead * 1.06 && cheekbones >= jaw * 1.06;
   const foreheadWidest = forehead >= cheekbones * 0.98 && forehead > jaw * 1.12;
-  const compact = lengthToWidth < 1.2;
+  // Compacto: largo y ancho cercanos. 1.28 (antes 1.2) cubre redondos/cuadrados
+  // reales y los de cámara; por encima de eso suele ser ovalado.
+  const compact = lengthToWidth < 1.28;
   const elongated = lengthToWidth >= 1.5;
 
   let shape: FaceShapeId;
@@ -259,8 +261,8 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
   // Si dos formas compiten (ratios en zona gris), bajamos confianza.
   if (
     (shape === 'redondo' || shape === 'cuadrado') &&
-    lengthToWidth >= 1.15 &&
-    lengthToWidth < 1.25
+    lengthToWidth >= 1.18 &&
+    lengthToWidth < 1.28
   ) {
     confidence = 'media';
   }
