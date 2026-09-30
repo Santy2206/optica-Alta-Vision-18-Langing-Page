@@ -4,6 +4,7 @@ import Icon from './Icon.astro';
 import { waLink } from '../utils/whatsapp';
 import { priceLabel } from '../utils/precio';
 import { getFrameShape } from '../data/frameShape';
+import { getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import {
   faceShapeInfo,
   frameRecommendations,
@@ -22,7 +23,8 @@ const catalogForTest = allItems.map((item) => ({
   image: item.data.image,
   imageAlt: item.data.imageAlt,
   frameShape: getFrameShape(item.data),
-  tryOnSku: item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null,
+  overlayImage: getTryOnOverlayImage(item.data.colors[0]?.image || item.data.image),
+  overlayImagePhotochromic: getTryOnPhotochromicImage(item.data.colors[0]?.image || item.data.image),
 }));
 
 const faceShapeIds = Object.keys(faceShapeInfo) as FaceShapeId[];
@@ -386,13 +388,14 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
                       >
                         Me interesa
                       </a>
-                      {item.tryOnSku && (
+                      {item.overlayImage && (
                         <button
                           type="button"
                           class="inline-flex items-center justify-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-center text-xs font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
                           data-tryon-open
                           data-slug={item.slug}
-                          data-sku={item.tryOnSku}
+                          data-overlay-image={item.overlayImage}
+                          data-overlay-image-photochromic={item.overlayImagePhotochromic ?? ''}
                           data-name={item.name}
                         >
                           <Icon name="eye" class="h-3.5 w-3.5" />

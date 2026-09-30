@@ -1,0 +1,16 @@
+{
+  "name": "Redonda Acetato",
+  "brand": "Alta Visión",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/redonda-acetato-negra.webp",
+  "imageAlt": "Montura redonda de acetato negro brillante",
+  "featured": true,
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#111111",
+      "lenses": []
+    }
+  ]
+}

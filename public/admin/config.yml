@@ -99,18 +99,13 @@ collections:
         widget: image
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
-        hint: "Sube la foto tal cual la tomaste. El sitio recorta el fondo automáticamente en el siguiente despliegue — no hace falta editarla."
+        hint: "Sube la foto tal cual la tomaste. El sitio recorta el fondo automáticamente en el siguiente despliegue (no hace falta editarla) y ese recorte es también lo que se usa para 'Probar con cámara'."
       - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
       - label: Mostrar en "Más vendidas" (inicio)
         name: featured
         widget: boolean
         default: false
         hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio."
-      - label: SKU de prueba virtual (Jeeliz) — opcional, se autocompleta
-        name: tryOnSku
-        widget: string
-        required: false
-        hint: "Déjalo vacío: el sitio busca solo un modelo 3D parecido según la marca y el nombre que escribiste arriba. Solo llénalo si quieres forzar un modelo exacto de la base gratuita de Jeeliz."
       - label: Colores del marco
         name: colors
         widget: list
@@ -131,28 +126,22 @@ collections:
             required: false
             media_folder: /public/uploads/catalogo
             public_folder: /uploads/catalogo
-          - label: Foto con modelo puesto (opcional)
+          - label: Segunda foto (opcional)
             name: modelImage
             widget: image
             required: false
             media_folder: /public/uploads/catalogo
             public_folder: /uploads/catalogo
-            hint: "Foto de una persona usando esta montura en este color. Se muestra al pasar el mouse sobre la foto."
-          - label: SKU de prueba virtual por defecto (opcional)
-            name: tryOnSku
-            widget: string
-            required: false
-            hint: "SKU que se carga al abrir 'Probar con cámara' con este color de marco."
+            hint: "Otro ángulo, o una persona usando esta montura en este color. Se muestra al pasar el mouse sobre la foto principal."
           - label: Colores de lente
             name: lenses
             widget: list
             required: false
             default: []
-            hint: "Opciones de lente para este marco. El cliente las cambia dentro de 'Probar con cámara'."
+            hint: "Opciones de lente para este marco. Se muestran dentro de 'Probar con cámara' (solo informativo) y en el mensaje de WhatsApp."
             fields:
               - { label: Nombre del lente, name: name, widget: string, hint: "Ej. Verde clásico, Azul espejado" }
               - { label: Color (swatch), name: hex, widget: color }
-              - { label: SKU de prueba virtual, name: tryOnSku, widget: string }
 
   # --- Promociones activables ---
   - name: promociones

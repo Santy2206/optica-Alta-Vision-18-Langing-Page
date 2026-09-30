@@ -5,8 +5,9 @@ import site from '../utils/site';
 
 <!--
   Modal de prueba virtual compartido. Cualquier botón en la página con
-  data-tryon-open + data-sku + data-name + data-slug (y opcionalmente data-frame + data-lenses JSON)
-  abre este modal (delegación de eventos).
+  data-tryon-open + data-overlay-image + data-name + data-slug (y opcionalmente
+  data-overlay-image-photochromic + data-frame + data-lenses JSON) abre este modal
+  (delegación de eventos).
 -->
 <div
   class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/70 p-4"
@@ -19,7 +20,7 @@ import site from '../utils/site';
   <div class="flex max-h-[92vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl bg-white shadow-xl">
     <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-4">
       <div>
-        <p class="text-sm font-bold text-slate-900">Prueba virtual — demo</p>
+        <p class="text-sm font-bold text-slate-900">Prueba virtual</p>
         <p class="text-xs text-slate-500">
           <span data-tryon-current-label>—</span>
         </p>
@@ -34,33 +35,12 @@ import site from '../utils/site';
       </button>
     </div>
 
-    <p class="border-b border-slate-100 bg-fucsia/10 px-4 py-2 text-center text-xs text-slate-600">
-      Vista de referencia con una montura de muestra — aún no es la foto real de este producto.
-    </p>
+    <div class="relative aspect-[4/3] w-full bg-slate-900" data-tryon-stage>
+      <video data-tryon-video autoplay playsinline muted class="absolute inset-0 h-full w-full -scale-x-100 object-cover"></video>
+      <canvas data-tryon-canvas class="absolute inset-0 h-full w-full"></canvas>
 
-    <div id="JeelizVTOWidget" class="relative aspect-[4/3] w-full bg-slate-900">
-      <canvas id="JeelizVTOWidgetCanvas" class="absolute inset-0 h-full w-full"></canvas>
-
-      <div id="JeelizVTOWidgetLoading" class="absolute inset-0 z-30 flex items-center justify-center bg-slate-900/80 text-sm font-medium text-white">
+      <div data-tryon-loading class="absolute inset-0 z-30 flex items-center justify-center bg-slate-900/80 text-sm font-medium text-white">
         Cargando cámara…
-      </div>
-
-      <div id="JeelizVTOWidgetAdjustNotice" class="absolute inset-x-0 bottom-0 z-20 hidden items-center justify-center gap-3 bg-slate-900/70 px-4 py-3 text-xs text-white">
-        <span>Mueve las gafas para ajustarlas.</span>
-        <button
-          type="button"
-          id="JeelizVTOWidgetAdjustExit"
-          class="rounded-full border border-white px-3 py-1 font-semibold"
-        >
-          Listo
-        </button>
-      </div>
-
-      <!-- Elementos requeridos por el widget que no usamos en esta integración mínima -->
-      <div class="hidden">
-        <button id="JeelizVTOWidgetAdjust" type="button">Ajustar</button>
-        <button id="buttonResizeCanvas" type="button">Redimensionar</button>
-        <div id="JeelizVTOWidgetChangeModelContainer"></div>
       </div>
 
       <div
@@ -98,43 +78,37 @@ import site from '../utils/site';
 
 <script>
   import { waLink } from '../utils/whatsapp';
+  import { startTryOnOverlay, preloadTryOnLandmarker, type TryOnOverlayController } from '../scripts/tryOnOverlay';
 
-  type Lens = { name: string; hex: string; tryOnSku: string };
-  type JeelizWidget = {
-    start: (options: Record<string, unknown>) => void;
-    load: (sku: string) => void;
-    destroy: () => void;
-  };
-  const getWidget = () => (window as unknown as { JEELIZVTOWIDGET?: JeelizWidget }).JEELIZVTOWIDGET;
-
-  const WIDGET_SRC = '/vendor/jeeliz-vto/JeelizVTOWidget.js';
+  type Lens = { name: string; hex: string };
 
   const modal = document.querySelector<HTMLElement>('[data-tryon-modal]');
+  const video = document.querySelector<HTMLVideoElement>('[data-tryon-video]');
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-tryon-canvas]');
+  const loadingLabel = document.querySelector<HTMLElement>('[data-tryon-loading]');
   const closeButton = document.querySelector('[data-tryon-close]');
   const currentLabel = document.querySelector('[data-tryon-current-label]');
   const errorPanel = document.querySelector('[data-tryon-error]');
   const errorMessage = document.querySelector<HTMLElement>('[data-tryon-error-message]');
   const whatsappLink = document.querySelector<HTMLAnchorElement>('[data-tryon-whatsapp]');
 
-  let scriptPromise: Promise<void> | null = null;
-  let isStarted = false;
+  // Imagen de la montura en memoria (no está en el DOM): tryOnOverlay.ts la dibuja
+  // en el canvas cada frame, leyendo siempre su src/dimensiones actuales.
+  const glassesImg = new Image();
+  // URLs de las dos variantes generadas por scripts/generate-cutouts.mjs para la montura/
+  // color actual: lente transparente (normal) y lente oscurecido (fotocromático activado).
+  let overlayUrl = '';
+  let overlayUrlPhotochromic = '';
 
-  const loadScript = () => {
-    if (scriptPromise) return scriptPromise;
-    scriptPromise = new Promise<void>((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = WIDGET_SRC;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('load-failed'));
-      document.body.appendChild(script);
-    });
-    return scriptPromise;
-  };
+  let stream: MediaStream | null = null;
+  let overlayController: TryOnOverlayController | null = null;
+  let hasTried = false;
 
   const showError = (message: string) => {
     if (errorMessage) errorMessage.textContent = message;
     errorPanel?.classList.remove('hidden');
     errorPanel?.classList.add('flex');
+    loadingLabel?.classList.add('hidden');
   };
 
   const hideError = () => {
@@ -142,21 +116,17 @@ import site from '../utils/site';
     errorPanel?.classList.remove('flex');
   };
 
-  const errorLabels: Record<string, string> = {
-    WEBCAM_UNAVAILABLE: 'No detectamos una cámara o no diste permiso para usarla.',
-    INVALID_SKU: 'No pudimos cargar la vista previa de esta montura.',
-    PLACEHOLDER_NULL_WIDTH: 'Hubo un problema mostrando la ventana de prueba.',
-    PLACEHOLDER_NULL_HEIGHT: 'Hubo un problema mostrando la ventana de prueba.',
-    FATAL: 'Ocurrió un error inesperado. Intenta de nuevo.',
-  };
-
   const lensPanel = document.querySelector('[data-tryon-lens-panel]');
   const lensContainer = document.querySelector('[data-tryon-lenses]');
   const lensLabel = document.querySelector('[data-tryon-lens-label]');
 
+  // Disponibles en todas las monturas sin que el negocio tenga que agregarlas a mano en
+  // cada una desde el CMS. "Normal" solo se agrega cuando el marco no tiene sus propios
+  // colores de lente (si ya los tiene, el primero de esos hace de opción "normal").
+  const NORMAL_LENS: Lens = { name: 'Normal', hex: '#E8ECEF' };
+  const PHOTOCHROMIC_LENS: Lens = { name: 'Fotocromático', hex: '#9AA5B1' };
+
   let current = { name: '', slug: '', frame: '', lens: '' };
-  // true cuando el usuario ya se vio con la montura puesta (callbackReady del widget).
-  let hasTried = false;
   const whatsappLabel = document.querySelector<HTMLElement>('[data-tryon-whatsapp-label]');
   // Texto editable desde el CMS (Configuración → Probador virtual).
   const ctaTried = modal?.dataset.ctaTried || 'Me gustan, ¿las tienen disponibles?';
@@ -187,27 +157,38 @@ import site from '../utils/site';
     }
   };
 
+  // El color del lente es solo informativo (se ve en el mensaje de WhatsApp): no hay forma
+  // de retintar en vivo una foto plana con un color arbitrario, a diferencia de un modelo
+  // 3D. "Fotocromático" es la excepción: sí cambia la imagen que dibuja el overlay, a la
+  // variante con el lente oscurecido generada en build (scripts/generate-cutouts.mjs).
+  const applyLensImage = (lensName: string) => {
+    const isPhotochromic = lensName === PHOTOCHROMIC_LENS.name;
+    glassesImg.src = (isPhotochromic && overlayUrlPhotochromic) || overlayUrl;
+  };
+
   const selectLens = (lens: Lens) => {
     current.lens = lens.name;
     updateTexts();
+    applyLensImage(lens.name);
     lensContainer?.querySelectorAll('button').forEach((b) => {
-      const active = b.dataset.sku === lens.tryOnSku;
+      const active = b.dataset.name === lens.name;
       b.classList.toggle('border-slate-900', active);
       b.classList.toggle('border-slate-300', !active);
       b.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
-    if (isStarted) getWidget()?.load(lens.tryOnSku);
   };
 
-  const renderLenses = (lenses: Lens[], activeSku: string) => {
+  const renderLenses = (frameLenses: Lens[]) => {
     if (!lensContainer || !lensPanel) return;
+    const base = frameLenses.length > 0 ? frameLenses : [NORMAL_LENS];
+    const lenses = base.some((l) => l.name === PHOTOCHROMIC_LENS.name) ? base : [...base, PHOTOCHROMIC_LENS];
     lensContainer.replaceChildren();
     lensPanel.classList.toggle('hidden', lenses.length === 0);
 
     lenses.forEach((lens) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.dataset.sku = lens.tryOnSku;
+      button.dataset.name = lens.name;
       button.className =
         'inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-aguamarina';
       const dot = document.createElement('span');
@@ -218,86 +199,18 @@ import site from '../utils/site';
       lensContainer.appendChild(button);
     });
 
-    const active = lenses.find((l) => l.tryOnSku === activeSku) ?? lenses[0];
+    const active = lenses[0];
     if (active) {
       current.lens = active.name;
-      lensContainer.querySelectorAll('button').forEach((b) => {
-        const isActive = b.dataset.sku === active.tryOnSku;
-        b.classList.toggle('border-slate-900', isActive);
-        b.classList.toggle('border-slate-300', !isActive);
-        b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      applyLensImage(active.name);
+      lensContainer.querySelectorAll('button').forEach((b, i) => {
+        b.classList.toggle('border-slate-900', i === 0);
+        b.classList.toggle('border-slate-300', i !== 0);
+        b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
       });
     }
   };
 
-  const openModal = async ({
-    sku,
-    name,
-    slug,
-    frame,
-    lenses,
-  }: {
-    sku: string;
-    name: string;
-    slug: string;
-    frame: string;
-    lenses: Lens[];
-  }) => {
-    if (!modal) return;
-    hideError();
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    current = { name, slug, frame, lens: '' };
-    hasTried = false;
-    renderLenses(lenses, sku);
-    updateTexts();
-
-    try {
-      await loadScript();
-    } catch {
-      showError('No se pudo cargar la herramienta de prueba virtual.');
-      return;
-    }
-
-    const widget = getWidget();
-    if (!widget) {
-      showError('No se pudo cargar la herramienta de prueba virtual.');
-      return;
-    }
-
-    if (!isStarted) {
-      isStarted = true;
-      widget.start({
-        sku,
-        isShadow: true,
-        searchImageMask: 'https://appstatic.jeeliz.com/jeewidget/images/target512.jpg',
-        searchImageColor: 0xeeeeee,
-        callbackReady: () => {
-          hideError();
-          hasTried = true;
-          updateTexts();
-        },
-        onError: (errorLabel: string) => {
-          showError(errorLabels[errorLabel] ?? 'Ocurrió un error con la cámara.');
-        },
-      });
-    } else {
-      widget.load(sku);
-    }
-  };
-
-  const closeModal = () => {
-    if (!modal) return;
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    if (isStarted) {
-      getWidget()?.destroy();
-      isStarted = false;
-    }
-  };
-
-  // Delegación de eventos: cualquier botón [data-tryon-open] en la página abre este modal,
-  // sin importar qué componente lo haya renderizado (catálogo, más vendidas, etc).
   const parseLenses = (raw: string | undefined): Lens[] => {
     try {
       return JSON.parse(raw || '[]');
@@ -306,12 +219,86 @@ import site from '../utils/site';
     }
   };
 
+  const openModal = async ({
+    overlayImage,
+    overlayImagePhotochromic,
+    name,
+    slug,
+    frame,
+    lenses,
+  }: {
+    overlayImage: string;
+    overlayImagePhotochromic: string;
+    name: string;
+    slug: string;
+    frame: string;
+    lenses: Lens[];
+  }) => {
+    if (!modal || !video || !canvas) return;
+    hideError();
+    loadingLabel?.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    current = { name, slug, frame, lens: '' };
+    hasTried = false;
+    overlayUrl = overlayImage;
+    overlayUrlPhotochromic = overlayImagePhotochromic;
+    glassesImg.src = overlayUrl;
+    renderLenses(lenses);
+    updateTexts();
+
+    if (stream) {
+      // Ya hay cámara abierta (se cambió de color/montura sin cerrar el modal):
+      // solo se actualiza la imagen que dibuja el overlay en curso.
+      loadingLabel?.classList.add('hidden');
+      hasTried = true;
+      updateTexts();
+      return;
+    }
+
+    preloadTryOnLandmarker();
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    } catch {
+      showError('No pudimos acceder a tu cámara. Verifica los permisos de tu navegador e intenta de nuevo.');
+      return;
+    }
+
+    video.srcObject = stream;
+    try {
+      await video.play();
+    } catch {
+      showError('No pudimos iniciar la cámara. Intenta de nuevo.');
+      return;
+    }
+
+    loadingLabel?.classList.add('hidden');
+    hasTried = true;
+    updateTexts();
+    overlayController = startTryOnOverlay(video, canvas, glassesImg);
+  };
+
+  const closeModal = () => {
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    overlayController?.stop();
+    overlayController = null;
+    stream?.getTracks().forEach((track) => track.stop());
+    stream = null;
+    if (video) video.srcObject = null;
+  };
+
+  // Delegación de eventos: cualquier botón [data-tryon-open] en la página abre este modal,
+  // sin importar qué componente lo haya renderizado (catálogo, más vendidas, etc).
   document.addEventListener('click', (event) => {
     const target = event.target as Element | null;
     const button = target?.closest<HTMLElement>('[data-tryon-open]');
-    if (button?.dataset.sku) {
+    if (button?.dataset.overlayImage) {
       openModal({
-        sku: button.dataset.sku,
+        overlayImage: button.dataset.overlayImage,
+        overlayImagePhotochromic: button.dataset.overlayImagePhotochromic || '',
         name: button.dataset.name || 'esta montura',
         slug: button.dataset.slug || 'sin-slug',
         frame: button.dataset.frame || '',
@@ -321,13 +308,18 @@ import site from '../utils/site';
     }
 
     // Elegir un color de marco en la tarjeta deja listo "Probar con cámara"
-    // con ese marco y sus opciones de lente.
+    // con ese marco (si tiene foto con fondo recortado disponible).
     const swatch = target?.closest<HTMLElement>('[data-swatch]');
     const tryOnButton = swatch?.closest('article')?.querySelector<HTMLElement>('[data-tryon-open]');
-    if (swatch && tryOnButton && swatch.dataset.tryonSku) {
-      tryOnButton.dataset.sku = swatch.dataset.tryonSku;
-      tryOnButton.dataset.frame = swatch.title;
-      tryOnButton.dataset.lenses = swatch.dataset.lenses || '[]';
+    if (swatch && tryOnButton) {
+      const overlayImage = swatch.dataset.overlayImage || '';
+      tryOnButton.classList.toggle('hidden', !overlayImage);
+      if (overlayImage) {
+        tryOnButton.dataset.overlayImage = overlayImage;
+        tryOnButton.dataset.overlayImagePhotochromic = swatch.dataset.overlayImagePhotochromic || '';
+        tryOnButton.dataset.frame = swatch.title;
+        tryOnButton.dataset.lenses = swatch.dataset.lenses || '[]';
+      }
     }
   });
 
@@ -339,12 +331,5 @@ import site from '../utils/site';
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeModal();
-  });
-
-  // El widget a veces rechaza la promesa de la cámara sin pasar por onError,
-  // dejando al usuario viendo "Cargando cámara…" indefinidamente.
-  window.addEventListener('unhandledrejection', () => {
-    if (!isStarted || modal?.classList.contains('hidden')) return;
-    showError('No pudimos acceder a tu cámara. Verifica los permisos de tu navegador e intenta de nuevo.');
   });
 </script>

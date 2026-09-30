@@ -15,8 +15,8 @@ const make = async (w, h, label, out) => {
 (async () => {
   await make(1200, 630, 'Promo - foto pendiente', `${promoDir}/examen-visual.webp`);
 
-  // Placeholders compartidos por categoría para el catálogo generado desde Jeeliz
-  // (monturas de muestra sin foto real todavía — ver scripts/generate-catalogo-jeeliz.cjs).
+  // Placeholders compartidos por categoría para monturas sin foto real todavía
+  // (isPlaceholderImage() en src/utils/images.ts las reconoce y muestra un ícono en su lugar).
   await make(800, 600, 'Foto pendiente', `${dir}/placeholder-sol.webp`);
   await make(800, 600, 'Foto pendiente', `${dir}/placeholder-deportivas.webp`);
   await make(800, 600, 'Foto pendiente', `${dir}/placeholder-ninos.webp`);

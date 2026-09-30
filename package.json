@@ -11,9 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "og": "node scripts/og-image.mjs",
-    "cutouts": "node scripts/generate-cutouts.mjs",
-    "tryon-index": "node scripts/build-tryon-index.cjs",
-    "catalogo-demo": "node scripts/generate-catalogo-jeeliz.cjs"
+    "cutouts": "node scripts/generate-cutouts.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

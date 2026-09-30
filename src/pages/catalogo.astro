@@ -12,8 +12,7 @@ import { priceLabel as getPriceLabel, isFallbackPrice } from '../utils/precio';
 import { isPlaceholderImage } from '../utils/images';
 import { getFrameShape } from '../data/frameShape';
 import FrameShapeIcon from '../components/FrameShapeIcon.astro';
-import { findTryOnMatch } from '../utils/tryOnMatch';
-import { getDisplayImage } from '../utils/cutout';
+import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import { getCollection } from 'astro:content';
 
 const { title, description } = seo.catalogo;
@@ -80,22 +79,21 @@ const categorias = [
               const origen = `catalogo:${item.id}`;
               const waHref = waLink(origen, `Hola, quiero información sobre ${item.data.name}`);
               const priceLabel = getPriceLabel(item.data.price);
-              const manualTryOnSku = item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku ?? null;
-              // Si el negocio agregó una montura real sin asignar un SKU a mano, buscamos
-              // automáticamente el modelo de Jeeliz más parecido por marca/nombre.
-              const tryOnMatch = manualTryOnSku
-                ? null
-                : findTryOnMatch(item.data.brand, item.data.name, item.data.category);
-              const tryOnSku = manualTryOnSku ?? tryOnMatch?.sku ?? null;
-              const tryOnFrame = item.data.colors[0]?.name ?? tryOnMatch?.frame ?? '';
-              const tryOnLenses = item.data.colors[0]?.lenses?.length
-                ? item.data.colors[0].lenses
-                : (tryOnMatch?.lenses ?? []);
+              const firstColor = item.data.colors[0];
+              const tryOnFrame = firstColor?.name ?? '';
+              const tryOnLenses = firstColor?.lenses ?? [];
+              // "Probar con cámara" solo aparece si ya existe el recorte transparente
+              // (scripts/generate-cutouts.mjs) de la foto de este color / de la montura.
+              const overlayImage = getTryOnOverlayImage(firstColor?.image || item.data.image);
+              const overlayImagePhotochromic = getTryOnPhotochromicImage(firstColor?.image || item.data.image);
               // Foto con fondo recortado automáticamente (scripts/generate-cutouts.mjs),
               // o la original si el recorte todavía no corrió para esta foto.
               const displayImage = isPlaceholderImage(item.data.image)
                 ? item.data.image
                 : getDisplayImage(item.data.image);
+              // Misma foto de fondo recortado que displayImage: si no, el fondo blanco de
+              // esta foto no combina con el bg-slate-100 de la tarjeta al pasar el mouse.
+              const hoverImage = firstColor?.modelImage ? getDisplayImage(firstColor.modelImage) : '';
 
               return (
                 <article
@@ -116,7 +114,7 @@ const categorias = [
                         class="h-full w-full object-cover"
                         data-product-image
                         data-default-image={displayImage}
-                        data-hover-image={item.data.colors[0]?.modelImage ?? ''}
+                        data-hover-image={hoverImage}
                       />
                     )}
                   </div>
@@ -144,8 +142,9 @@ const categorias = [
                             aria-label={`Marco ${color.name}`}
                             data-swatch
                             data-image={color.image ?? ''}
-                            data-model-image={color.modelImage ?? ''}
-                            data-tryon-sku={color.tryOnSku ?? ''}
+                            data-model-image={color.modelImage ? getDisplayImage(color.modelImage) : ''}
+                            data-overlay-image={getTryOnOverlayImage(color.image || item.data.image) ?? ''}
+                            data-overlay-image-photochromic={getTryOnPhotochromicImage(color.image || item.data.image) ?? ''}
                             data-lenses={JSON.stringify(color.lenses)}
                           />
                         ))}
@@ -162,13 +161,14 @@ const categorias = [
                     >
                       Me interesa
                     </a>
-                    {tryOnSku && (
+                    {overlayImage && (
                       <button
                         type="button"
                         class="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
                         data-tryon-open
                         data-slug={item.id}
-                        data-sku={tryOnSku}
+                        data-overlay-image={overlayImage}
+                        data-overlay-image-photochromic={overlayImagePhotochromic ?? ''}
                         data-name={item.data.name}
                         data-frame={tryOnFrame}
                         data-lenses={JSON.stringify(tryOnLenses)}

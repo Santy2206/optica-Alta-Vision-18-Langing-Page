@@ -2,26 +2,26 @@
 import { getCollection } from 'astro:content';
 import site from '../utils/site';
 import { waLink } from '../utils/whatsapp';
-import { isPlaceholderImage } from '../utils/images';
+import { getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import Icon from './Icon.astro';
 
 const whatsappHref = waLink('hero', 'Hola, quiero agendar mi examen visual');
 
 const catalogo = await getCollection('catalogo');
 
-// CTA secundario: abre el probador (TryOnModal) con la primera montura destacada que tenga SKU.
-// Si no hay ninguna, el botón hace scroll al catálogo.
+// CTA secundario: abre el probador (TryOnModal) con la primera montura destacada que
+// ya tenga foto real con fondo recortado. Si no hay ninguna, el botón hace scroll al catálogo.
 const tryOnItem = catalogo
   .filter((item) => item.data.featured)
-  .map((item) => ({ item, color: item.data.colors[0], sku: item.data.tryOnSku ?? item.data.colors[0]?.tryOnSku }))
-  .find(({ sku }) => Boolean(sku));
+  .map((item) => {
+    const color = item.data.colors[0];
+    const image = color?.image || item.data.image;
+    return { item, color, overlayImage: getTryOnOverlayImage(image), overlayImagePhotochromic: getTryOnPhotochromicImage(image) };
+  })
+  .find(({ overlayImage }) => Boolean(overlayImage));
 
-// Visual derecho: foto real del local si existe; si no, un collage de hasta 3 destacadas
-// CON foto real (nunca placeholders "Foto pendiente"); si tampoco hay, una ilustración SVG.
-const featuredRealPhotos = catalogo
-  .filter((item) => item.data.featured && !isPlaceholderImage(item.data.image))
-  .slice(0, 3);
-
+// Visual derecho: foto real del local si existe (site.heroImagen); si no, una ilustración
+// SVG genérica. No se usan fotos del catálogo aquí — son productos, no fotos del local.
 const { rating, total, url: reviewsUrl } = site.googleReviews;
 const ratingText =
   rating !== null
@@ -109,7 +109,8 @@ const secondaryClass =
               class={secondaryClass}
               data-tryon-open
               data-slug={tryOnItem.item.id}
-              data-sku={tryOnItem.sku}
+              data-overlay-image={tryOnItem.overlayImage}
+              data-overlay-image-photochromic={tryOnItem.overlayImagePhotochromic ?? ''}
               data-name={tryOnItem.item.data.name}
               data-frame={tryOnItem.color?.name ?? ''}
               data-lenses={JSON.stringify(tryOnItem.color?.lenses ?? [])}
@@ -182,23 +183,6 @@ const secondaryClass =
                 <span class="text-sm font-bold text-slate-900">{ratingText}</span>
               </div>
             )}
-          </div>
-        ) : featuredRealPhotos.length > 0 ? (
-          <div class="grid grid-cols-3 gap-2 sm:gap-3">
-            {featuredRealPhotos.map((item, i) => (
-              <img
-                src={item.data.image}
-                alt={item.data.imageAlt}
-                width="300"
-                height="300"
-                loading={i === 0 ? 'eager' : 'lazy'}
-                class:list={[
-                  'aspect-square w-full rounded-2xl object-cover shadow-md',
-                  i === 1 && 'mt-4 sm:mt-6',
-                  i === 2 && 'mt-8 sm:mt-12',
-                ]}
-              />
-            ))}
           </div>
         ) : (
           <div class="flex aspect-[4/3] w-full items-center justify-center rounded-2xl bg-white shadow-sm">
