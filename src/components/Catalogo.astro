@@ -101,7 +101,7 @@ const productSchemas = items.filter((item) => item.data.price != null).map((item
                   data-catalogo-item
                   data-category={item.data.category}
                 >
-                  <div class="relative flex aspect-[4/3] items-center justify-center bg-slate-100 p-5 sm:p-6" data-photo-hover>
+                  <div class="relative aspect-[4/3] overflow-hidden bg-slate-100" data-photo-hover>
                     {isPlaceholderImage(item.data.image) ? (
                       <div class="flex h-full w-full items-center justify-center text-slate-400">
                         <FrameShapeIcon shape={getFrameShape(item.data) ?? 'ovalada'} class="h-14 w-14 sm:h-16 sm:w-16" />
@@ -111,7 +111,7 @@ const productSchemas = items.filter((item) => item.data.price != null).map((item
                         src={displayImage}
                         alt={item.data.imageAlt}
                         loading="lazy"
-                        class="max-h-full max-w-full object-contain"
+                        class="h-full w-full object-contain"
                         data-product-image
                         data-default-image={displayImage}
                         data-hover-image={hoverImage}

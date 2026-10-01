@@ -239,12 +239,58 @@ function collectRealImages() {
     const data = JSON.parse(readFileSync(path.join(CATALOGO_DIR, file), 'utf-8'));
 
     if (data.image && !isPlaceholder(data.image)) urls.add(data.image);
+    if (data.hoverImage && !isPlaceholder(data.hoverImage)) urls.add(data.hoverImage);
     for (const color of data.colors ?? []) {
       if (color.image && !isPlaceholder(color.image)) urls.add(color.image);
       if (color.modelImage && !isPlaceholder(color.modelImage)) urls.add(color.modelImage);
     }
   }
   return urls;
+}
+
+/**
+ * Normaliza el recorte de catálogo a un lienzo 4:3 fijo con la montura al mismo
+ * tamaño relativo (≈82 % del ancho, tope 85 % del alto). Así tarjetas con fotos
+ * de distinto encuadre se ven del mismo tamaño en el carrusel.
+ */
+async function normalizeDisplayCutout(rawBuffer) {
+  const { data, info } = await sharp(rawBuffer)
+    .trim({ threshold: 5 })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const TARGET_W = 1200;
+  const TARGET_H = 900; // 4:3 — mismo aspect que la tarjeta
+  const FILL_W = 0.82;
+  const MAX_H = 0.85;
+
+  let scale = (TARGET_W * FILL_W) / info.width;
+  if (info.height * scale > TARGET_H * MAX_H) {
+    scale = (TARGET_H * MAX_H) / info.height;
+  }
+
+  const fw = Math.max(1, Math.round(info.width * scale));
+  const fh = Math.max(1, Math.round(info.height * scale));
+
+  const resized = await sharp(data, {
+    raw: { width: info.width, height: info.height, channels: info.channels },
+  })
+    .resize(fw, fh, { fit: 'fill' })
+    .png()
+    .toBuffer();
+
+  return sharp({
+    create: {
+      width: TARGET_W,
+      height: TARGET_H,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: resized, gravity: 'centre' }])
+    .png()
+    .toBuffer();
 }
 
 /** true si el recorte no existe, o si la foto original es más nueva (se subió una nueva). */
@@ -298,9 +344,10 @@ async function run() {
       const rawBuffer = Buffer.from(await blob.arrayBuffer());
       const { writeFileSync } = await import('node:fs');
 
-      // Recorte normal (para la foto del catálogo): mismo lienzo que la foto original,
-      // solo con el fondo quitado. object-cover en la tarjeta 4:3 se ve bien con esto.
-      writeFileSync(outPath, rawBuffer);
+      // Recorte normal (foto del catálogo): montura recortada y centrada en lienzo 4:3
+      // con tamaño uniforme, para que todas las tarjetas se vean iguales.
+      const displayBuffer = await normalizeDisplayCutout(rawBuffer);
+      writeFileSync(outPath, displayBuffer);
 
       // Recorte para "Probar con cámara" (src/scripts/tryOnOverlay.ts): la foto original
       // suele tener mucho margen transparente alrededor de la montura (fondo cuadrado,
