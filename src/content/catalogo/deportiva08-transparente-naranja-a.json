@@ -1,0 +1,19 @@
+{
+  "name": "Deportiva Gris",
+  "brand": "Óptica Alta Visión 18",
+  "category": "deportivas",
+  "price": null,
+  "image": "/uploads/catalogo/deportiva08-transparente-naranja-a.webp",
+  "imageAlt": "Montura Deportiva Gris",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/deportiva08-transparente-naranja-a.webp",
+      "modelImage": "/uploads/catalogo/deportiva08-transparente-naranja-a-hover.webp",
+      "lenses": []
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/deportiva08-transparente-naranja-a-hover.webp"
+}

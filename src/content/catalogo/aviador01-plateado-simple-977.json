@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Plateado 2",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-plateado-simple-977.webp",
+  "imageAlt": "Montura Aviador Plateado 2",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/aviador01-plateado-simple-977.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-plateado-simple-977-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-simple-977-hover.webp"
+}

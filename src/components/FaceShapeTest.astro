@@ -4,6 +4,7 @@ import Icon from './Icon.astro';
 import { waLink } from '../utils/whatsapp';
 import { priceLabel } from '../utils/precio';
 import { getFrameShape } from '../data/frameShape';
+import type { FrameShape } from '../data/frameShape';
 import { getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import {
   faceShapeInfo,
@@ -29,9 +30,34 @@ const catalogForTest = allItems.map((item) => ({
 
 const faceShapeIds = Object.keys(faceShapeInfo) as FaceShapeId[];
 
+/**
+ * Reparte los resultados entre las formas recomendadas en vez de agotar la
+ * primera (p. ej. "cuadrado" recomienda redonda/ovalada/aviador, pero como hay
+ * muchos más aviadores que redondas en el catálogo, tomar los primeros 6 sin
+ * más daba solo aviadores). Round-robin por forma: una de cada hasta llenar el
+ * cupo, así siempre se ven ejemplos de cada estilo recomendado si existen.
+ */
+function pickDiverse<T extends { frameShape: FrameShape | null }>(
+  items: T[],
+  shapes: FrameShape[],
+  limit: number,
+): T[] {
+  const buckets = shapes.map((shape) => items.filter((item) => item.frameShape === shape));
+  const result: T[] = [];
+  let i = 0;
+  while (result.length < limit && buckets.some((b) => b.length > 0)) {
+    const bucket = buckets[i % buckets.length];
+    const next = bucket.shift();
+    if (next) result.push(next);
+    i++;
+  }
+  return result;
+}
+
 const faceShapeResults = faceShapeIds.map((shapeId) => {
   const recommended = frameRecommendations[shapeId];
-  const matches = catalogForTest.filter((item) => item.frameShape && recommended.includes(item.frameShape)).slice(0, 6);
+  const candidates = catalogForTest.filter((item) => item.frameShape && recommended.includes(item.frameShape));
+  const matches = pickDiverse(candidates, recommended, 6);
   return { shapeId, matches };
 });
 ---

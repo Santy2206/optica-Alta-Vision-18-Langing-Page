@@ -1,0 +1,19 @@
+{
+  "name": "Cat-Eye Semi-rimless",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/cateye05-transparente-941.webp",
+  "imageAlt": "Montura Cat-Eye Semi-rimless",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Transparente",
+      "hex": "#E8E8E8",
+      "image": "/uploads/catalogo/cateye05-transparente-941.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/cateye05-transparente-941-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/cateye05-transparente-941-hover.webp"
+}

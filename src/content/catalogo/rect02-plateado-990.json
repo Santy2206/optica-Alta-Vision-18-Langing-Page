@@ -1,0 +1,19 @@
+{
+  "name": "Rectangular Plateado",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/rect02-plateado-990.webp",
+  "imageAlt": "Montura Rectangular Plateado",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/rect02-plateado-990.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/rect02-plateado-990-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/rect02-plateado-990-hover.webp"
+}

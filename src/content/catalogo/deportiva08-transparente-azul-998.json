@@ -1,0 +1,19 @@
+{
+  "name": "Deportiva Café",
+  "brand": "Óptica Alta Visión 18",
+  "category": "deportivas",
+  "price": null,
+  "image": "/uploads/catalogo/deportiva08-transparente-azul-998.webp",
+  "imageAlt": "Montura Deportiva Café",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Azul",
+      "hex": "#1e3a5f",
+      "image": "/uploads/catalogo/deportiva08-transparente-azul-998.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/deportiva08-transparente-azul-998-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/deportiva08-transparente-azul-998-hover.webp"
+}

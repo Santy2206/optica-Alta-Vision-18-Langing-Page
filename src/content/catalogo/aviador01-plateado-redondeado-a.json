@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Plateado Redondeado",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-plateado-redondeado-a.webp",
+  "imageAlt": "Montura Aviador Plateado Redondeado",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/aviador01-plateado-redondeado-a.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-plateado-redondeado-a-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-redondeado-a-hover.webp"
+}

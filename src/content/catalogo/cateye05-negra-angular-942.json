@@ -1,0 +1,19 @@
+{
+  "name": "Cat-Eye Azul Angular",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/cateye05-negra-angular-942.webp",
+  "imageAlt": "Montura Cat-Eye Azul Angular",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Azul",
+      "hex": "#1e3a5f",
+      "image": "/uploads/catalogo/cateye05-negra-angular-942.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/cateye05-negra-angular-942-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/cateye05-negra-angular-942-hover.webp"
+}

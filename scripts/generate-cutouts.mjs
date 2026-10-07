@@ -78,6 +78,29 @@ function dilateMask(mask, width, height, radius) {
   return out;
 }
 
+/**
+ * Suaviza (difumina) SOLO el canal alfa de un buffer RGBA crudo, dejando el color intacto.
+ * La clasificación binaria hueco/marco dejaba bordes "dentados" de escalón (cada paso de
+ * unos pocos píxeles, visible a simple vista en la curva del puente) porque el cierre
+ * morfológico usa un kernel cuadrado — esto no cambia la forma del recorte, solo convierte
+ * esos escalones en una transición de 1-2px en vez de un salto abrupto 0/255.
+ */
+async function featherAlpha(buffer, width, height, channels, blurRadius = 1.1) {
+  const rgb = await sharp(buffer, { raw: { width, height, channels } })
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  const alpha = await sharp(buffer, { raw: { width, height, channels } })
+    .extractChannel(channels - 1)
+    .blur(blurRadius)
+    .raw()
+    .toBuffer();
+  return sharp(rgb, { raw: { width, height, channels: channels - 1 } })
+    .joinChannel(alpha, { raw: { width, height, channels: 1 } })
+    .raw()
+    .toBuffer();
+}
+
 /** Erosiona una máscara binaria: complemento de dilatar el complemento. */
 function erodeMask(mask, width, height, radius) {
   const inverted = new Uint8Array(width * height);
@@ -99,6 +122,151 @@ function closeMask(mask, width, height, radius) {
 }
 
 /**
+ * Componentes conexas de una máscara binaria, de mayor a menor.
+ * Devuelve máscara + metadatos (bbox) de las `keepCount` más grandes.
+ */
+function largestComponents(mask, width, height, keepCount) {
+  const n = width * height;
+  const labels = new Int32Array(n).fill(-1);
+  const sizes = [];
+  let label = 0;
+  const queue = new Int32Array(n);
+
+  for (let start = 0; start < n; start++) {
+    if (!mask[start] || labels[start] >= 0) continue;
+    let qHead = 0;
+    let qTail = 0;
+    let size = 0;
+    let minX = width;
+    let maxX = -1;
+    let minY = height;
+    let maxY = -1;
+    labels[start] = label;
+    queue[qTail++] = start;
+    while (qHead < qTail) {
+      const p = queue[qHead++];
+      size += 1;
+      const x = p % width;
+      const y = (p / width) | 0;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      if (x > 0) {
+        const np = p - 1;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+      if (x < width - 1) {
+        const np = p + 1;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+      if (y > 0) {
+        const np = p - width;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+      if (y < height - 1) {
+        const np = p + width;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+    }
+    sizes.push({ label, size, minX, maxX, minY, maxY });
+    label += 1;
+  }
+
+  sizes.sort((a, b) => b.size - a.size);
+  const kept = sizes.slice(0, keepCount);
+  const keep = new Set(kept.map((s) => s.label));
+  const out = new Uint8Array(n);
+  for (let p = 0; p < n; p++) {
+    if (labels[p] >= 0 && keep.has(labels[p])) out[p] = 1;
+  }
+  return { mask: out, components: kept };
+}
+
+/** Se queda solo con la máscara de las `keepCount` componentes más grandes. */
+function keepLargestComponents(mask, width, height, keepCount) {
+  return largestComponents(mask, width, height, keepCount).mask;
+}
+
+/**
+ * Cierra morfológicamente cada componente por separado y une el resultado.
+ * Evita que un radio de cierre grande fusione el lente izquierdo con el derecho a través
+ * del puente (eso pintaba de negro todo el centro en fotocromático y se comía el puente).
+ */
+function closeMaskPerComponent(mask, width, height, radius) {
+  const n = width * height;
+  const labels = new Int32Array(n).fill(-1);
+  const out = new Uint8Array(n);
+  const queue = new Int32Array(n);
+  let label = 0;
+
+  for (let start = 0; start < n; start++) {
+    if (!mask[start] || labels[start] >= 0) continue;
+    let qHead = 0;
+    let qTail = 0;
+    const pixels = [];
+    labels[start] = label;
+    queue[qTail++] = start;
+    while (qHead < qTail) {
+      const p = queue[qHead++];
+      pixels.push(p);
+      const x = p % width;
+      const y = (p / width) | 0;
+      if (x > 0) {
+        const np = p - 1;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+      if (x < width - 1) {
+        const np = p + 1;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+      if (y > 0) {
+        const np = p - width;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+      if (y < height - 1) {
+        const np = p + width;
+        if (mask[np] && labels[np] < 0) {
+          labels[np] = label;
+          queue[qTail++] = np;
+        }
+      }
+    }
+
+    const single = new Uint8Array(n);
+    for (const p of pixels) single[p] = 1;
+    const closed = closeMask(single, width, height, radius);
+    for (let p = 0; p < n; p++) {
+      if (closed[p]) out[p] = 1;
+    }
+    label += 1;
+  }
+
+  return out;
+}
+
+/**
  * A partir del recorte ya ajustado a la silueta (trim), calcula qué píxeles son "hueco de
  * lente" y produce las dos variantes que usa "Probar con cámara" (src/scripts/tryOnOverlay.ts):
  * una con el hueco transparente (lente normal, se ve la cara del usuario) y otra con el
@@ -112,8 +280,9 @@ function closeMask(mask, width, height, radius) {
  * 2. Un relleno de huecos "desde afuera hacia adentro": se recorre por BFS, desde el borde
  *    de la imagen, todo lo que sigue transparente tras el paso 1 — eso es el fondo real.
  *    Cualquier zona transparente que el BFS no alcanza está encerrada por el marco: es el
- *    hueco del lente. Se dilata un poco ese hueco (sin invadir el fondo real) para que
- *    trague también la varilla, que queda aislada en medio pero sigue siendo opaca.
+ *    hueco del lente. Solo se conservan las 2 componentes más grandes (lente izq/der) y se
+ *    cierran por separado con un radio chico, para tragarse la varilla sin fusionar ambos
+ *    lentes a través del puente ni pintar de negro el hueco del doble puente.
  *
  * Límite conocido: para lentes de sol (oscuros o de color) el paso 1 no aclara nada — no
  * hay forma confiable de distinguir el lente del marco solo por color — así que en fotos
@@ -139,8 +308,18 @@ function buildTryOnVariants(data, info) {
     isOpaque[p] = a > OPAQUE_THRESHOLD ? 1 : 0;
   }
 
-  // BFS desde el borde de la imagen, a través de píxeles NO opacos: marca el fondo real
-  // (todo lo alcanzable desde afuera sin cruzar el marco).
+  // Un reflejo de luz muy intenso en una parte metálica DELGADA (p. ej. la barra decorativa
+  // superior de un aviador) puede cruzar el umbral de "casi blanco" igual que un lente claro,
+  // partiendo esa franja de marco en pedacitos. Es el problema inverso al de la varilla vista
+  // a través del lente: ahí sobraba marco aislado dentro del hueco: acá sobra hueco aislado
+  // partiendo al marco. Se repara con el mismo cierre morfológico pero aplicado al MARCO (no
+  // al hueco) y con un radio chico — solo cierra grietas angostas (el reflejo), nunca el
+  // hueco real y ancho del lente.
+  const frameRepairRadius = Math.max(3, Math.round(Math.min(width, height) * 0.02));
+  const frame = closeMask(isOpaque, width, height, frameRepairRadius);
+
+  // BFS desde el borde de la imagen, a través de píxeles que NO son marco: marca el fondo
+  // real (todo lo alcanzable desde afuera sin cruzar el marco).
   const isOutside = new Uint8Array(n);
   const queue = new Int32Array(n);
   let qHead = 0;
@@ -148,7 +327,7 @@ function buildTryOnVariants(data, info) {
   for (let x = 0; x < width; x++) {
     for (const y of [0, height - 1]) {
       const p = y * width + x;
-      if (!isOpaque[p] && !isOutside[p]) {
+      if (!frame[p] && !isOutside[p]) {
         isOutside[p] = 1;
         queue[qTail++] = p;
       }
@@ -157,7 +336,7 @@ function buildTryOnVariants(data, info) {
   for (let y = 0; y < height; y++) {
     for (const x of [0, width - 1]) {
       const p = y * width + x;
-      if (!isOpaque[p] && !isOutside[p]) {
+      if (!frame[p] && !isOutside[p]) {
         isOutside[p] = 1;
         queue[qTail++] = p;
       }
@@ -167,38 +346,166 @@ function buildTryOnVariants(data, info) {
     const p = queue[qHead++];
     const x = p % width;
     const y = (p / width) | 0;
-    if (x > 0 && !isOpaque[p - 1] && !isOutside[p - 1]) {
+    if (x > 0 && !frame[p - 1] && !isOutside[p - 1]) {
       isOutside[p - 1] = 1;
       queue[qTail++] = p - 1;
     }
-    if (x < width - 1 && !isOpaque[p + 1] && !isOutside[p + 1]) {
+    if (x < width - 1 && !frame[p + 1] && !isOutside[p + 1]) {
       isOutside[p + 1] = 1;
       queue[qTail++] = p + 1;
     }
-    if (y > 0 && !isOpaque[p - width] && !isOutside[p - width]) {
+    if (y > 0 && !frame[p - width] && !isOutside[p - width]) {
       isOutside[p - width] = 1;
       queue[qTail++] = p - width;
     }
-    if (y < height - 1 && !isOpaque[p + width] && !isOutside[p + width]) {
+    if (y < height - 1 && !frame[p + width] && !isOutside[p + width]) {
       isOutside[p + width] = 1;
       queue[qTail++] = p + width;
     }
   }
 
-  // Lo no-opaco que el BFS no alcanzó está encerrado por el marco: es el hueco del lente.
+  // Lo que no es marco y el BFS no alcanzó está encerrado por el marco. Puede ser el hueco
+  // del lente O brechas chicas (doble puente, plaquetas). Solo las 2 componentes más grandes
+  // se tratan como lentes.
   const isEnclosedHole = new Uint8Array(n);
   for (let p = 0; p < n; p++) {
-    if (!isOpaque[p] && !isOutside[p]) isEnclosedHole[p] = 1;
+    if (!frame[p] && !isOutside[p]) isEnclosedHole[p] = 1;
+  }
+  const { mask: lensSeeds, components: lensParts } = largestComponents(
+    isEnclosedHole,
+    width,
+    height,
+    2,
+  );
+
+  // Guardrail del marco: el aro exterior (toca el fondo) y el puente entre lentes NO se
+  // pueden marcar como hueco. Sí se pueden comer piezas de marco DENTRO del lente
+  // (la varilla/pata vista a través del cristal).
+  // 1) frameRing = dilatar el exterior ∩ frame → aro perimetral (hinges, contorno)
+  // 2) bridgeBand = columna vertical entre los dos lentes (si hay 2) ∩ frame
+  const frameProtected = new Uint8Array(n);
+  // Radio del aro un poco generoso: el packshot tiene aro delgado (~5–10px) y necesitamos
+  // que el dilate grande del lente no se lo coma al salir por huecos del umbral.
+  const ringRadius = Math.max(6, Math.round(Math.min(width, height) * 0.03));
+  const ring = dilateMask(isOutside, width, height, ringRadius);
+  for (let p = 0; p < n; p++) {
+    if (frame[p] && ring[p]) frameProtected[p] = 1;
+  }
+  if (lensParts.length >= 2) {
+    const sorted = [...lensParts].sort(
+      (a, b) => (a.minX + a.maxX) / 2 - (b.minX + b.maxX) / 2,
+    );
+    const left = sorted[0];
+    const right = sorted[1];
+    const gapLeft = left.maxX + 1;
+    const gapRight = right.minX - 1;
+    if (gapRight >= gapLeft) {
+      // Cubre el puente + doble barra sin meterse de más en el interior de cada lente.
+      const pad = Math.max(4, Math.round((gapRight - gapLeft + 1) * 0.2));
+      const x0 = Math.max(0, gapLeft - pad);
+      const x1 = Math.min(width - 1, gapRight + pad);
+      const y0 = Math.max(0, Math.min(left.minY, right.minY) - 4);
+      const y1 = Math.min(height - 1, Math.max(left.maxY, right.maxY) + 4);
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const p = y * width + x;
+          if (frame[p]) frameProtected[p] = 1;
+        }
+      }
+    }
   }
 
-  // Cierre morfológico del hueco (dilatar + erosionar) para tragarse la varilla, delgada
-  // (unos pocos píxeles), sin comerse el aro donde es angosto — dilatar solo (sin el paso
-  // de erosión) agrandaba el hueco de forma permanente y rompía el borde inferior del aro.
-  const radius = Math.max(12, Math.round(Math.min(width, height) * 0.035));
-  const closed = closeMask(isEnclosedHole, width, height, radius);
-  const hole = new Uint8Array(n);
+  // Tragar patas vistas a través del lente: dilatar cada lente por separado con radio
+  // generoso (las patas entran ~30–40 % del ancho del lente). NO se hace flood sobre el
+  // marco completo (eso se comía el aro entero al colarse por grietas). Solo se marca
+  // hueco lo dilatado que no sea exterior ni guardrail.
+  const templeRadius = Math.max(28, Math.round(Math.min(width, height) * 0.12));
+  const expanded = new Uint8Array(n);
+  for (const part of lensParts) {
+    // Reconstruir la máscara de ESTE lente a partir de lensSeeds dentro de su bbox.
+    const single = new Uint8Array(n);
+    const queue = new Int32Array(n);
+    let qHead = 0;
+    let qTail = 0;
+    let seed = -1;
+    for (let y = part.minY; y <= part.maxY && seed < 0; y++) {
+      for (let x = part.minX; x <= part.maxX && seed < 0; x++) {
+        const p = y * width + x;
+        if (lensSeeds[p]) seed = p;
+      }
+    }
+    if (seed < 0) continue;
+    const seen = new Uint8Array(n);
+    seen[seed] = 1;
+    queue[qTail++] = seed;
+    while (qHead < qTail) {
+      const p = queue[qHead++];
+      single[p] = 1;
+      const x = p % width;
+      const y = (p / width) | 0;
+      if (x > 0) {
+        const np = p - 1;
+        if (lensSeeds[np] && !seen[np]) {
+          seen[np] = 1;
+          queue[qTail++] = np;
+        }
+      }
+      if (x < width - 1) {
+        const np = p + 1;
+        if (lensSeeds[np] && !seen[np]) {
+          seen[np] = 1;
+          queue[qTail++] = np;
+        }
+      }
+      if (y > 0) {
+        const np = p - width;
+        if (lensSeeds[np] && !seen[np]) {
+          seen[np] = 1;
+          queue[qTail++] = np;
+        }
+      }
+      if (y < height - 1) {
+        const np = p + width;
+        if (lensSeeds[np] && !seen[np]) {
+          seen[np] = 1;
+          queue[qTail++] = np;
+        }
+      }
+    }
+
+    const dilated = dilateMask(single, width, height, templeRadius);
+    for (let p = 0; p < n; p++) {
+      if (!dilated[p]) continue;
+      const x = p % width;
+      const y = (p / width) | 0;
+      // Solo dentro del bbox del lente (+ margen chico): no escapa al otro lente ni al exterior.
+      if (x < part.minX - 2 || x > part.maxX + 2 || y < part.minY - 2 || y > part.maxY + 2) {
+        continue;
+      }
+      expanded[p] = 1;
+    }
+  }
+  // Hueco para lente NORMAL (clear): dilatado, para tragarse patas/varillas dentro del cristal.
+  const holeClear = new Uint8Array(n);
   for (let p = 0; p < n; p++) {
-    hole[p] = closed[p] && !isOutside[p] ? 1 : 0;
+    if (!expanded[p] || isOutside[p] || frameProtected[p]) continue;
+    holeClear[p] = 1;
+  }
+
+  // Hueco para FOTOCROMÁTICO: solo el lente real + patas (marco interno), SIN el borde
+  // dilatado hacia afuera del aro. El dilate grande del clear se salía del marco y el
+  // negro del lente se veía "desbordado" sobre la cara. Aquí:
+  //   lensSeeds  → cristal (un poco expandido 1–2px solo para cubrir el borde interno)
+  //   + expanded ∩ frame ∩ !frameProtected → patas/varillas internas
+  //   − dilate(outside) → no pintar en el flequillo exterior del silhouette
+  const lensCore = dilateMask(lensSeeds, width, height, 2);
+  const outsideGuard = dilateMask(isOutside, width, height, Math.max(2, Math.round(ringRadius * 0.5)));
+  const holePhoto = new Uint8Array(n);
+  for (let p = 0; p < n; p++) {
+    if (isOutside[p] || outsideGuard[p] || frameProtected[p]) continue;
+    const isGlass = lensCore[p] === 1;
+    const isInnerTemple = expanded[p] === 1 && frame[p] === 1;
+    if (isGlass || isInnerTemple) holePhoto[p] = 1;
   }
 
   // Nota: un lente oscuro o de color (sol) nunca se aclara a "casi blanco" en el paso de
@@ -211,19 +518,28 @@ function buildTryOnVariants(data, info) {
   const clear = Buffer.from(data);
   const photochromic = Buffer.from(data);
   for (let p = 0; p < n; p++) {
-    if (!hole[p] && isOpaque[p]) continue; // marco real: sin cambios en ambas variantes
     const i = p * channels;
-    clear[i + 3] = 0;
-    if (isOutside[p] && !hole[p]) {
-      // fondo real (casi no queda tras el trim, pero por si acaso): transparente también
-      // en la variante fotocromática, no se pinta oscuro todo alrededor de la montura.
-      photochromic[i + 3] = 0;
-    } else {
-      // Tono oscuro semi-opaco imitando un lente fotocromático activado.
+    if (holeClear[p]) {
+      // Lente + patas internas: transparente en la variante normal.
+      clear[i + 3] = 0;
+    } else if (!frame[p]) {
+      // Fondo exterior o brechas chicas (doble puente, etc.).
+      clear[i + 3] = 0;
+    }
+    // else frame real: se deja tal cual en clear.
+
+    if (holePhoto[p]) {
+      // Tono oscuro semi-opaco imitando un lente fotocromático activado, contenido DENTRO
+      // del aro (no se desborda).
       photochromic[i] = 25;
       photochromic[i + 1] = 25;
       photochromic[i + 2] = 28;
       photochromic[i + 3] = 210;
+    } else if (frame[p]) {
+      // Marco real: sin cambios.
+      continue;
+    } else {
+      photochromic[i + 3] = 0;
     }
   }
 
@@ -358,10 +674,12 @@ async function run() {
       const { width, height, channels } = info;
       const { clear, photochromic } = buildTryOnVariants(data, info);
 
-      const tryOnBuffer = await sharp(clear, { raw: { width, height, channels } }).png().toBuffer();
+      const clearFeathered = await featherAlpha(clear, width, height, channels);
+      const tryOnBuffer = await sharp(clearFeathered, { raw: { width, height, channels } }).png().toBuffer();
       writeFileSync(tryOnPath, tryOnBuffer);
 
-      const photoBuffer = await sharp(photochromic, { raw: { width, height, channels } }).png().toBuffer();
+      const photochromicFeathered = await featherAlpha(photochromic, width, height, channels);
+      const photoBuffer = await sharp(photochromicFeathered, { raw: { width, height, channels } }).png().toBuffer();
       writeFileSync(photoPath, photoBuffer);
 
       done += 1;

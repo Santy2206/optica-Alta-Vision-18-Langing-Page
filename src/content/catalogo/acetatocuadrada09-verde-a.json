@@ -1,0 +1,19 @@
+{
+  "name": "Cuadrada Verde Oliva",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/acetatocuadrada09-verde-a.webp",
+  "imageAlt": "Montura Cuadrada Verde Oliva",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Verde",
+      "hex": "#6B7C5E",
+      "image": "/uploads/catalogo/acetatocuadrada09-verde-a.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/acetatocuadrada09-verde-a-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/acetatocuadrada09-verde-a-hover.webp"
+}

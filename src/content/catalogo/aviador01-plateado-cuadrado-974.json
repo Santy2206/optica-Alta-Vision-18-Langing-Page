@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Plateado Cuadrado",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-plateado-cuadrado-974.webp",
+  "imageAlt": "Montura Aviador Plateado Cuadrado",
+  "featured": true,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/aviador01-plateado-cuadrado-974.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-plateado-cuadrado-974-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-cuadrado-974-hover.webp"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Cuadrada Gris",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/acetatocuadrada09-gris-a.webp",
+  "imageAlt": "Montura Cuadrada Gris",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/acetatocuadrada09-gris-a.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/acetatocuadrada09-gris-a-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/acetatocuadrada09-gris-a-hover.webp"
+}

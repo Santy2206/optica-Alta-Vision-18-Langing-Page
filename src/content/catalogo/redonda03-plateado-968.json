@@ -1,0 +1,19 @@
+{
+  "name": "Ovalada Plateada",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/redonda03-plateado-968.webp",
+  "imageAlt": "Montura Ovalada Plateada",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/redonda03-plateado-968.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp"
+}

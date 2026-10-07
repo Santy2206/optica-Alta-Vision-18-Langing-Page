@@ -14,6 +14,7 @@ const NAME_RULES: Array<[RegExp, FrameShape]> = [
   [/clubmaster|browline|rectangular|plegable/i, 'rectangular'],
   [/aviator|aviador|piloto|caravan|outdoorsman|cockpit|predator|shooter|double.?bridge/i, 'aviador'],
   [/round|redond|clubround|erika|andy|original/i, 'redonda'],
+  [/oval/i, 'ovalada'],
   [/wayfarer|justin|chris|boyfriend|marshal|frogskins|hexagonal|square|cuadrad/i, 'cuadrada'],
 ];
 

@@ -1,0 +1,19 @@
+{
+  "name": "Cat-Eye Acetato Gris",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/cateyeacetato06-negro-azul-936.webp",
+  "imageAlt": "Montura Cat-Eye Acetato Gris",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/cateyeacetato06-negro-azul-936.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/cateyeacetato06-negro-azul-936-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/cateyeacetato06-negro-azul-936-hover.webp"
+}

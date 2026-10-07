@@ -16,6 +16,11 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+keys.env
+
+# spikes / debug de packshots (no es parte del pipeline final)
+tmp_packshot/
+public/uploads/catalogo/_preview/
 
 # macOS-specific files
 .DS_Store

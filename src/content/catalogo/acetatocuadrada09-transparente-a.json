@@ -1,0 +1,19 @@
+{
+  "name": "Cuadrada Transparente",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/acetatocuadrada09-transparente-a.webp",
+  "imageAlt": "Montura Cuadrada Transparente",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Transparente",
+      "hex": "#E8E8E8",
+      "image": "/uploads/catalogo/acetatocuadrada09-transparente-a.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/acetatocuadrada09-transparente-a-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/acetatocuadrada09-transparente-a-hover.webp"
+}

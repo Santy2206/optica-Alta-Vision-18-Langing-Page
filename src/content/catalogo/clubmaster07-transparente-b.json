@@ -1,0 +1,19 @@
+{
+  "name": "Clubmaster Champagne",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/clubmaster07-transparente-b.webp",
+  "imageAlt": "Montura Clubmaster Champagne",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Champagne",
+      "hex": "#E8D5C4",
+      "image": "/uploads/catalogo/clubmaster07-transparente-b.webp",
+      "modelImage": "/uploads/catalogo/clubmaster07-transparente-b-hover.webp",
+      "lenses": []
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/clubmaster07-transparente-b-hover.webp"
+}

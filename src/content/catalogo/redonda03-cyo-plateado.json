@@ -1,0 +1,19 @@
+{
+  "name": "Redonda Plateada",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/redonda03-cyo-plateado.webp",
+  "imageAlt": "Montura Redonda Plateada",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/redonda03-cyo-plateado.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/redonda03-cyo-plateado-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/redonda03-cyo-plateado-hover.webp"
+}

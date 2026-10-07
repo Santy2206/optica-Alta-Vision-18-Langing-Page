@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Rimless Dorado",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-dorado-rimless-989.webp",
+  "imageAlt": "Montura Aviador Rimless Dorado",
+  "featured": true,
+  "colors": [
+    {
+      "name": "Dorado",
+      "hex": "#C5A46E",
+      "image": "/uploads/catalogo/aviador01-dorado-rimless-989.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-dorado-rimless-989-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-dorado-rimless-989-hover.webp"
+}

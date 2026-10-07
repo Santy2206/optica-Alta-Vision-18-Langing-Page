@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Plateado Puente",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-plateado-logo-puente.webp",
+  "imageAlt": "Montura Aviador Plateado Puente",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/aviador01-plateado-logo-puente.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-plateado-logo-puente-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-logo-puente-hover.webp"
+}

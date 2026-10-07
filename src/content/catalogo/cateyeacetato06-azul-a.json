@@ -1,0 +1,19 @@
+{
+  "name": "Cat-Eye Acetato Azul",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/cateyeacetato06-azul-a.webp",
+  "imageAlt": "Montura Cat-Eye Acetato Azul",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Azul",
+      "hex": "#1e3a5f",
+      "image": "/uploads/catalogo/cateyeacetato06-azul-a.webp",
+      "modelImage": "/uploads/catalogo/cateyeacetato06-azul-a-hover.webp",
+      "lenses": []
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/cateyeacetato06-azul-a-hover.webp"
+}

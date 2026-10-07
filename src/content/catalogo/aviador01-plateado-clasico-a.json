@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Plateado Clásico",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-plateado-clasico-a.webp",
+  "imageAlt": "Montura Aviador Plateado Clásico",
+  "featured": true,
+  "colors": [
+    {
+      "name": "Plateado",
+      "hex": "#C0C0C0",
+      "image": "/uploads/catalogo/aviador01-plateado-clasico-a.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-plateado-clasico-a-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-clasico-a-hover.webp"
+}

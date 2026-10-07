@@ -1,0 +1,19 @@
+{
+  "name": "Redonda Panto Negro",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/panto10-negro-021.webp",
+  "imageAlt": "Montura Redonda Panto Negro",
+  "featured": false,
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1a1a1a",
+      "image": "/uploads/catalogo/panto10-negro-021.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/panto10-negro-021-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/panto10-negro-021-hover.webp"
+}

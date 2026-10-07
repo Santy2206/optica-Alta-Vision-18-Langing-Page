@@ -1,0 +1,19 @@
+{
+  "name": "Aviador Negro Rectangular",
+  "brand": "Óptica Alta Visión 18",
+  "category": "formuladas",
+  "price": null,
+  "image": "/uploads/catalogo/aviador01-negro-rectangular-987.webp",
+  "imageAlt": "Montura Aviador Negro Rectangular",
+  "featured": true,
+  "colors": [
+    {
+      "name": "Negro",
+      "hex": "#1a1a1a",
+      "image": "/uploads/catalogo/aviador01-negro-rectangular-987.webp",
+      "lenses": [],
+      "modelImage": "/uploads/catalogo/aviador01-negro-rectangular-987-hover.webp"
+    }
+  ],
+  "hoverImage": "/uploads/catalogo/aviador01-negro-rectangular-987-hover.webp"
+}
