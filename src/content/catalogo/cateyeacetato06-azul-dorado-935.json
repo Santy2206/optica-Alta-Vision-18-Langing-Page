@@ -2,14 +2,15 @@
   "name": "Cat-Eye Acetato Negro",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cat-eye",
   "price": null,
   "image": "/uploads/catalogo/cateyeacetato06-azul-dorado-935.webp",
   "imageAlt": "Montura Cat-Eye Acetato Negro",
   "featured": false,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Negro azulado",
+      "hex": "#1E2230",
       "image": "/uploads/catalogo/cateyeacetato06-azul-dorado-935.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/cateyeacetato06-azul-dorado-935-hover.webp"

@@ -2,6 +2,7 @@
   "name": "Cuadrada Cristal",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cuadrada",
   "price": null,
   "image": "/uploads/catalogo/acetatocuadrada09-transparente-b.webp",
   "imageAlt": "Montura Cuadrada Cristal",
@@ -9,7 +10,7 @@
   "colors": [
     {
       "name": "Transparente",
-      "hex": "#E8E8E8",
+      "hex": "#E2E1E4",
       "image": "/uploads/catalogo/acetatocuadrada09-transparente-b.webp",
       "modelImage": "/uploads/catalogo/acetatocuadrada09-transparente-b-hover.webp",
       "lenses": []

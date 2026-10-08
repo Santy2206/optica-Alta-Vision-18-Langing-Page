@@ -2,14 +2,15 @@
   "name": "Cat-Eye Dorado Angular",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cat-eye",
   "price": null,
   "image": "/uploads/catalogo/cateye05-dorado-angular-a.webp",
   "imageAlt": "Montura Cat-Eye Dorado Angular",
   "featured": false,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Champagne",
+      "hex": "#CDBFB2",
       "image": "/uploads/catalogo/cateye05-dorado-angular-a.webp",
       "modelImage": "/uploads/catalogo/cateye05-dorado-angular-a-hover.webp",
       "lenses": []

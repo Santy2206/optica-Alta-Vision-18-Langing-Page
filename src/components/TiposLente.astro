@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import { tiposLente } from '../data/tiposLente';
 ---
 
@@ -15,19 +16,43 @@ import { tiposLente } from '../data/tiposLente';
         tiposLente.map((tipo, i) => (
           <li
             class:list={[
-              'overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition-shadow hover:shadow-md',
+              'group overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition-shadow hover:shadow-md',
               i % 2 === 0 ? 'border-aguamarina/20' : 'border-fucsia/20',
             ]}
           >
-            <div class="aspect-[4/3] overflow-hidden bg-slate-50">
-              <img
-                src={tipo.imagen}
-                alt={`Lentes ${tipo.nombre}`}
-                width="480"
-                height="360"
-                loading="lazy"
-                class="h-full w-full object-cover"
-              />
+            <div class="relative aspect-[4/3] overflow-hidden bg-slate-50">
+              <div class="relative h-full w-full transition-transform duration-700 group-hover:scale-105">
+                <img
+                  src={tipo.imagen}
+                  alt={tipo.alt}
+                  width="480"
+                  height="360"
+                  loading="lazy"
+                  class="h-full w-full object-cover"
+                />
+                {tipo.imagenActiva && (
+                  <img
+                    src={tipo.imagenActiva}
+                    alt=""
+                    aria-hidden="true"
+                    width="480"
+                    height="360"
+                    loading="lazy"
+                    class="absolute inset-0 h-full w-full object-cover opacity-0 motion-safe:animate-fotocromatico"
+                  />
+                )}
+              </div>
+              {tipo.imagenActiva && (
+                <div class="pointer-events-none absolute bottom-2 left-2 text-xs font-semibold" aria-hidden="true">
+                  <span class="flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-slate-700 shadow-sm">
+                    Interior
+                  </span>
+                  <span class="absolute inset-0 flex items-center gap-1 rounded-full bg-slate-900/85 px-2.5 py-1 text-white opacity-0 shadow-sm motion-safe:animate-fotocromatico">
+                    <Icon name="sun" class="h-3.5 w-3.5" />
+                    Al sol
+                  </span>
+                </div>
+              )}
             </div>
             <div class="p-4 text-center">
               <h3 class="text-base font-semibold text-slate-900">{tipo.nombre}</h3>

@@ -1,15 +1,16 @@
 {
-  "name": "Aviador Dorado",
+  "name": "Aviador Café",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "aviador",
   "price": null,
   "image": "/uploads/catalogo/aviador01-dorado-aviador-988.webp",
-  "imageAlt": "Montura Aviador Dorado",
+  "imageAlt": "Montura Aviador Café",
   "featured": true,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Café",
+      "hex": "#5A4A47",
       "image": "/uploads/catalogo/aviador01-dorado-aviador-988.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/aviador01-dorado-aviador-988-hover.webp"

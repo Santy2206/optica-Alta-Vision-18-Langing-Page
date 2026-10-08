@@ -91,6 +91,23 @@ function categoryFor(familia, sku) {
   return 'formuladas';
 }
 
+/** Forma de montura (test de rostro) según la carpeta de familia. Se puede corregir en el CMS. */
+function frameShapeFor(familia) {
+  const map = {
+    '01_': 'aviador',
+    '02_': 'rectangular',
+    '03_': 'redonda',
+    '04_': 'cuadrada',
+    '05_': 'cat-eye',
+    '06_': 'cat-eye',
+    '07_': 'clubmaster',
+    '08_': 'rectangular',
+    '09_': 'cuadrada',
+    '10_': 'redonda',
+  };
+  return map[familia.slice(0, 3)];
+}
+
 function colorGuess(name, sku) {
   const s = `${name} ${sku}`.toLowerCase();
   if (/dorado|gold|cobre|champagne|rosado|rosa/.test(s)) {
@@ -187,6 +204,7 @@ async function main() {
         name,
         brand: 'Óptica Alta Visión 18',
         category,
+        ...(frameShapeFor(familia) ? { frameShape: frameShapeFor(familia) } : {}),
         price: null,
         image: imageUrl,
         imageAlt: `Montura ${name}`,

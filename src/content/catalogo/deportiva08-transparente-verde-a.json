@@ -2,17 +2,19 @@
   "name": "Deportiva Transparente Verde",
   "brand": "Óptica Alta Visión 18",
   "category": "deportivas",
+  "frameShape": "rectangular",
   "price": null,
   "image": "/uploads/catalogo/deportiva08-transparente-verde-a.webp",
   "imageAlt": "Montura Deportiva Transparente Verde",
   "featured": false,
   "colors": [
     {
-      "name": "Verde",
-      "hex": "#6B7C5E",
+      "name": "Transparente y verde",
+      "hex": "#DADCDD",
       "image": "/uploads/catalogo/deportiva08-transparente-verde-a.webp",
       "modelImage": "/uploads/catalogo/deportiva08-transparente-verde-a-hover.webp",
-      "lenses": []
+      "lenses": [],
+      "hex2": "#79A07F"
     }
   ],
   "hoverImage": "/uploads/catalogo/deportiva08-transparente-verde-a-hover.webp"

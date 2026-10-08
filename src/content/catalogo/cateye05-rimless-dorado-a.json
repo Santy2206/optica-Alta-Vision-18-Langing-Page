@@ -1,18 +1,20 @@
 {
-  "name": "Cat-Eye Rimless Dorado",
+  "name": "Cat-Eye Rimless Palo de Rosa",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cat-eye",
   "price": null,
   "image": "/uploads/catalogo/cateye05-rimless-dorado-a.webp",
-  "imageAlt": "Montura Cat-Eye Rimless Dorado",
+  "imageAlt": "Montura Cat-Eye Rimless Palo de Rosa",
   "featured": false,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Palo de rosa y negro",
+      "hex": "#BFAFAC",
       "image": "/uploads/catalogo/cateye05-rimless-dorado-a.webp",
       "modelImage": "/uploads/catalogo/cateye05-rimless-dorado-a-hover.webp",
-      "lenses": []
+      "lenses": [],
+      "hex2": "#1B1615"
     }
   ],
   "hoverImage": "/uploads/catalogo/cateye05-rimless-dorado-a-hover.webp"

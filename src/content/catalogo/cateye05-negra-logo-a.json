@@ -2,14 +2,15 @@
   "name": "Cat-Eye Burdeo",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cat-eye",
   "price": null,
   "image": "/uploads/catalogo/cateye05-negra-logo-a.webp",
   "imageAlt": "Montura Cat-Eye Burdeo",
   "featured": false,
   "colors": [
     {
-      "name": "Café",
-      "hex": "#5C4033",
+      "name": "Burdeo",
+      "hex": "#5E4448",
       "image": "/uploads/catalogo/cateye05-negra-logo-a.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/cateye05-negra-logo-a-hover.webp"

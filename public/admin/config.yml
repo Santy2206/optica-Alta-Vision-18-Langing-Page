@@ -92,6 +92,18 @@ collections:
           - { label: Niños, value: ninos }
           - { label: Deportivas, value: deportivas }
           - { label: Lentes blandos, value: contacto }
+      - label: Forma de la montura
+        name: frameShape
+        widget: select
+        options:
+          - { label: Aviador / doble puente, value: aviador }
+          - { label: Cuadrada (incluye hexagonal), value: cuadrada }
+          - { label: Rectangular, value: rectangular }
+          - { label: Clubmaster / browline (barra gruesa arriba), value: clubmaster }
+          - { label: Redonda / panto, value: redonda }
+          - { label: Ovalada, value: ovalada }
+          - { label: Ojo de gato (cat-eye), value: cat-eye }
+        hint: "El test de forma de rostro usa esto para recomendar la montura a quien le favorece. Para lentes blandos elige cualquiera (no se usa)."
       - label: Precio (COP)
         name: price
         widget: number

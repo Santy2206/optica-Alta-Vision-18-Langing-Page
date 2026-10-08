@@ -2,14 +2,15 @@
   "name": "Cuadrada Gris Mate",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cuadrada",
   "price": null,
   "image": "/uploads/catalogo/acetatocuadrada09-gris-b.webp",
   "imageAlt": "Montura Cuadrada Gris Mate",
   "featured": false,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Gris topo",
+      "hex": "#857C86",
       "image": "/uploads/catalogo/acetatocuadrada09-gris-b.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/acetatocuadrada09-gris-b-hover.webp"

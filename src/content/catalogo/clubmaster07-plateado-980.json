@@ -2,17 +2,19 @@
   "name": "Clubmaster Semi-rimless",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "clubmaster",
   "price": null,
   "image": "/uploads/catalogo/clubmaster07-plateado-980.webp",
   "imageAlt": "Montura Clubmaster Semi-rimless",
   "featured": false,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Grafito y plateado",
+      "hex": "#57504F",
       "image": "/uploads/catalogo/clubmaster07-plateado-980.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/clubmaster07-plateado-980-hover.webp"
+      "modelImage": "/uploads/catalogo/clubmaster07-plateado-980-hover.webp",
+      "hex2": "#D7D7D6"
     }
   ],
   "hoverImage": "/uploads/catalogo/clubmaster07-plateado-980-hover.webp"

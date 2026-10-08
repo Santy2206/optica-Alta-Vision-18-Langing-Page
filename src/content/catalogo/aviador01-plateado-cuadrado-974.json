@@ -1,18 +1,20 @@
 {
-  "name": "Aviador Plateado Cuadrado",
+  "name": "Aviador Palo de Rosa Cuadrado",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "aviador",
   "price": null,
   "image": "/uploads/catalogo/aviador01-plateado-cuadrado-974.webp",
-  "imageAlt": "Montura Aviador Plateado Cuadrado",
+  "imageAlt": "Montura Aviador Palo de Rosa Cuadrado",
   "featured": true,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Palo de rosa y negro",
+      "hex": "#AE9B9E",
       "image": "/uploads/catalogo/aviador01-plateado-cuadrado-974.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/aviador01-plateado-cuadrado-974-hover.webp"
+      "modelImage": "/uploads/catalogo/aviador01-plateado-cuadrado-974-hover.webp",
+      "hex2": "#1C1517"
     }
   ],
   "hoverImage": "/uploads/catalogo/aviador01-plateado-cuadrado-974-hover.webp"

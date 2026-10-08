@@ -1,15 +1,16 @@
 {
-  "name": "Hexagonal Dorada 2",
+  "name": "Hexagonal Plateada",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cuadrada",
   "price": null,
   "image": "/uploads/catalogo/hexagonal04-dorado-b.webp",
-  "imageAlt": "Montura Hexagonal Dorada 2",
+  "imageAlt": "Montura Hexagonal Plateada",
   "featured": false,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Plateado",
+      "hex": "#B5AFA8",
       "image": "/uploads/catalogo/hexagonal04-dorado-b.webp",
       "modelImage": "/uploads/catalogo/hexagonal04-dorado-b-hover.webp",
       "lenses": []

@@ -1,15 +1,16 @@
 {
-  "name": "Hexagonal Dorada 3",
+  "name": "Hexagonal Oro Rosa",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cuadrada",
   "price": null,
   "image": "/uploads/catalogo/hexagonal04-dorado-sticker.webp",
-  "imageAlt": "Montura Hexagonal Dorada 3",
+  "imageAlt": "Montura Hexagonal Oro Rosa",
   "featured": false,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Oro rosa",
+      "hex": "#D2B9B1",
       "image": "/uploads/catalogo/hexagonal04-dorado-sticker.webp",
       "modelImage": "/uploads/catalogo/hexagonal04-dorado-sticker-hover.webp",
       "lenses": []

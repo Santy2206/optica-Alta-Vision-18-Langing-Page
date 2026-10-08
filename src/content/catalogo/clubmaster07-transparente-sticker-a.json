@@ -2,17 +2,19 @@
   "name": "Clubmaster Transparente",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "clubmaster",
   "price": null,
   "image": "/uploads/catalogo/clubmaster07-transparente-sticker-a.webp",
   "imageAlt": "Montura Clubmaster Transparente",
   "featured": false,
   "colors": [
     {
-      "name": "Transparente",
-      "hex": "#E8E8E8",
+      "name": "Transparente y dorado",
+      "hex": "#E4E1DD",
       "image": "/uploads/catalogo/clubmaster07-transparente-sticker-a.webp",
       "modelImage": "/uploads/catalogo/clubmaster07-transparente-sticker-a-hover.webp",
-      "lenses": []
+      "lenses": [],
+      "hex2": "#C9B48A"
     }
   ],
   "hoverImage": "/uploads/catalogo/clubmaster07-transparente-sticker-a-hover.webp"

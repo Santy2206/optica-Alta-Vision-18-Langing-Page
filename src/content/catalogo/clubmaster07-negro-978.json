@@ -2,17 +2,19 @@
   "name": "Clubmaster Negro",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "clubmaster",
   "price": null,
   "image": "/uploads/catalogo/clubmaster07-negro-978.webp",
   "imageAlt": "Montura Clubmaster Negro",
   "featured": false,
   "colors": [
     {
-      "name": "Negro",
-      "hex": "#1a1a1a",
+      "name": "Negro y gris",
+      "hex": "#23252F",
       "image": "/uploads/catalogo/clubmaster07-negro-978.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/clubmaster07-negro-978-hover.webp"
+      "modelImage": "/uploads/catalogo/clubmaster07-negro-978-hover.webp",
+      "hex2": "#77777B"
     }
   ],
   "hoverImage": "/uploads/catalogo/clubmaster07-negro-978-hover.webp"

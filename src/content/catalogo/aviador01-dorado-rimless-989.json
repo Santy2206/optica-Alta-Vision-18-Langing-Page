@@ -1,15 +1,16 @@
 {
-  "name": "Aviador Rimless Dorado",
+  "name": "Aviador Rimless Plateado Carey",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "aviador",
   "price": null,
   "image": "/uploads/catalogo/aviador01-dorado-rimless-989.webp",
-  "imageAlt": "Montura Aviador Rimless Dorado",
+  "imageAlt": "Montura Aviador Rimless Plateado Carey",
   "featured": true,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Plateado",
+      "hex": "#CFCECA",
       "image": "/uploads/catalogo/aviador01-dorado-rimless-989.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/aviador01-dorado-rimless-989-hover.webp"

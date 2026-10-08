@@ -1,18 +1,20 @@
 {
-  "name": "Ovalada Plateada 2",
+  "name": "Ovalada Plateada",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "ovalada",
   "price": null,
   "image": "/uploads/catalogo/redonda03-plateado-sticker-a.webp",
-  "imageAlt": "Montura Ovalada Plateada 2",
+  "imageAlt": "Montura Ovalada Plateada",
   "featured": false,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Plateado y negro",
+      "hex": "#CEC7C2",
       "image": "/uploads/catalogo/redonda03-plateado-sticker-a.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/redonda03-plateado-sticker-a-hover.webp"
+      "modelImage": "/uploads/catalogo/redonda03-plateado-sticker-a-hover.webp",
+      "hex2": "#1E1B18"
     }
   ],
   "hoverImage": "/uploads/catalogo/redonda03-plateado-sticker-a-hover.webp"

@@ -2,6 +2,7 @@
   "name": "Deportiva Negra",
   "brand": "Óptica Alta Visión 18",
   "category": "deportivas",
+  "frameShape": "rectangular",
   "price": null,
   "image": "/uploads/catalogo/deportiva08-negro-azul-a.webp",
   "imageAlt": "Montura Deportiva Negra",
@@ -9,7 +10,7 @@
   "colors": [
     {
       "name": "Negro",
-      "hex": "#1a1a1a",
+      "hex": "#2B2A2B",
       "image": "/uploads/catalogo/deportiva08-negro-azul-a.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/deportiva08-negro-azul-a-hover.webp"

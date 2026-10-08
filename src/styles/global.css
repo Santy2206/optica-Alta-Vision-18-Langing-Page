@@ -18,6 +18,23 @@
 
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  /* Tipos de lente: el lente fotocromático se oscurece "al sol" y vuelve a aclararse. */
+  --animate-fotocromatico: fotocromatico 8s ease-in-out infinite;
+  @keyframes fotocromatico {
+    0%,
+    25% {
+      opacity: 0;
+    }
+    45%,
+    75% {
+      opacity: 1;
+    }
+    95%,
+    100% {
+      opacity: 0;
+    }
+  }
 }
 
 @layer base {

@@ -2,6 +2,7 @@
   "name": "Cat-Eye Hexagonal Dorado",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cat-eye",
   "price": null,
   "image": "/uploads/catalogo/cateye05-transparente-b.webp",
   "imageAlt": "Montura Cat-Eye Hexagonal Dorado",
@@ -9,7 +10,7 @@
   "colors": [
     {
       "name": "Dorado",
-      "hex": "#C5A46E",
+      "hex": "#DCC9A2",
       "image": "/uploads/catalogo/cateye05-transparente-b.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/cateye05-transparente-b-hover.webp"

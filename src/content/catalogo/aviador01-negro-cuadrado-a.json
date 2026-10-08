@@ -1,15 +1,16 @@
 {
-  "name": "Aviador Negro Cuadrado",
+  "name": "Aviador Morado Cuadrado",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "aviador",
   "price": null,
   "image": "/uploads/catalogo/aviador01-negro-cuadrado-a.webp",
-  "imageAlt": "Montura Aviador Negro Cuadrado",
+  "imageAlt": "Montura Aviador Morado Cuadrado",
   "featured": true,
   "colors": [
     {
-      "name": "Negro",
-      "hex": "#1a1a1a",
+      "name": "Morado oscuro",
+      "hex": "#564958",
       "image": "/uploads/catalogo/aviador01-negro-cuadrado-a.webp",
       "modelImage": "/uploads/catalogo/aviador01-negro-cuadrado-a-hover.webp",
       "lenses": []

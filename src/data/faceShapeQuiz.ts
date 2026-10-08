@@ -62,18 +62,24 @@ export const faceShapeInfo: Record<FaceShapeId, { label: string; image: string; 
     label: 'Diamante',
     image: '/images/rostros/diamante.svg',
     description:
-      'Pómulos marcados y frente/mentón angostos. Las monturas ovaladas o de ojo de gato resaltan tus pómulos.',
+      'Pómulos marcados y frente/mentón angostos. Las monturas de ojo de gato, tipo clubmaster u ovaladas resaltan tus pómulos.',
   },
 };
 
-// Qué formas de montura recomendar según la forma de rostro.
-// Basado en guías de estilo estándar de óptica, no en una medición clínica.
+// Qué formas de montura recomendar según la forma de rostro, en orden de prioridad (el
+// resultado del test reparte los productos entre ellas). Basado en guías de estilo
+// estándar de óptica, no en una medición clínica:
+// - ovalado: casi cualquiera.
+// - redondo: angulares (cuadrada, rectangular, browline) para dar definición.
+// - cuadrado: curvas que suavizan (redonda, ovalada, ojo de gato).
+// - corazón: más anchas abajo o livianas; se evitan las cargadas arriba (ojo de gato, browline).
+// - diamante: las que realzan la línea de las cejas (ojo de gato, browline) u ovaladas.
 export const frameRecommendations: Record<FaceShapeId, FrameShape[]> = {
-  ovalado: ['rectangular', 'cuadrada', 'aviador', 'cat-eye'],
-  redondo: ['cuadrada', 'rectangular', 'aviador'],
-  cuadrado: ['redonda', 'ovalada', 'aviador'],
-  corazon: ['cat-eye', 'redonda', 'aviador'],
-  diamante: ['ovalada', 'cat-eye', 'aviador'],
+  ovalado: ['aviador', 'cat-eye', 'rectangular', 'cuadrada', 'redonda', 'clubmaster', 'ovalada'],
+  redondo: ['cuadrada', 'rectangular', 'clubmaster', 'aviador'],
+  cuadrado: ['redonda', 'ovalada', 'cat-eye', 'aviador'],
+  corazon: ['redonda', 'ovalada', 'aviador'],
+  diamante: ['cat-eye', 'ovalada', 'clubmaster', 'aviador'],
 };
 
 /** Pasos de medición: ilustración + cómo + errores típicos de ese paso. */

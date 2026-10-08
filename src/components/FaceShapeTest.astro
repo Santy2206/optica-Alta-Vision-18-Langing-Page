@@ -36,13 +36,20 @@ const faceShapeIds = Object.keys(faceShapeInfo) as FaceShapeId[];
  * muchos más aviadores que redondas en el catálogo, tomar los primeros 6 sin
  * más daba solo aviadores). Round-robin por forma: una de cada hasta llenar el
  * cupo, así siempre se ven ejemplos de cada estilo recomendado si existen.
+ * `offset` rota el punto de partida de cada forma para que distintos rostros no
+ * muestren siempre los mismos primeros productos de cada grupo.
  */
 function pickDiverse<T extends { frameShape: FrameShape | null }>(
   items: T[],
   shapes: FrameShape[],
   limit: number,
+  offset = 0,
 ): T[] {
-  const buckets = shapes.map((shape) => items.filter((item) => item.frameShape === shape));
+  const buckets = shapes.map((shape) => {
+    const bucket = items.filter((item) => item.frameShape === shape);
+    const start = bucket.length ? offset % bucket.length : 0;
+    return [...bucket.slice(start), ...bucket.slice(0, start)];
+  });
   const result: T[] = [];
   let i = 0;
   while (result.length < limit && buckets.some((b) => b.length > 0)) {
@@ -54,10 +61,10 @@ function pickDiverse<T extends { frameShape: FrameShape | null }>(
   return result;
 }
 
-const faceShapeResults = faceShapeIds.map((shapeId) => {
+const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
   const recommended = frameRecommendations[shapeId];
   const candidates = catalogForTest.filter((item) => item.frameShape && recommended.includes(item.frameShape));
-  const matches = pickDiverse(candidates, recommended, 6);
+  const matches = pickDiverse(candidates, recommended, 6, faceIndex * 3);
   return { shapeId, matches };
 });
 ---
@@ -400,7 +407,7 @@ const faceShapeResults = faceShapeIds.map((shapeId) => {
                       <img src={item.image} alt={item.imageAlt} loading="lazy" class="max-h-full max-w-full object-contain" />
                     </div>
                     <div class="flex flex-1 flex-col gap-1 p-3">
-                      <h5 class="text-sm font-semibold text-slate-900">{item.name}</h5>
+                      <h5 class="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-slate-900" title={item.name}>{item.name}</h5>
                       <p class="text-xs text-slate-500">{item.brand}</p>
                       <p class="text-sm font-medium text-slate-900">
                         {priceLabel(item.price)}

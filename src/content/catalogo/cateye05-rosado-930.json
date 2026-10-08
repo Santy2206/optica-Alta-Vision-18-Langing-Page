@@ -2,6 +2,7 @@
   "name": "Cat-Eye Rosado",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cat-eye",
   "price": null,
   "image": "/uploads/catalogo/cateye05-rosado-930.webp",
   "imageAlt": "Montura Cat-Eye Rosado",
@@ -9,7 +10,7 @@
   "colors": [
     {
       "name": "Rosado",
-      "hex": "#C4A4A0",
+      "hex": "#B08C86",
       "image": "/uploads/catalogo/cateye05-rosado-930.webp",
       "lenses": [],
       "modelImage": "/uploads/catalogo/cateye05-rosado-930-hover.webp"

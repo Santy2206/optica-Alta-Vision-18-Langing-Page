@@ -1,18 +1,20 @@
 {
-  "name": "Aviador Cobre",
+  "name": "Aviador Plateado Cuadrado",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "aviador",
   "price": null,
   "image": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre.webp",
-  "imageAlt": "Montura Aviador Cobre",
+  "imageAlt": "Montura Aviador Plateado Cuadrado",
   "featured": false,
   "colors": [
     {
-      "name": "Cobre",
-      "hex": "#B87333",
+      "name": "Plateado y negro",
+      "hex": "#D6CFCE",
       "image": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre-hover.webp"
+      "modelImage": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre-hover.webp",
+      "hex2": "#1D1717"
     }
   ],
   "hoverImage": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre-hover.webp"

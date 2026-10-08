@@ -1,18 +1,20 @@
 {
-  "name": "Redonda Plateada",
+  "name": "Redonda Lila",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "redonda",
   "price": null,
   "image": "/uploads/catalogo/redonda03-cyo-plateado.webp",
-  "imageAlt": "Montura Redonda Plateada",
+  "imageAlt": "Montura Redonda Lila",
   "featured": false,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Lila y negro",
+      "hex": "#A39BA6",
       "image": "/uploads/catalogo/redonda03-cyo-plateado.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/redonda03-cyo-plateado-hover.webp"
+      "modelImage": "/uploads/catalogo/redonda03-cyo-plateado-hover.webp",
+      "hex2": "#121012"
     }
   ],
   "hoverImage": "/uploads/catalogo/redonda03-cyo-plateado-hover.webp"

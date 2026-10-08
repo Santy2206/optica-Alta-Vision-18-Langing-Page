@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { FRAME_SHAPES } from './data/frameShape';
 
 /**
  * Content Collections — Óptica Alta Visión
@@ -15,6 +16,8 @@ const catalogo = defineCollection({
     /** Marca del marco. Por defecto la casa (monturas propias). */
     brand: z.string().default('Óptica Alta Visión 18'),
     category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas', 'contacto']),
+    /** Forma de la montura (test de forma de rostro). Si falta, se infiere del nombre. */
+    frameShape: z.enum(FRAME_SHAPES).optional(),
     /** null/omitido = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp".
      * Decap deja el campo ausente si no se llena (required: false); no envía null. */
     price: z.number().nullable().optional().default(null),

@@ -2,17 +2,19 @@
   "name": "Hexagonal Dorada",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "cuadrada",
   "price": null,
   "image": "/uploads/catalogo/hexagonal04-dorado-a.webp",
   "imageAlt": "Montura Hexagonal Dorada",
   "featured": false,
   "colors": [
     {
-      "name": "Dorado",
-      "hex": "#C5A46E",
+      "name": "Dorado y negro",
+      "hex": "#D9C6A4",
       "image": "/uploads/catalogo/hexagonal04-dorado-a.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/hexagonal04-dorado-a-hover.webp"
+      "modelImage": "/uploads/catalogo/hexagonal04-dorado-a-hover.webp",
+      "hex2": "#15100D"
     }
   ],
   "hoverImage": "/uploads/catalogo/hexagonal04-dorado-a-hover.webp"

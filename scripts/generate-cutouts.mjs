@@ -48,6 +48,19 @@ function tryOnPhotochromicPublicPath(imageUrl) {
 }
 
 /**
+ * Fuente opcional solo para "Probar con cámara": `{foto}-tryon-src.webp` junto a la foto
+ * del catálogo, con las patas que se ven a través del lente ya borradas. Hace falta en
+ * monturas al aire/medio aro (el lente no queda cerrado por el marco y el relleno de huecos
+ * no encuentra dónde tragarse las patas) y en acetato transparente (el marco es casi tan
+ * blanco como el lente). La tarjeta del catálogo sigue usando la foto original.
+ */
+function tryOnSourcePath(sourcePath) {
+  const base = path.basename(sourcePath, path.extname(sourcePath));
+  const candidate = path.join(path.dirname(sourcePath), `${base}-tryon-src.webp`);
+  return existsSync(candidate) ? candidate : sourcePath;
+}
+
+/**
  * Dilata (expande) una máscara binaria por `radius` píxeles, en dos pasadas (horizontal +
  * vertical) para que sea rápido.
  */
@@ -119,6 +132,40 @@ function erodeMask(mask, width, height, radius) {
  */
 function closeMask(mask, width, height, radius) {
   return erodeMask(dilateMask(mask, width, height, radius), width, height, radius);
+}
+
+/** Rellena los islotes de 0 totalmente rodeados por 1 (no alcanzables desde el borde). */
+function fillEnclosed(mask, width, height) {
+  const n = width * height;
+  const reached = new Uint8Array(n);
+  const queue = new Int32Array(n);
+  let qHead = 0;
+  let qTail = 0;
+  const push = (p) => {
+    if (!mask[p] && !reached[p]) {
+      reached[p] = 1;
+      queue[qTail++] = p;
+    }
+  };
+  for (let x = 0; x < width; x++) {
+    push(x);
+    push((height - 1) * width + x);
+  }
+  for (let y = 0; y < height; y++) {
+    push(y * width);
+    push(y * width + width - 1);
+  }
+  while (qHead < qTail) {
+    const p = queue[qHead++];
+    const x = p % width;
+    if (x > 0) push(p - 1);
+    if (x < width - 1) push(p + 1);
+    if (p >= width) push(p - width);
+    if (p < n - width) push(p + width);
+  }
+  const out = new Uint8Array(n);
+  for (let p = 0; p < n; p++) out[p] = mask[p] || !reached[p] ? 1 : 0;
+  return out;
 }
 
 /**
@@ -289,14 +336,18 @@ function closeMaskPerComponent(mask, width, height, radius) {
  * con lente oscuro/de color no se encuentra ningún hueco y el lente (con cualquier varilla
  * visible a través de él) se queda tal cual, sin recortar. Ver nota más abajo.
  */
-function buildTryOnVariants(data, info) {
+function buildTryOnVariants(data, info, { templeFree = false } = {}) {
   const { width, height, channels } = info;
   const n = width * height;
 
-  const WHITE_START = 210;
-  const WHITE_FULL = 248;
+  // Con una fuente "-tryon-src" (sin patas, lente en blanco puro) el umbral puede ser mucho
+  // más estricto: así el acetato transparente (~236-248) cuenta como marco y no se parte en
+  // bloques, cosa que con las fotos crudas (lente ~240-247) no era posible.
+  const WHITE_START = templeFree ? 244 : 210;
+  const WHITE_FULL = templeFree ? 252 : 248;
   const OPAQUE_THRESHOLD = 128;
   const isOpaque = new Uint8Array(n);
+  const softAlpha = new Uint8Array(n);
   for (let p = 0; p < n; p++) {
     const i = p * channels;
     const luma = (data[i] + data[i + 1] + data[i + 2]) / 3;
@@ -305,6 +356,7 @@ function buildTryOnVariants(data, info) {
       const fade = Math.min(1, (luma - WHITE_START) / (WHITE_FULL - WHITE_START));
       a = Math.round(a * (1 - fade));
     }
+    softAlpha[p] = a;
     isOpaque[p] = a > OPAQUE_THRESHOLD ? 1 : 0;
   }
 
@@ -419,7 +471,11 @@ function buildTryOnVariants(data, info) {
   // generoso (las patas entran ~30–40 % del ancho del lente). NO se hace flood sobre el
   // marco completo (eso se comía el aro entero al colarse por grietas). Solo se marca
   // hueco lo dilatado que no sea exterior ni guardrail.
-  const templeRadius = Math.max(28, Math.round(Math.min(width, height) * 0.12));
+  // Sin patas que tragar (fuente "-tryon-src") basta un radio chico para limpiar el borde
+  // interno del lente; el grande se comía en cuadros el aro grueso del acetato.
+  const templeRadius = templeFree
+    ? Math.max(4, Math.round(Math.min(width, height) * 0.015))
+    : Math.max(28, Math.round(Math.min(width, height) * 0.12));
   const expanded = new Uint8Array(n);
   for (const part of lensParts) {
     // Reconstruir la máscara de ESTE lente a partir de lensSeeds dentro de su bbox.
@@ -508,6 +564,12 @@ function buildTryOnVariants(data, info) {
     if (isGlass || isInnerTemple) holePhoto[p] = 1;
   }
 
+  // Motitas sueltas dentro del lente (reflejos chicos que quedaron como marco o fondo): si
+  // el lente las rodea por completo, son lente. Solo con fuente sin patas, donde ya no hay
+  // piezas reales del marco flotando dentro del cristal.
+  const lensClear = templeFree ? fillEnclosed(holeClear, width, height) : holeClear;
+  const lensPhoto = templeFree ? fillEnclosed(holePhoto, width, height) : holePhoto;
+
   // Nota: un lente oscuro o de color (sol) nunca se aclara a "casi blanco" en el paso de
   // arriba, así que en ese caso no se encuentra ningún hueco — el lente (y cualquier varilla
   // que se vea a través) se queda tal cual, sin recortar. Se intentó un estimado geométrico
@@ -519,16 +581,19 @@ function buildTryOnVariants(data, info) {
   const photochromic = Buffer.from(data);
   for (let p = 0; p < n; p++) {
     const i = p * channels;
-    if (holeClear[p]) {
+    if (lensClear[p]) {
       // Lente + patas internas: transparente en la variante normal.
       clear[i + 3] = 0;
     } else if (!frame[p]) {
       // Fondo exterior o brechas chicas (doble puente, etc.).
       clear[i + 3] = 0;
+    } else if (templeFree) {
+      // Lo que el cierre morfológico rellenó (casi blanco) no se pinta opaco: eran los
+      // bloques blancos en el acetato transparente.
+      clear[i + 3] = softAlpha[p];
     }
-    // else frame real: se deja tal cual en clear.
 
-    if (holePhoto[p]) {
+    if (lensPhoto[p]) {
       // Tono oscuro semi-opaco imitando un lente fotocromático activado, contenido DENTRO
       // del aro (no se desborda).
       photochromic[i] = 25;
@@ -536,8 +601,7 @@ function buildTryOnVariants(data, info) {
       photochromic[i + 2] = 28;
       photochromic[i + 3] = 210;
     } else if (frame[p]) {
-      // Marco real: sin cambios.
-      continue;
+      if (templeFree) photochromic[i + 3] = softAlpha[p];
     } else {
       photochromic[i + 3] = 0;
     }
@@ -641,11 +705,12 @@ async function run() {
       console.warn(`[cutouts] Foto referenciada pero no encontrada, se omite: ${imageUrl}`);
       continue;
     }
+    const tryOnSource = tryOnSourcePath(sourcePath);
 
     if (
       !needsProcessing(sourcePath, outPath) &&
-      !needsProcessing(sourcePath, tryOnPath) &&
-      !needsProcessing(sourcePath, photoPath)
+      !needsProcessing(tryOnSource, tryOnPath) &&
+      !needsProcessing(tryOnSource, photoPath)
     ) {
       skipped += 1;
       continue;
@@ -670,9 +735,15 @@ async function run() {
       // montura centrada). Sin recortar ese margen, el overlay usa el ancho/alto de la
       // imagen completa para escalar y posicionar la montura, y el margen hace que el
       // cálculo salga mal (montura chica y desplazada) — trim() la ajusta al tamaño real.
-      const { data, info } = await sharp(rawBuffer).trim().ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const tryOnRaw =
+        tryOnSource === sourcePath
+          ? rawBuffer
+          : Buffer.from(await (await removeBackground(pathToFileURL(tryOnSource))).arrayBuffer());
+      const { data, info } = await sharp(tryOnRaw).trim().ensureAlpha().raw().toBuffer({ resolveWithObject: true });
       const { width, height, channels } = info;
-      const { clear, photochromic } = buildTryOnVariants(data, info);
+      const { clear, photochromic } = buildTryOnVariants(data, info, {
+        templeFree: tryOnSource !== sourcePath,
+      });
 
       const clearFeathered = await featherAlpha(clear, width, height, channels);
       const tryOnBuffer = await sharp(clearFeathered, { raw: { width, height, channels } }).png().toBuffer();

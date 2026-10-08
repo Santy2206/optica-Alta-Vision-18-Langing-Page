@@ -47,6 +47,7 @@ public/uploads/{catalogo,promociones}/
 
 **catalogo** (`getCollection('catalogo')`):
 `name`, `brand` default `"Óptica Alta Visión 18"`, `category` enum `formuladas|sol|ninos|deportivas|contacto`,
+`frameShape?` enum `aviador|cuadrada|rectangular|clubmaster|redonda|ovalada|cat-eye` (obligatorio en el CMS; alimenta el test de forma de rostro vía `frameRecommendations` en `src/data/faceShapeQuiz.ts`; si falta se infiere del nombre),
 `price` number|null (`null` → "Consultar precio"), `image`, `imageAlt`, `hoverImage?` (foto al pasar el mouse), `featured`.
 
 **promociones** (`getCollection('promociones')`):
@@ -68,6 +69,7 @@ Media: `public/uploads` → URL `/uploads/...`.
 - Contraste: CTAs `bg-verde-neon` usan `text-slate-900` + `border-2 border-slate-900` salvo sobre `bg-slate-900`/`bg-slate-950`, donde el borde ya no hace falta (13:1+). Badges `bg-fucsia` usan `text-white` (slate-900 da solo 3.01:1).
 - Paleta (Fase 9): 60% blanco/`slate-50`, ~30% `bg-brand-footer` (tinte claro de aguamarina 15%, usado en footer y CTAs finales), 10% acentos `fucsia`/`verde-neon`. `slate-900`/`slate-950` sólido queda reservado a texto y bordes, no a fondos de sección completa — el usuario pidió reemplazar el footer/CTA oscuro por un tono claro dominante de aguamarina (2026-09-28).
 - Header: el nav completo aparece desde `lg` (1024px), no `md` — a 768px no cabía junto al logo y el botón. Por debajo de `lg` se usa el menú hamburguesa.
+- Try-on sin patas: si existe `public/uploads/catalogo/{slug}-tryon-src.webp` (el front con las patas visibles a través del lente borradas vía FLUX Kontext y el interior del lente en blanco puro), `generate-cutouts.mjs` lo usa solo para los recortes de "Probar con cámara" (umbral estricto, sin dilatar para tragar patas). Hace falta en monturas al aire/medio aro y acetato transparente, donde el recorte normal deja las patas. La tarjeta sigue usando el front original.
 - `src/utils/images.ts` → `isPlaceholderImage()`. `src/components/FrameShapeIcon.astro` dibuja la silueta SVG de una montura por forma (`src/data/frameShape.ts`); se usa cuando el catálogo aún tiene `placeholder-*.webp`.
 - Lighthouse (sesión 10): `npm run build && npm run preview && npx lighthouse http://localhost:<port> ...`
   - Última corrida (móvil, Fase 7): Performance 99, Accessibility 100, Best Practices 100, SEO 100 en /, /catalogo y /nosotros.

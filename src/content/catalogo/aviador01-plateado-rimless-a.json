@@ -2,17 +2,19 @@
   "name": "Aviador Rimless Plateado",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "aviador",
   "price": null,
   "image": "/uploads/catalogo/aviador01-plateado-rimless-a.webp",
   "imageAlt": "Montura Aviador Rimless Plateado",
   "featured": false,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Plateado y gris azulado",
+      "hex": "#D6D6D5",
       "image": "/uploads/catalogo/aviador01-plateado-rimless-a.webp",
       "modelImage": "/uploads/catalogo/aviador01-plateado-rimless-a-hover.webp",
-      "lenses": []
+      "lenses": [],
+      "hex2": "#575461"
     }
   ],
   "hoverImage": "/uploads/catalogo/aviador01-plateado-rimless-a-hover.webp"

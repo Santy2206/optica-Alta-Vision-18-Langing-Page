@@ -1,18 +1,20 @@
 {
-  "name": "Ovalada Plateada",
+  "name": "Ovalada Palo de Rosa",
   "brand": "Óptica Alta Visión 18",
   "category": "formuladas",
+  "frameShape": "ovalada",
   "price": null,
   "image": "/uploads/catalogo/redonda03-plateado-968.webp",
-  "imageAlt": "Montura Ovalada Plateada",
+  "imageAlt": "Montura Ovalada Palo de Rosa",
   "featured": false,
   "colors": [
     {
-      "name": "Plateado",
-      "hex": "#C0C0C0",
+      "name": "Palo de rosa y negro",
+      "hex": "#928080",
       "image": "/uploads/catalogo/redonda03-plateado-968.webp",
       "lenses": [],
-      "modelImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp"
+      "modelImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp",
+      "hex2": "#221E1E"
     }
   ],
   "hoverImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp"
