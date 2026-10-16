@@ -11,7 +11,8 @@ export const SITE_URL = 'https://optica-alta-vision-18.netlify.app';
 // https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
-  integrations: [sitemap()],
+  // /prueba es un prototipo de diseño (noindex): tampoco debe aparecer en el sitemap.
+  integrations: [sitemap({ filter: (page) => !page.includes('/prueba') })],
   vite: {
     plugins: [tailwindcss()]
   }

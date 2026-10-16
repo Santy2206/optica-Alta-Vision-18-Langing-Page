@@ -5,8 +5,13 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import WhatsAppFloat from '../components/WhatsAppFloat.astro';
 import Icon from '../components/Icon.astro';
+import FlowServicios from '../components/flow/FlowServicios.astro';
+import FlowOpiniones from '../components/flow/FlowOpiniones.astro';
+import FlowFAQ from '../components/flow/FlowFAQ.astro';
+import FlowReveal from '../components/flow/FlowReveal.astro';
 import site from '../utils/site';
 import { waLink } from '../utils/whatsapp';
+import '../styles/flow.css';
 
 const { title, description } = seo.nosotros;
 
@@ -27,145 +32,182 @@ const cifras = [
     label: 'clientes atendidos',
   },
 ].filter((c): c is { valor: string; label: string } => Boolean(c));
+
+const { lat, lng } = site.geo;
+const comoLlegar = lat !== null && lng !== null ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : '';
 ---
 
 <BaseLayout title={title} description={description}>
   <Header />
 
-  <section class="bg-brand-tint py-10 md:py-14">
-    <div class="mx-auto max-w-6xl px-4">
-      <h1 class="text-2xl font-bold text-slate-900 md:text-3xl">Acerca de nosotros</h1>
-      <p class="mt-2 text-slate-600">Detrás de cada par de gafas hay una historia de cuidado y confianza.</p>
-    </div>
-  </section>
+  <main class="flow">
+    <section class="fl-pagina">
+      <div class="fl-glow fl-glow--iris" style="top:-28vmax;right:-18vmax" aria-hidden="true"></div>
+      <div class="fl-glow fl-glow--cian" style="bottom:-34vmax;left:-24vmax;opacity:.2" aria-hidden="true"></div>
+      <div class="fl-sec__inner">
+        <p class="fl-eyebrow">Óptica Alta Visión 18</p>
+        <h1 class="fl-h1">Acerca de <span class="fl-grad">nosotros</span></h1>
+        <p class="fl-lead">Detrás de cada par de gafas hay una historia de cuidado y confianza.</p>
+      </div>
+    </section>
 
-  {
-    nombre && (
-      <section class="bg-white py-12 md:py-20">
-        <div class:list={['mx-auto grid max-w-6xl gap-10 px-4 md:items-center md:gap-14', foto && 'md:grid-cols-2']}>
-          {foto && (
-            <div class="overflow-hidden rounded-2xl bg-slate-100">
+    {
+      nombre && (
+        <section class="fl-sec !pt-6">
+          <div class:list={['fl-sec__inner grid gap-10 md:items-center md:gap-14', foto && 'md:grid-cols-2']}>
+            {foto && (
+              <div class="fl-card fl-reveal overflow-hidden">
+                <img
+                  src={foto}
+                  alt={cargo ? `${nombre}, ${cargo} de Óptica Alta Visión 18` : nombre}
+                  width="600"
+                  height="600"
+                  loading="lazy"
+                  class="aspect-square w-full object-cover"
+                />
+              </div>
+            )}
+
+            <div class="fl-reveal" style="--d:.1s">
+              <p class="fl-eyebrow">Quién te atiende</p>
+              <h2 class="fl-h2">{nombre}</h2>
+              {cargo && <p class="fl-lead">{cargo}</p>}
+              {tarjetaProfesional && <p class="fl-lead">Tarjeta profesional {tarjetaProfesional}</p>}
+              <a
+                href={whatsappHref}
+                data-cta="nosotros"
+                class="fl-btn fl-btn--lima mt-6"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Icon name="whatsapp" class="fl-i" />
+                Conócenos por WhatsApp
+              </a>
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      historiaParrafos.length > 0 && (
+        <section class="fl-sec fl-sec--tenue">
+          <div class="fl-sec__inner grid items-center gap-10 md:grid-cols-2 md:gap-14">
+            <div class="fl-card fl-reveal overflow-hidden">
               <img
-                src={foto}
-                alt={cargo ? `${nombre}, ${cargo} de Óptica Alta Visión 18` : nombre}
-                width="600"
-                height="600"
+                src="/uploads/nosotros/placeholder-historia.webp"
+                alt="Óptica Alta Visión 18"
+                width="800"
+                height="800"
                 loading="lazy"
                 class="aspect-square w-full object-cover"
               />
             </div>
-          )}
-
-          <div class="space-y-4">
-            <p class="text-sm font-semibold uppercase tracking-wide text-fucsia">Quién te atiende</p>
-            <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">{nombre}</h2>
-            {cargo && <p class="font-medium text-slate-700">{cargo}</p>}
-            {tarjetaProfesional && <p class="text-sm text-slate-600">Tarjeta profesional {tarjetaProfesional}</p>}
-
-            <a
-              href={whatsappHref}
-              data-cta="nosotros"
-              class="inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-verde-neon px-6 py-3 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Icon name="whatsapp" class="h-4 w-4" />
-              Conócenos por WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  {
-    historiaParrafos.length > 0 && (
-      <section class="bg-brand-tint py-12 md:py-16">
-        <div class="mx-auto grid max-w-5xl items-center gap-10 px-4 md:grid-cols-2 md:gap-14">
-          <div class="overflow-hidden rounded-2xl shadow-sm">
-            <img
-              src="/uploads/nosotros/placeholder-historia.webp"
-              alt="Óptica Alta Visión 18"
-              width="800"
-              height="800"
-              loading="lazy"
-              class="aspect-square w-full object-cover"
-            />
-          </div>
-          <div class="space-y-4">
-            <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">Nuestra historia</h2>
-            {historiaParrafos.map((parrafo) => (
-              <p class="text-slate-700">{parrafo}</p>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  {
-    cita && (
-      <section class="bg-white py-12 md:py-16">
-        <blockquote class="mx-auto max-w-2xl border-l-4 border-fucsia px-6 text-center">
-          <p class="font-display text-xl font-semibold italic text-slate-900 md:text-2xl">“{cita}”</p>
-        </blockquote>
-      </section>
-    )
-  }
-
-  {
-    fotosLocal.length > 0 && (
-      <section class="bg-brand-tint py-12 md:py-16">
-        <div class="mx-auto max-w-6xl px-4">
-          <h2 class="mb-8 text-center text-2xl font-bold text-slate-900 md:text-3xl">Nuestro local</h2>
-          <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {fotosLocal.map((foto, i) => (
-              <img
-                src={foto}
-                alt="Óptica Alta Visión 18"
-                width="400"
-                height="400"
-                loading={i === 0 ? 'eager' : 'lazy'}
-                class="aspect-square w-full rounded-2xl object-cover shadow-sm"
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  {
-    cifras.length > 0 && (
-      <section class="bg-white py-12 md:py-16">
-        <dl class="mx-auto flex max-w-3xl flex-wrap justify-center gap-x-16 gap-y-6 px-4 text-center">
-          {cifras.map((c) => (
-            <div class="flex flex-col-reverse items-center">
-              <dt class="text-sm font-medium text-slate-600">{c.label}</dt>
-              <dd class="font-display text-4xl font-extrabold text-slate-900 md:text-5xl">{c.valor}</dd>
+            <div class="fl-reveal" style="--d:.12s">
+              <p class="fl-eyebrow">Quiénes somos</p>
+              <h2 class="fl-h2">
+                Nuestra <span class="fl-grad">historia</span>
+              </h2>
+              {historiaParrafos.map((parrafo) => (
+                <p class="fl-lead">{parrafo}</p>
+              ))}
             </div>
-          ))}
-        </dl>
-      </section>
-    )
-  }
+          </div>
+        </section>
+      )
+    }
 
-  <section class="bg-brand-footer py-14 md:py-16">
-    <div class="mx-auto max-w-2xl px-4 text-center">
-      <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">¿Quieres conocernos mejor?</h2>
-      <a
-        href={whatsappHref}
-        data-cta="nosotros"
-        class="mt-6 inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-verde-neon px-6 py-3 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:shadow-md"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Icon name="whatsapp" class="h-4 w-4" />
-        Escríbenos por WhatsApp
-      </a>
-    </div>
-  </section>
+    {
+      cita && (
+        <section class="fl-sec fl-centro">
+          <div
+            class="fl-glow"
+            style="inset:0;width:auto;height:auto;border-radius:0;opacity:1;background:radial-gradient(closest-side, rgba(194,17,115,.32), transparent)"
+            aria-hidden="true"
+          ></div>
+          <blockquote class="fl-sec__inner fl-reveal" style="max-width:56rem">
+            <p class="fl-cita">“{cita}”</p>
+          </blockquote>
+        </section>
+      )
+    }
+
+    {
+      fotosLocal.length > 0 && (
+        <section class="fl-sec fl-sec--tenue">
+          <div class="fl-sec__inner">
+            <h2 class="fl-h2 fl-centro fl-reveal">
+              Nuestro <span class="fl-grad">local</span>
+            </h2>
+            <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {fotosLocal.map((foto, i) => (
+                <img
+                  src={foto}
+                  alt="Óptica Alta Visión 18"
+                  width="400"
+                  height="400"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  class="fl-card fl-reveal aspect-square w-full object-cover"
+                  style={`--d:${(i % 3) * 0.08}s`}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      cifras.length > 0 && (
+        <section class="fl-sec">
+          <dl class="fl-sec__inner flex flex-wrap justify-center gap-x-16 gap-y-8 text-center">
+            {cifras.map((c, i) => (
+              <div class="fl-reveal flex flex-col-reverse items-center" style={`--d:${i * 0.1}s`}>
+                <dt class="fl-lead !mt-1">{c.label}</dt>
+                <dd class="fl-cifra fl-grad">{c.valor}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )
+    }
+
+    <FlowServicios />
+    <FlowOpiniones />
+    <FlowFAQ />
+
+    <section class="fl-sec fl-centro" aria-labelledby="nosotros-cierre">
+      <div class="fl-glow fl-glow--cian" style="bottom:-40vmax;left:-20vmax" aria-hidden="true"></div>
+      <div class="fl-glow fl-glow--magenta" style="bottom:-40vmax;right:-20vmax" aria-hidden="true"></div>
+      <div class="fl-sec__inner">
+        <h2 id="nosotros-cierre" class="fl-h2 fl-reveal">
+          ¿Quieres conocernos <span class="fl-grad">mejor?</span>
+        </h2>
+        {site.direccion && <p class="fl-lead fl-reveal" style="--d:.08s">{site.direccion}</p>}
+        <div class="fl-reveal mt-8 flex flex-wrap justify-center gap-3" style="--d:.14s">
+          <a
+            href={whatsappHref}
+            data-cta="nosotros"
+            class="fl-btn fl-btn--lima fl-btn--grande"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="whatsapp" class="fl-i" />
+            Escríbenos por WhatsApp
+          </a>
+          {
+            comoLlegar && (
+              <a href={comoLlegar} target="_blank" rel="noopener noreferrer" class="fl-btn fl-btn--linea fl-btn--grande">
+                Cómo llegar
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  </main>
 
   <Footer />
   <WhatsAppFloat />
+  <FlowReveal />
 </BaseLayout>

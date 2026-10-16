@@ -1,0 +1,597 @@
+/* Estilo "Flow": fondo tinta del logo, titulares con degradado de marca y tarjetas de vidrio.
+   Compartido por /prueba, /catalogo y /nosotros. Todas las clases llevan prefijo fl- y viven
+   dentro de .flow, así que no afecta al resto del sitio. */
+
+.flow {
+  --tinta: var(--color-tinta);
+  --cian: var(--color-cian);
+  --magenta: var(--color-fucsia);
+  --lima: var(--color-lima);
+  --iris: var(--color-iris);
+  --vidrio: rgba(255, 255, 255, 0.06);
+  --vidrio-borde: rgba(255, 255, 255, 0.14);
+  --texto-suave: rgba(255, 255, 255, 0.72);
+  background: var(--tinta);
+  color: #fff;
+}
+
+/* ---------- Botones ---------- */
+.flow .fl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+.flow .fl-btn:hover {
+  transform: translateY(-2px);
+}
+.flow .fl-btn--lima {
+  background: var(--color-verde-neon);
+  color: #0f0f0e;
+}
+.flow .fl-btn--lima:hover {
+  box-shadow: 0 8px 30px -6px rgba(57, 255, 20, 0.55);
+}
+.flow .fl-btn--linea {
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.flow .fl-btn--linea:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+.flow .fl-btn--sm {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.82rem;
+}
+.flow .fl-btn--grande {
+  padding: 1.05rem 2rem;
+  font-size: 1.05rem;
+}
+.flow .fl-btn :where(svg) {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ---------- Secciones y tipografía ---------- */
+.flow .fl-sec {
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 1.25rem;
+}
+@media (min-width: 900px) {
+  .flow .fl-sec {
+    padding: 7rem 1.5rem;
+  }
+}
+.flow .fl-sec--tenue {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.035) 18%,
+    rgba(255, 255, 255, 0.035) 82%,
+    transparent
+  );
+}
+.flow .fl-sec__inner {
+  position: relative;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+.flow .fl-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  width: 60vmax;
+  height: 60vmax;
+  opacity: 0.4;
+}
+.flow .fl-glow--cian {
+  background: radial-gradient(closest-side, var(--cian), transparent);
+}
+.flow .fl-glow--magenta {
+  background: radial-gradient(closest-side, var(--magenta), transparent);
+}
+.flow .fl-glow--iris {
+  background: radial-gradient(closest-side, var(--iris), transparent);
+}
+.flow .fl-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+.flow .fl-h2 {
+  margin-top: 0.75rem;
+  font-weight: 800;
+  font-size: clamp(2.1rem, 5.5vw, 3.9rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+.flow .fl-grad {
+  background: linear-gradient(95deg, var(--cian), var(--iris) 45%, var(--magenta));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.flow .fl-lead {
+  margin-top: 1rem;
+  max-width: 36rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--texto-suave);
+}
+.flow .fl-centro {
+  text-align: center;
+}
+.flow .fl-centro .fl-lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---------- Encabezado de página interna (catálogo, nosotros) ---------- */
+.flow .fl-pagina {
+  position: relative;
+  overflow: hidden;
+  padding: 4.5rem 1.25rem 3.5rem;
+}
+@media (min-width: 900px) {
+  .flow .fl-pagina {
+    padding: 6.5rem 1.5rem 4.5rem;
+  }
+}
+.flow .fl-pagina .fl-h1 {
+  margin-top: 0.75rem;
+  max-width: 14ch;
+  font-weight: 800;
+  font-size: clamp(2.8rem, 8.5vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+/* ---------- Tarjeta de vidrio ---------- */
+.flow .fl-card {
+  border: 1px solid var(--vidrio-borde);
+  border-radius: 1.25rem;
+  background: var(--vidrio);
+  backdrop-filter: blur(6px);
+}
+
+/* ---------- Revelado al entrar en pantalla (sin JS todo queda visible) ---------- */
+.fl-js .fl-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.7s ease var(--d, 0s),
+    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0s);
+}
+.fl-js .fl-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Paso a paso ---------- */
+.flow .fl-pasos {
+  position: relative;
+  margin-top: 3.5rem;
+  display: grid;
+  gap: 1.25rem;
+}
+@media (min-width: 900px) {
+  .flow .fl-pasos {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+.flow .fl-paso {
+  position: relative;
+  padding: 1.75rem 1.5rem;
+  overflow: hidden;
+  text-align: left;
+}
+.flow .fl-paso__num {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(4rem, 8vw, 5.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  background: linear-gradient(160deg, #fff 20%, var(--acc));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.flow .fl-paso__icono {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--acc) 22%, transparent);
+  color: var(--acc);
+}
+.flow .fl-paso__icono :where(svg) {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+.flow .fl-paso__titulo {
+  margin-top: 1.25rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.flow .fl-paso__detalle {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--texto-suave);
+}
+.flow .fl-paso::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--acc), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--d, 0s) + 0.3s);
+}
+.flow .fl-paso.is-in::after {
+  transform: scaleX(1);
+}
+html:not(.fl-js) .flow .fl-paso::after {
+  transform: scaleX(1);
+}
+.flow .fl-cta {
+  margin-top: 2.75rem;
+}
+
+/* ---------- Servicios ---------- */
+.flow .fl-servicios {
+  margin-top: 3rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+.flow .fl-servicio {
+  flex: 1 1 15rem;
+  max-width: 21rem;
+  padding: 1.6rem 1.4rem;
+  text-align: left;
+  transition:
+    transform 0.3s,
+    border-color 0.3s,
+    background-color 0.3s;
+}
+.flow .fl-servicio:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--acc) 70%, transparent);
+  background: color-mix(in srgb, var(--acc) 9%, transparent);
+}
+.flow .fl-servicio__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--acc) 24%, transparent);
+  color: var(--acc);
+}
+.flow .fl-servicio__icono :where(svg) {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.flow .fl-servicio__titulo {
+  margin-top: 1.1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.flow .fl-servicio__texto {
+  margin-top: 0.4rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--texto-suave);
+}
+
+/* ---------- Opiniones ---------- */
+.flow .fl-resumen {
+  margin: 1.75rem auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+}
+.flow .fl-resumen__nota {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.6rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.flow .fl-estrellas {
+  display: inline-flex;
+  gap: 0.15rem;
+  color: #ffc83d;
+}
+.flow .fl-estrellas :where(svg) {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.flow .fl-estrellas--g :where(svg) {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.flow .fl-estrellas :where(svg.fl-apagada) {
+  opacity: 0.3;
+}
+.flow .fl-resumen__txt {
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+.flow .fl-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: 0.9rem;
+}
+.flow .fl-link:hover {
+  color: #fff;
+}
+.flow .fl-opiniones {
+  margin: 3rem -1.25rem 0;
+  padding: 0 1.25rem 1rem;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  text-align: left;
+}
+.flow .fl-opinion {
+  flex: 0 0 min(85%, 21rem);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+@media (min-width: 900px) {
+  .flow .fl-opiniones {
+    display: block;
+    columns: 3;
+    column-gap: 1rem;
+    margin: 3rem 0 0;
+    padding: 0;
+    overflow: visible;
+  }
+  .flow .fl-opinion {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+}
+.flow .fl-opinion__texto {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+}
+.flow .fl-opinion__autor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: auto;
+  border-top: 1px solid var(--vidrio-borde);
+  padding-top: 0.9rem;
+}
+.flow .fl-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--acc);
+}
+.flow .fl-opinion__nombre {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.flow .fl-opinion__google {
+  margin-top: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.flow .fl-opinion__google:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ---------- Preguntas frecuentes ---------- */
+.flow .fl-faq {
+  margin: 3rem auto 0;
+  max-width: 48rem;
+  display: grid;
+  gap: 0.75rem;
+  text-align: left;
+}
+.flow .fl-pregunta {
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+}
+.flow .fl-pregunta[open] {
+  border-color: rgba(1, 159, 216, 0.55);
+  background: rgba(1, 159, 216, 0.08);
+}
+.flow .fl-pregunta summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.flow .fl-pregunta summary::-webkit-details-marker {
+  display: none;
+}
+.flow .fl-pregunta summary:focus-visible {
+  outline: 2px solid var(--cian);
+  outline-offset: 2px;
+  border-radius: 1.25rem;
+}
+.flow .fl-pregunta__mas {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  transition: transform 0.3s;
+}
+.flow .fl-pregunta__mas::before,
+.flow .fl-pregunta__mas::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.9rem;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+}
+.flow .fl-pregunta__mas::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.flow .fl-pregunta[open] .fl-pregunta__mas {
+  transform: rotate(45deg);
+}
+.flow .fl-pregunta p {
+  padding: 0 1.25rem 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--texto-suave);
+}
+.flow .fl-faq-cta {
+  margin-top: 2.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+/* ---------- Nosotros: cita grande y cifras ---------- */
+.flow .fl-cita {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4.6vw, 3.2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.flow .fl-cifra {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(3rem, 8vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+/* ---------- Catálogo: chips de filtro, tarjeta de producto, muestras de color ---------- */
+.flow .fl-chip {
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+.flow .fl-chip:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+.flow .fl-chip.is-active {
+  border-color: var(--cian);
+  background: var(--cian);
+  color: #fff;
+}
+.flow .fl-chip:focus-visible,
+.flow .fl-swatch:focus-visible {
+  outline: 2px solid var(--lima);
+  outline-offset: 2px;
+}
+.flow .fl-producto {
+  transition:
+    transform 0.3s,
+    border-color 0.3s;
+}
+.flow .fl-producto:hover {
+  transform: translateY(-4px);
+  border-color: rgba(1, 159, 216, 0.6);
+}
+.flow .fl-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  transition: box-shadow 0.2s;
+}
+.flow .fl-swatch.is-sel {
+  box-shadow:
+    0 0 0 2px var(--tinta),
+    0 0 0 4px #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow .fl-producto {
+    transition: none;
+  }
+  .fl-js .fl-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .flow .fl-paso::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+  .flow .fl-btn,
+  .flow .fl-servicio {
+    transition: none;
+  }
+}

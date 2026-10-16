@@ -1,0 +1,1666 @@
+---
+// PROTOTIPO (rama experimento/scroll-flow): "flow" de scroll en 6 escenas
+// (hero, monturas, lentes, rostro, confianza y cierre).
+// No indexable. Se descarta o se promueve a "/" según el resultado.
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import { getTryOnOverlayImage, getDisplayImage } from '../utils/cutout';
+import { frameRecommendations, faceShapeInfo } from '../data/faceShapeQuiz';
+import { frameShapeLabel, getFrameShape } from '../data/frameShape';
+import site from '../utils/site';
+import type { FaceShapeId } from '../data/faceShapeQuiz';
+import type { FrameShape } from '../data/frameShape';
+import Icon from '../components/Icon.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppFloat from '../components/WhatsAppFloat.astro';
+import { waLink } from '../utils/whatsapp';
+import TryOnModal from '../components/TryOnModal.astro';
+import FaceShapeTest from '../components/FaceShapeTest.astro';
+import FlowPasos from '../components/flow/FlowPasos.astro';
+import FlowServicios from '../components/flow/FlowServicios.astro';
+import FlowOpiniones from '../components/flow/FlowOpiniones.astro';
+import FlowFAQ from '../components/flow/FlowFAQ.astro';
+import FlowReveal from '../components/flow/FlowReveal.astro';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
+const all = await getCollection('catalogo');
+const byId = new Map(all.map((i) => [i.id, i]));
+
+// Un marco por forma, todos con color visible sobre fondo oscuro. Acento = colores del logo.
+const ORDER: Array<[string, string]> = [
+  ['aviador01-plateado-redondeado-b', '#019FD8'],
+  ['cateye05-rosado-930', '#C21173'],
+  ['acetatocuadrada09-verde-a', '#7CB928'],
+  ['redonda03-cyo-plateado', '#6A47B8'],
+  ['clubmaster07-transparente-b', '#019FD8'],
+];
+
+const steps = ORDER.flatMap(([id, accent]) => {
+  const item = byId.get(id);
+  if (!item) return [];
+  const color = item.data.colors[0];
+  const src = item.data.image;
+  const shape = getFrameShape(item.data);
+  const faces = shape
+    ? Object.entries(frameRecommendations)
+        .filter(([, shapes]) => shapes.includes(shape))
+        .map(([face]) => faceShapeInfo[face as keyof typeof faceShapeInfo].label)
+    : [];
+  return [
+    {
+      id,
+      accent,
+      name: item.data.name,
+      shape: shape ? frameShapeLabel[shape] : '',
+      colorName: color?.name ?? '',
+      hex: color?.hex ?? '#ccc',
+      hex2: color?.hex2,
+      faces,
+      image: getTryOnOverlayImage(color?.image || src) ?? getDisplayImage(src),
+      alt: item.data.imageAlt,
+    },
+  ];
+});
+
+const heroFrame = steps[0];
+
+// ---------- Escena 5: confianza (solo datos reales; lo que esté vacío no se muestra) ----------
+const { rating, total, url: reviewsUrl } = site.googleReviews;
+type Cifra = { valor?: number; decimales?: number; texto?: string; etiqueta: string; acc: string };
+const cifras: Cifra[] = [];
+if (rating !== null) cifras.push({ valor: rating, decimales: 1, etiqueta: 'calificación en Google', acc: '#7CB928' });
+if (total !== null) cifras.push({ valor: total, decimales: 0, etiqueta: 'reseñas de clientes', acc: '#019FD8' });
+cifras.push({ valor: all.length, decimales: 0, etiqueta: 'monturas en el catálogo', acc: '#C21173' });
+const entregaDias = /^(.*?)\s*d[ií]as\s+h[aá]biles?$/i.exec(site.tiempoEntrega);
+cifras.push({
+  texto: entregaDias ? entregaDias[1] : site.tiempoEntrega,
+  etiqueta: entregaDias ? 'días hábiles para recibir tus gafas' : 'para recibir tus gafas',
+  acc: '#6A47B8',
+});
+const fmt = (c: Cifra) => (c.valor === undefined ? (c.texto ?? '') : c.valor.toFixed(c.decimales ?? 0).replace('.', ','));
+
+// ---------- Escena 6: cierre ----------
+const { lat, lng } = site.geo;
+const comoLlegar =
+  lat !== null && lng !== null ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : '';
+const origenCierre = 'flow-cierre';
+
+// ---------- Escena 3: lentes ----------
+// Máscara del cristal de un marco (scripts/generate-flow-lens-mask.mjs). Los efectos son capas
+// CSS recortadas con esa máscara, así que calzan al píxel con el cristal de la foto.
+const lensMask = JSON.parse(
+  readFileSync(path.join(process.cwd(), 'public', 'images', 'flow', 'lente-mascara.json'), 'utf-8'),
+) as { slug: string; width: number; height: number; lenses: Array<{ x0: number; x1: number; y0: number; y1: number }> };
+const lensItem = byId.get(lensMask.slug);
+const lensFrame = lensItem
+  ? getTryOnOverlayImage(lensItem.data.colors[0]?.image || lensItem.data.image)
+  : null;
+
+const lentes = [
+  {
+    titulo: 'Monofocal',
+    nombre: 'Lentes monofocales',
+    texto: 'Una sola graduación en todo el lente. Ideales para ver bien de lejos o de cerca.',
+    acc: '#6A47B8',
+  },
+  {
+    titulo: 'Progresivo',
+    nombre: 'Lentes progresivos',
+    texto: 'Tres zonas en un mismo lente (lejos, intermedio y cerca) sin la línea de los bifocales.',
+    acc: '#C21173',
+  },
+  {
+    titulo: 'Luz azul',
+    nombre: 'Filtro de luz azul',
+    texto:
+      'Tratamiento que filtra parte de la luz azul de las pantallas y reduce los reflejos, para jornadas largas frente al computador.',
+    acc: '#019FD8',
+  },
+  {
+    titulo: 'Fotocromático',
+    nombre: 'Lentes fotocromáticos',
+    texto: 'Se oscurecen con el sol y vuelven a ser transparentes en interiores. Un solo par para todo el día.',
+    acc: '#7CB928',
+  },
+];
+
+// Zonas del progresivo: líneas a 1/3 y 2/3 y "neblina" en las esquinas inferiores de cada lente.
+const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+const progFondo = [
+  'linear-gradient(to bottom, transparent 33%, rgba(255,255,255,.55) 33%, rgba(255,255,255,.55) calc(33% + 1px), transparent calc(33% + 1px), transparent 66%, rgba(255,255,255,.55) 66%, rgba(255,255,255,.55) calc(66% + 1px), transparent calc(66% + 1px))',
+  ...lensMask.lenses.flatMap((l) => [
+    `radial-gradient(ellipse ${((l.x1 - l.x0) * 55).toFixed(0)}% 42% at ${pct(l.x0)} 100%, rgba(255,255,255,.5), transparent 70%)`,
+    `radial-gradient(ellipse ${((l.x1 - l.x0) * 55).toFixed(0)}% 42% at ${pct(l.x1)} 100%, rgba(255,255,255,.5), transparent 70%)`,
+  ]),
+  'linear-gradient(to bottom, rgba(1,159,216,.18), rgba(1,159,216,.05) 45%, rgba(194,17,115,.14))',
+].join(',');
+const zonas: Array<{ texto: string; left: string; top: string }> = lensMask.lenses[0]
+  ? [
+      { texto: 'Lejos', f: 0.17 },
+      { texto: 'Intermedio', f: 0.5 },
+      { texto: 'Cerca', f: 0.83 },
+    ].map(({ texto, f }) => {
+      const l = lensMask.lenses[0];
+      return { texto, left: pct((l.x0 + l.x1) / 2), top: pct(l.y0 + (l.y1 - l.y0) * f) };
+    })
+  : [];
+
+// ---------- Escena 4: rostro ----------
+const catalogoMini = all
+  .map((i) => ({
+    name: i.data.name,
+    shape: getFrameShape(i.data),
+    image: getTryOnOverlayImage(i.data.colors[0]?.image || i.data.image),
+  }))
+  .filter((x) => x.shape && x.image) as Array<{ name: string; shape: FrameShape; image: string }>;
+
+function elegir(shapes: FrameShape[], n: number, offset: number) {
+  const buckets = shapes.map((sh) => {
+    const b = catalogoMini.filter((x) => x.shape === sh);
+    const st = b.length ? offset % b.length : 0;
+    return [...b.slice(st), ...b.slice(0, st)];
+  });
+  const out: typeof catalogoMini = [];
+  for (let i = 0; out.length < n && buckets.some((b) => b.length); i++) {
+    const next = buckets[i % buckets.length].shift();
+    if (next) out.push(next);
+  }
+  return out;
+}
+
+const ACC_CARAS = ['#019FD8', '#C21173', '#7CB928', '#6A47B8', '#019FD8'];
+const caras = (Object.keys(faceShapeInfo) as FaceShapeId[]).map((id, i) => ({
+  id,
+  label: faceShapeInfo[id].label,
+  descripcion: faceShapeInfo[id].description,
+  image: faceShapeInfo[id].image,
+  acc: ACC_CARAS[i % ACC_CARAS.length],
+  quedan: frameRecommendations[id].slice(0, 3).map((sh) => frameShapeLabel[sh]),
+  minis: elegir(frameRecommendations[id], 3, i * 2),
+}));
+const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
+---
+
+<BaseLayout
+  title="Prueba de diseño · Óptica Alta Visión 18"
+  description="Prototipo interno de diseño con animación al hacer scroll."
+>
+  <meta slot="head" name="robots" content="noindex, nofollow" />
+
+  <Header />
+
+  <main class="flow">
+    <!-- ESCENA 1 · HERO -->
+    <section class="hero" data-hero aria-labelledby="hero-titulo">
+      <div class="hero__glow hero__glow--cian" aria-hidden="true"></div>
+      <div class="hero__glow hero__glow--magenta" aria-hidden="true"></div>
+
+      <div class="hero__inner">
+        <div class="hero__texto">
+          <p class="hero__eyebrow">Óptica Alta Visión 18 · Fontibón</p>
+          <h1 id="hero-titulo" class="hero__h1">
+            <span class="hero__linea">
+              <span class="tipeo">Ve mejor</span>
+            </span>
+            <span class="hero__linea hero__linea--grad">en {entrega}.</span>
+          </h1>
+          <p class="hero__sub">
+            Examen visual, monturas reales del catálogo y un probador con tu cámara. Sin salir de la
+            página.
+          </p>
+          <div class="hero__cta">
+            <a href="/catalogo" class="btn btn--lima">Pruébatelo con tu cámara</a>
+            <a href="#escenario" class="btn btn--linea">Ver cómo funciona</a>
+          </div>
+        </div>
+
+        {
+          heroFrame && (
+            <div class="hero__marco" data-hero-frame aria-hidden="true">
+              <img
+                src={heroFrame.image}
+                alt=""
+                width="900"
+                height="400"
+                fetchpriority="high"
+                class="hero__img"
+              />
+            </div>
+          )
+        }
+      </div>
+
+      <div class="hero__scroll" aria-hidden="true">
+        <span>Baja</span>
+        <i></i>
+      </div>
+    </section>
+
+    <!-- ESCENA 2 · UN MARCO PARA CADA ROSTRO (sticky + scroll) -->
+    <section
+      id="escenario"
+      class="stage"
+      data-stage
+      data-steps={steps.length}
+      data-accs={JSON.stringify(steps.map((x) => x.accent))}
+      style={`--n:${steps.length}`}
+      aria-label="Monturas según la forma de tu rostro"
+    >
+      <div class="stage__pin">
+        <div class="stage__bg" aria-hidden="true"></div>
+
+        <div class="stage__grid">
+          <div class="stage__info">
+            <p class="stage__eyebrow">Una montura para cada rostro</p>
+
+            <div class="stage__shapes">
+              {
+                steps.map((s, i) => (
+                  <h2 class="stage__shape" data-step={i} data-hide-inactive aria-hidden={i === 0 ? undefined : 'true'}>
+                    {s.shape}
+                  </h2>
+                ))
+              }
+            </div>
+
+            <div class="stage__detalle">
+              {
+                steps.map((s, i) => (
+                  <div class="stage__card" data-step={i} data-hide-inactive>
+                    <p class="stage__name">{s.name}</p>
+                    <p class="stage__color">
+                      <span
+                        class="stage__swatch"
+                        style={
+                          s.hex2
+                            ? `background:linear-gradient(135deg,${s.hex} 50%,${s.hex2} 50%)`
+                            : `background:${s.hex}`
+                        }
+                      />
+                      {s.colorName}
+                    </p>
+                    {s.faces.length > 0 && (
+                      <p class="stage__faces">
+                        Favorece rostros: <strong>{s.faces.join(' · ')}</strong>
+                      </p>
+                    )}
+                  </div>
+                ))
+              }
+            </div>
+
+            <a href="/catalogo" class="btn btn--lima stage__cta">Ver todo el catálogo</a>
+          </div>
+
+          <div class="stage__visual">
+            {
+              steps.map((s, i) => (
+                <img
+                  src={s.image}
+                  alt={s.alt}
+                  loading="lazy"
+                  class="stage__frame"
+                  data-step={i}
+                />
+              ))
+            }
+          </div>
+
+          <ol class="stage__dots" aria-label="Formas de montura">
+            {
+              steps.map((s, i) => (
+                <li>
+                  <button type="button" data-goto={i} class="stage__dot" aria-label={s.shape}>
+                    <span>{s.shape}</span>
+                  </button>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENA 3 · TIPOS DE LENTE (sticky + scroll) -->
+    <section
+      id="lentes"
+      class="stage stage--lentes"
+      data-stage
+      data-steps={lentes.length}
+      data-accs={JSON.stringify(lentes.map((l) => l.acc))}
+      style={`--n:${lentes.length}`}
+      aria-label="Tipos de lente"
+    >
+      <div class="stage__pin">
+        <div class="stage__bg" aria-hidden="true"></div>
+
+        <div class="stage__grid">
+          <div class="stage__info">
+            <p class="stage__eyebrow">Tipos de lente</p>
+
+            <div class="stage__shapes">
+              {
+                lentes.map((l, i) => (
+                  <h2 class="stage__shape" data-step={i} data-hide-inactive aria-hidden={i === 0 ? undefined : 'true'}>
+                    {l.titulo}
+                  </h2>
+                ))
+              }
+            </div>
+
+            <div class="stage__detalle stage__detalle--texto">
+              {
+                lentes.map((l, i) => (
+                  <div class="stage__card" data-step={i} data-hide-inactive>
+                    <p class="stage__name">{l.nombre}</p>
+                    <p class="stage__desc">{l.texto}</p>
+                  </div>
+                ))
+              }
+            </div>
+
+            <a href="/catalogo" class="btn btn--lima stage__cta">Cotizar mis lentes</a>
+          </div>
+
+          <div class="stage__visual stage__visual--lente">
+            {
+              lensFrame && (
+                <div class="lente">
+                  <img src={lensFrame} alt="Montura con lentes de distintos tipos" class="lente__img" loading="lazy" />
+                  <div class="fx fx--mono" data-step="0" aria-hidden="true" />
+                  <div class="fx fx--prog" data-step="1" style={`background:${progFondo}`} aria-hidden="true" />
+                  <div class="fx fx--azul" data-step="2" aria-hidden="true" />
+                  <div class="fx fx--sol" data-step="3" aria-hidden="true" />
+                  {
+                    zonas.map((z) => (
+                      <span class="lente__tag" data-step="1" style={`left:${z.left};top:${z.top}`} aria-hidden="true">
+                        {z.texto}
+                      </span>
+                    ))
+                  }
+                  <div class="lente__sol" data-step="3" aria-hidden="true">
+                    <span class="lente__sol-in">Interior</span>
+                    <span class="lente__sol-out">Al sol</span>
+                  </div>
+                </div>
+              )
+            }
+          </div>
+
+          <ol class="stage__dots" aria-label="Tipos de lente">
+            {
+              lentes.map((l, i) => (
+                <li>
+                  <button type="button" data-goto={i} class="stage__dot" aria-label={l.titulo}>
+                    <span>{l.titulo}</span>
+                  </button>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENA 4 · TU FORMA DE ROSTRO (sticky + scroll) -->
+    <section
+      id="rostro"
+      class="stage stage--rostro"
+      data-stage
+      data-steps={caras.length}
+      data-accs={JSON.stringify(caras.map((c) => c.acc))}
+      style={`--n:${caras.length}`}
+      aria-label="Formas de rostro y monturas recomendadas"
+    >
+      <div class="stage__pin">
+        <div class="stage__bg" aria-hidden="true"></div>
+
+        <div class="stage__grid">
+          <div class="stage__info">
+            <p class="stage__eyebrow">Tu forma de rostro</p>
+
+            <div class="stage__shapes">
+              {
+                caras.map((c, i) => (
+                  <h2 class="stage__shape" data-step={i} data-hide-inactive aria-hidden={i === 0 ? undefined : 'true'}>
+                    {c.label}
+                  </h2>
+                ))
+              }
+            </div>
+
+            <div class="stage__detalle stage__detalle--alto">
+              {
+                caras.map((c, i) => (
+                  <div class="stage__card" data-step={i} data-hide-inactive>
+                    <p class="stage__desc">{c.descripcion}</p>
+                    <p class="stage__faces">
+                      Te quedan: <strong>{c.quedan.join(' · ')}</strong>
+                    </p>
+                    <ul class="mini">
+                      {
+                        c.minis.map((m) => (
+                          <li>
+                            <img src={m.image} alt="" loading="lazy" />
+                            <span>{m.name}</span>
+                          </li>
+                        ))
+                      }
+                    </ul>
+                    <button type="button" class="btn btn--linea btn--sm" data-facetest-manual={c.id}>
+                      Ver mis monturas
+                    </button>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="stage__visual stage__visual--cara">
+            {
+              caras.map((c, i) => (
+                <img src={c.image} alt={`Rostro ${c.label}`} loading="lazy" class="cara" data-step={i} />
+              ))
+            }
+          </div>
+
+          <ol class="stage__dots" aria-label="Formas de rostro">
+            {
+              caras.map((c, i) => (
+                <li>
+                  <button type="button" data-goto={i} class="stage__dot" aria-label={c.label}>
+                    <span>{c.label}</span>
+                  </button>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- PUENTE · TEST DE ROSTRO -->
+    <section class="puente">
+      <p class="puente__eyebrow">¿Cuál es la tuya?</p>
+      <h2 class="puente__h2">Descubre tu forma de rostro en 1 minuto.</h2>
+      <button type="button" class="btn btn--lima" data-facetest-open>Hacer el test de rostro</button>
+    </section>
+
+    <!-- ESCENA 5 · CONFIANZA (cifras que cuentan hacia arriba) -->
+    <section class="confianza" data-confianza aria-labelledby="confianza-titulo">
+      <div class="confianza__glow" aria-hidden="true"></div>
+      <div class="confianza__inner">
+        <p class="stage__eyebrow">Por qué elegirnos</p>
+        <h2 id="confianza-titulo" class="confianza__h2">Gafas bien hechas, en tu barrio.</h2>
+
+        <ul class="cifras">
+          {
+            cifras.map((c, i) => (
+              <li class="cifra" style={`--acc:${c.acc};--d:${i * 0.12}s`}>
+                <span
+                  class:list={['cifra__n', c.valor === undefined && 'cifra__n--texto']}
+                  data-count={c.valor !== undefined ? c.valor : undefined}
+                  data-dec={c.decimales ?? 0}
+                >
+                  {fmt(c)}
+                </span>
+                <span class="cifra__l">{c.etiqueta}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        {
+          rating !== null && (
+            <p class="estrellas" aria-label={`${fmt({ valor: rating, decimales: 1, etiqueta: '', acc: '' })} de 5 estrellas`}>
+              <span class="estrellas__fila" aria-hidden="true">
+                {[0, 1, 2, 3, 4].map(() => (
+                  <Icon name="star" filled class="estrellas__icono" />
+                ))}
+              </span>
+              {reviewsUrl && (
+                <a href={reviewsUrl} target="_blank" rel="noopener noreferrer" class="estrellas__link">
+                  Ver reseñas en Google
+                </a>
+              )}
+            </p>
+          )
+        }
+
+        {
+          site.pagos.financiadores.length > 0 && (
+            <p class="pagos">
+              Paga en cuotas con
+              {site.pagos.financiadores.map((f) => (
+                <span class="pagos__chip">{f}</span>
+              ))}
+            </p>
+          )
+        }
+      </div>
+    </section>
+
+    <FlowPasos />
+    <FlowServicios />
+    <FlowOpiniones />
+    <FlowFAQ />
+
+    <!-- ESCENA 6 · CIERRE -->
+    <section class="cierre" aria-labelledby="cierre-titulo">
+      <div class="cierre__glow" aria-hidden="true"></div>
+      <div class="cierre__inner">
+        <p class="stage__eyebrow">Agenda tu examen</p>
+        <h2 id="cierre-titulo" class="cierre__h2">
+          Te esperamos{site.barrio ? ` en ${site.barrio}` : ''}.
+        </h2>
+
+        <div class="cierre__info">
+          {
+            site.direccion && (
+              <p>
+                <Icon name="location" class="cierre__icono" />
+                {site.direccion}
+              </p>
+            )
+          }
+          {
+            site.horario && (
+              <p>
+                <Icon name="clock" class="cierre__icono" />
+                {site.horario}
+              </p>
+            )
+          }
+        </div>
+
+        <div class="cierre__acciones">
+          <a
+            href={waLink(origenCierre, 'Hola, quiero agendar mi examen visual')}
+            data-cta={origenCierre}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn--lima btn--grande"
+          >
+            <Icon name="whatsapp" class="cierre__icono" />
+            Agendar por WhatsApp
+          </a>
+          {
+            comoLlegar && (
+              <a href={comoLlegar} target="_blank" rel="noopener noreferrer" class="btn btn--linea btn--grande">
+                Cómo llegar
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+  <WhatsAppFloat />
+  <TryOnModal />
+  <FaceShapeTest />
+  <FlowReveal />
+</BaseLayout>
+
+<style>
+  .flow {
+    --tinta: var(--color-tinta);
+    --cian: var(--color-cian);
+    --magenta: var(--color-fucsia);
+    --lima: var(--color-lima);
+    --iris: var(--color-iris);
+    background: var(--tinta);
+    color: #fff;
+  }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.85rem 1.6rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn--lima {
+    background: var(--color-verde-neon);
+    color: #0f0f0e;
+    box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.5);
+  }
+  .btn--lima:hover {
+    box-shadow: 0 8px 30px -6px rgba(57, 255, 20, 0.55);
+  }
+  .btn--linea {
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+  }
+  .btn--linea:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* ---------- Escena 1: hero ---------- */
+  .hero {
+    --hp: 0;
+    position: relative;
+    min-height: calc(100svh - var(--hh, 4rem));
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .hero__glow {
+    position: absolute;
+    width: 55vmax;
+    height: 55vmax;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .hero__glow--cian {
+    background: var(--cian);
+    top: -25vmax;
+    right: -15vmax;
+  }
+  .hero__glow--magenta {
+    background: var(--magenta);
+    bottom: -30vmax;
+    left: -20vmax;
+    opacity: 0.32;
+  }
+  .hero__inner {
+    position: relative;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 5rem;
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+  }
+  @media (min-width: 900px) {
+    .hero__inner {
+      grid-template-columns: 1.1fr 0.9fr;
+      padding: 4rem 1.5rem;
+    }
+  }
+  .hero__eyebrow {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 1.25rem;
+  }
+  .hero__h1 {
+    font-weight: 800;
+    font-size: clamp(2.9rem, 9.5vw, 7.2rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+  }
+  .hero__linea {
+    display: block;
+    white-space: nowrap;
+  }
+  .hero__linea--grad {
+    background: linear-gradient(95deg, var(--cian), var(--iris) 45%, var(--magenta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0;
+    transform: translateY(0.4em);
+    animation: subir 0.9s 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .tipeo {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    white-space: nowrap;
+    width: 0;
+    border-right: 0.07em solid var(--lima);
+    animation:
+      escribir 1.2s 0.3s steps(8, end) forwards,
+      cursor 0.8s 1.5s step-end infinite;
+  }
+  .hero__sub {
+    margin-top: 1.5rem;
+    max-width: 30rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.75);
+    opacity: 0;
+    animation: subir 0.8s 1.9s ease-out forwards;
+  }
+  .hero__cta {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    opacity: 0;
+    animation: subir 0.8s 2.1s ease-out forwards;
+  }
+  .hero__marco {
+    transform: translate3d(calc(var(--hp) * -5vw), calc(var(--hp) * 14vh), 0)
+      rotate(calc(var(--hp) * -10deg)) scale(calc(1 + var(--hp) * 0.18));
+    will-change: transform;
+  }
+  .hero__img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
+    opacity: 0;
+    transform: translateX(8vw) rotate(-8deg);
+    animation: entrar 1.3s 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .hero__scroll {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    opacity: calc(1 - var(--hp) * 4);
+  }
+  .hero__scroll i {
+    width: 1px;
+    height: 2rem;
+    background: linear-gradient(to bottom, var(--lima), transparent);
+    animation: caer 1.8s ease-in-out infinite;
+  }
+
+  @keyframes escribir {
+    to {
+      width: 8.3ch;
+    }
+  }
+  @keyframes cursor {
+    50% {
+      border-color: transparent;
+    }
+  }
+  @keyframes subir {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes entrar {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes caer {
+    0% {
+      transform: scaleY(0);
+      transform-origin: top;
+    }
+    50% {
+      transform: scaleY(1);
+      transform-origin: top;
+    }
+    51% {
+      transform-origin: bottom;
+    }
+    100% {
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+  }
+
+  /* ---------- Escena 2: escenario sticky ---------- */
+  .stage {
+    --sp: 0;
+    --acc: var(--cian);
+    position: relative;
+    height: calc(var(--n) * 90svh + 100svh);
+  }
+  .stage__pin {
+    position: sticky;
+    top: var(--hh, 4rem);
+    height: calc(100svh - var(--hh, 4rem));
+    overflow: hidden;
+  }
+  .stage__bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 75% 45%, color-mix(in srgb, var(--acc) 45%, transparent), transparent 70%),
+      var(--tinta);
+    transition: background 0.9s ease;
+  }
+  .stage__grid {
+    position: relative;
+    height: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 2.6rem;
+    display: grid;
+    grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .stage__info {
+    min-height: 0;
+  }
+  @media (min-width: 900px) {
+    .stage__grid {
+      grid-template-rows: none;
+      grid-template-columns: 1fr 1.1fr;
+      align-items: center;
+      padding: 2rem 1.5rem;
+      gap: 2rem;
+    }
+  }
+  .stage__visual {
+    position: relative;
+    order: -1;
+    min-height: 0;
+  }
+  @media (min-width: 900px) {
+    .stage__visual {
+      order: 0;
+      height: 70%;
+    }
+  }
+  .stage__frame {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 24px 34px rgba(0, 0, 0, 0.55));
+    opacity: 0;
+    transform: translate3d(8%, 12%, 0) rotate(8deg) scale(0.85);
+    transition:
+      opacity 0.7s ease,
+      transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .stage__frame.is-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(calc((var(--sp) - 0.5) * 6deg)) scale(calc(1 + var(--sp) * 0.04));
+  }
+  .stage__frame.is-past {
+    transform: translate3d(-10%, -14%, 0) rotate(-10deg) scale(0.85);
+  }
+
+  .stage__eyebrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .stage__shapes {
+    position: relative;
+    height: clamp(3.4rem, 11vw, 7.5rem);
+    margin: 0.5rem 0 0.75rem;
+  }
+  .stage__shape {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 800;
+    font-size: clamp(2.6rem, 8.5vw, 6.6rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(60%);
+    transition:
+      opacity 0.22s ease,
+      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .stage__shape.is-active {
+    transition:
+      opacity 0.5s ease 0.2s,
+      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.12s;
+    opacity: 1;
+    transform: none;
+    background: linear-gradient(95deg, #fff 30%, color-mix(in srgb, var(--acc) 70%, #fff));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stage__shape.is-past {
+    transform: translateY(-60%);
+  }
+  .stage__detalle {
+    position: relative;
+    min-height: 6.5rem;
+  }
+  .stage__card {
+    position: absolute;
+    inset: 0 auto auto 0;
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.6s ease;
+    pointer-events: none;
+  }
+  .stage__card.is-active {
+    transition:
+      opacity 0.5s ease 0.25s,
+      transform 0.6s ease 0.2s;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  .stage__name {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  .stage__color {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .stage__swatch {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+  }
+  .stage__faces {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 24rem;
+  }
+  .stage__faces strong {
+    color: #fff;
+    font-weight: 600;
+  }
+  .stage__cta {
+    margin-top: 1rem;
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .stage__cta {
+      display: inline-flex;
+      margin-top: 1.5rem;
+    }
+  }
+  .stage__dots {
+    position: absolute;
+    left: 50%;
+    bottom: 0.9rem;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    z-index: 2;
+  }
+  .stage__dot span {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .stage__dots {
+      left: auto;
+      right: 0.75rem;
+      bottom: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .stage__dot span {
+      display: inline;
+    }
+  }
+  .stage__dot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0.2rem;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0);
+    transition: color 0.3s;
+  }
+  .stage__dot::after {
+    content: '';
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition:
+      transform 0.3s,
+      background 0.3s;
+  }
+  .stage__dot.is-active::after {
+    background: var(--lima);
+    transform: scale(1.5);
+  }
+  @media (min-width: 900px) {
+    .stage__dot:hover,
+    .stage__dot.is-active {
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+
+  /* ---------- Puente: test de rostro ---------- */
+  .puente {
+    padding: 5rem 1.25rem;
+    text-align: center;
+    background: linear-gradient(135deg, var(--cian), var(--iris) 50%, var(--magenta));
+    color: #fff;
+  }
+  .puente__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+  .puente__h2 {
+    margin: 1rem auto 2rem;
+    max-width: 18ch;
+    font-weight: 800;
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  /* ---------- Escena 5: confianza ---------- */
+  .confianza {
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 1.25rem;
+  }
+  .confianza__glow {
+    position: absolute;
+    width: 60vmax;
+    height: 60vmax;
+    top: -20vmax;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--iris) 38%, transparent), transparent);
+    pointer-events: none;
+  }
+  .confianza__inner {
+    position: relative;
+    max-width: 72rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .confianza__h2 {
+    margin: 0.75rem auto 3rem;
+    max-width: 16ch;
+    font-weight: 800;
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+  .cifras {
+    display: grid;
+    gap: 2.5rem 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 900px) {
+    .cifras {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .cifra {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.7s ease var(--d, 0s),
+      transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0s);
+  }
+  .is-in .cifra {
+    opacity: 1;
+    transform: none;
+  }
+  .cifra__n {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.8rem, 8.5vw, 6rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(160deg, #fff 35%, var(--acc));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .cifra__n--texto {
+    white-space: nowrap;
+    font-size: clamp(2.6rem, 7vw, 5rem);
+  }
+  .cifra__l {
+    display: block;
+    margin: 0.6rem auto 0;
+    max-width: 12rem;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .estrellas {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .estrellas__fila {
+    display: flex;
+    gap: 0.3rem;
+    color: #ffc83d;
+  }
+  :global(.estrellas__icono) {
+    width: 1.6rem;
+    height: 1.6rem;
+    opacity: 0;
+    transform: scale(0.4) rotate(-30deg);
+    transition:
+      opacity 0.4s ease,
+      transform 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .is-in :global(.estrellas__icono) {
+    opacity: 1;
+    transform: none;
+  }
+  .is-in :global(.estrellas__icono):nth-child(2) { transition-delay: 0.1s; }
+  .is-in :global(.estrellas__icono):nth-child(3) { transition-delay: 0.2s; }
+  .is-in :global(.estrellas__icono):nth-child(4) { transition-delay: 0.3s; }
+  .is-in :global(.estrellas__icono):nth-child(5) { transition-delay: 0.4s; }
+  .estrellas__link {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .estrellas__link:hover {
+    color: #fff;
+  }
+  .pagos {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .pagos__chip {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  /* ---------- Escena 6: cierre ---------- */
+  .cierre {
+    position: relative;
+    overflow: hidden;
+    padding: 7rem 1.25rem;
+    text-align: center;
+    background: var(--tinta);
+  }
+  .cierre__glow {
+    position: absolute;
+    inset: auto -10vmax -35vmax -10vmax;
+    height: 70vmax;
+    background:
+      radial-gradient(closest-side at 25% 40%, color-mix(in srgb, var(--cian) 45%, transparent), transparent),
+      radial-gradient(closest-side at 75% 55%, color-mix(in srgb, var(--magenta) 45%, transparent), transparent);
+    pointer-events: none;
+  }
+  .cierre__inner {
+    position: relative;
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+  .cierre__h2 {
+    margin: 0.75rem auto 2rem;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 9vw, 6.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    background: linear-gradient(95deg, #fff 30%, color-mix(in srgb, var(--cian) 60%, #fff));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .cierre__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2.25rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+  }
+  .cierre__info p {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  :global(.cierre__icono) {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+  }
+  .cierre__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .btn--grande {
+    gap: 0.5rem;
+    padding: 1.05rem 2rem;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- Escenas 3 y 4: variantes ---------- */
+  .btn--sm {
+    padding: 0.55rem 1.1rem;
+    font-size: 0.82rem;
+  }
+  .stage__desc {
+    margin-top: 0.4rem;
+    max-width: 26rem;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .stage__card {
+    width: 100%;
+  }
+  .stage__detalle--texto {
+    min-height: 8.5rem;
+  }
+  .stage__detalle--alto {
+    min-height: 15rem;
+  }
+  .stage--lentes .stage__shape {
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+  }
+  @media (max-width: 899px) {
+    .stage__shapes {
+      height: clamp(2.6rem, 11vw, 3.4rem);
+      margin: 0.35rem 0 0.4rem;
+    }
+    .stage__shape {
+      font-size: clamp(2.2rem, 11vw, 3.2rem);
+    }
+    .stage--lentes .stage__shape {
+      font-size: clamp(2rem, 9.5vw, 2.8rem);
+    }
+    .stage__desc {
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .stage__detalle--texto {
+      min-height: 7rem;
+    }
+    .stage__detalle--alto {
+      min-height: 9.5rem;
+    }
+    .stage--rostro .mini {
+      display: none;
+    }
+    .stage--rostro .btn--sm {
+      margin-top: 0.7rem;
+    }
+  }
+
+  /* Escena 3: marco + capas de efecto recortadas con la máscara del cristal */
+  .stage__visual--lente {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lente {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 995 / 360;
+    transform: rotate(calc((var(--p) - 0.5) * -5deg));
+  }
+  .lente__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 24px 34px rgba(0, 0, 0, 0.55));
+  }
+  .fx {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    -webkit-mask: url('/images/flow/lente-mascara.png') center / 100% 100% no-repeat;
+    mask: url('/images/flow/lente-mascara.png') center / 100% 100% no-repeat;
+  }
+  .fx.is-active {
+    opacity: 1;
+  }
+  .fx--mono {
+    background:
+      linear-gradient(
+        112deg,
+        transparent calc(var(--sp) * 150% - 35%),
+        rgba(255, 255, 255, 0.24) calc(var(--sp) * 150% - 18%),
+        transparent calc(var(--sp) * 150%)
+      ),
+      rgba(255, 255, 255, 0.05);
+  }
+  .fx--azul {
+    background:
+      linear-gradient(
+        112deg,
+        transparent calc(var(--sp) * 150% - 35%),
+        rgba(255, 255, 255, 0.3) calc(var(--sp) * 150% - 18%),
+        transparent calc(var(--sp) * 150%)
+      ),
+      linear-gradient(125deg, rgba(1, 159, 216, 0.45), rgba(106, 71, 184, 0.32) 50%, rgba(194, 17, 115, 0.2));
+  }
+  .fx--sol {
+    background:
+      linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, 0.14) 42%, transparent 52%),
+      linear-gradient(to bottom, rgba(8, 8, 12, 0.94), rgba(30, 30, 38, 0.82));
+  }
+  .fx--sol.is-active {
+    opacity: clamp(0, calc(var(--sp) * 2.2), 1);
+    transition: none;
+  }
+  .lente__tag {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 0.68rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .lente__tag.is-active {
+    opacity: 1;
+  }
+  .lente__sol {
+    position: absolute;
+    left: 50%;
+    bottom: -2rem;
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .lente__sol.is-active {
+    opacity: 1;
+  }
+  .lente__sol span {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+  }
+  .lente__sol-in {
+    color: rgba(255, 255, 255, 0.7);
+    opacity: calc(1 - clamp(0, var(--sp) * 2.2, 1));
+  }
+  .lente__sol-out {
+    color: var(--lima);
+    opacity: clamp(0, calc(var(--sp) * 2.2), 1);
+  }
+
+  /* Escena 4: rostro */
+  .stage__visual--cara {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cara {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.5));
+    opacity: 0;
+    transform: scale(0.7) rotate(-6deg);
+    transition:
+      opacity 0.6s ease,
+      transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .cara.is-active {
+    opacity: 1;
+    transform: scale(calc(0.96 + var(--sp) * 0.06)) rotate(calc((var(--sp) - 0.5) * 4deg));
+  }
+  .cara.is-past {
+    transform: scale(1.25) rotate(8deg);
+  }
+  .mini {
+    margin: 0.8rem 0;
+    max-width: 26rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+  .mini li {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.07);
+    padding: 0.4rem 0.35rem;
+  }
+  .mini img {
+    width: 100%;
+    height: 2.5rem;
+    object-fit: contain;
+  }
+  .mini span {
+    display: block;
+    margin-top: 0.2rem;
+    text-align: center;
+    font-size: 0.62rem;
+    line-height: 1.15;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* Sin movimiento: todo visible y quieto. */
+  @media (prefers-reduced-motion: reduce) {
+    .tipeo {
+      width: auto;
+      border: 0;
+      animation: none;
+    }
+    .hero__linea--grad,
+    .hero__sub,
+    .hero__cta,
+    .hero__img {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+    .hero__marco {
+      transform: none;
+    }
+    .hero__scroll i {
+      animation: none;
+    }
+    .stage__frame,
+    .stage__shape,
+    .stage__card,
+    .stage__bg,
+    .cara,
+    .fx,
+    .lente__tag,
+    .lente__sol {
+      transition-duration: 0.01ms;
+    }
+    .lente {
+      transform: none;
+    }
+    .cifra,
+    :global(.estrellas__icono) {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Permite que el color de acento se anime entre pasos (sin esto el degradado salta). */
+  @property --acc {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #019fd8;
+  }
+  .stage {
+    transition: --acc 0.9s ease;
+  }
+</style>
+
+<script>
+  const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const root = document.documentElement;
+  const setHeader = () => root.style.setProperty('--hh', `${header?.offsetHeight ?? 64}px`);
+  setHeader();
+  addEventListener('resize', setHeader, { passive: true });
+
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  type Stage = {
+    el: HTMLElement;
+    total: number;
+    accs: string[];
+    items: HTMLElement[];
+    dots: HTMLButtonElement[];
+    current: number;
+  };
+
+  const stages: Stage[] = Array.from(document.querySelectorAll<HTMLElement>('[data-stage]')).map((el) => ({
+    el,
+    total: Number(el.dataset.steps),
+    accs: JSON.parse(el.dataset.accs || '[]') as string[],
+    items: Array.from(el.querySelectorAll<HTMLElement>('[data-step]')),
+    dots: Array.from(el.querySelectorAll<HTMLButtonElement>('[data-goto]')),
+    current: -1,
+  }));
+
+  const setStep = (s: Stage, step: number) => {
+    if (step === s.current) return;
+    s.current = step;
+    s.items.forEach((el) => {
+      const i = Number(el.dataset.step);
+      el.classList.toggle('is-active', i === step);
+      el.classList.toggle('is-past', i < step);
+      if (el.hasAttribute('data-hide-inactive')) el.setAttribute('aria-hidden', String(i !== step));
+    });
+    s.dots.forEach((d) => d.classList.toggle('is-active', Number(d.dataset.goto) === step));
+    const acc = s.accs[step];
+    if (acc) s.el.style.setProperty('--acc', acc);
+  };
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+
+    if (hero) {
+      const p = clamp(scrollY / (hero.offsetHeight * 0.9));
+      hero.style.setProperty('--hp', p.toFixed(3));
+    }
+
+    for (const s of stages) {
+      const r = s.el.getBoundingClientRect();
+      if (r.bottom < -innerHeight || r.top > innerHeight * 2) continue;
+      const range = s.el.offsetHeight - innerHeight;
+      const p = clamp(-r.top / range);
+      const raw = p * s.total;
+      const step = Math.min(s.total - 1, Math.floor(raw));
+      setStep(s, step);
+      s.el.style.setProperty('--sp', clamp(raw - step).toFixed(3));
+      s.el.style.setProperty('--p', p.toFixed(3));
+    }
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll, { passive: true });
+  update();
+
+  // Escena 5: las cifras cuentan hacia arriba una sola vez al entrar en pantalla. El HTML ya trae el
+  // valor final, así que sin JS o con "reducir movimiento" se ve completo y quieto.
+  const conf = document.querySelector<HTMLElement>('[data-confianza]');
+  if (conf) {
+    const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const nums = Array.from(conf.querySelectorAll<HTMLElement>('[data-count]'));
+    const fmtN = (v: number, dec: number) => v.toFixed(dec).replace('.', ',');
+    if (!quieto) nums.forEach((el) => (el.textContent = fmtN(0, Number(el.dataset.dec))));
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        conf.classList.add('is-in');
+        if (quieto) return;
+        const t0 = performance.now();
+        const DUR = 1600;
+        const tick = (now: number) => {
+          const k = clamp((now - t0) / DUR);
+          const e = 1 - Math.pow(1 - k, 3);
+          nums.forEach((el) => {
+            const meta = Number(el.dataset.count);
+            const dec = Number(el.dataset.dec);
+            el.textContent = k >= 1 ? fmtN(meta, dec) : fmtN(meta * e, dec);
+          });
+          if (k < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(conf);
+  }
+
+  stages.forEach((s) =>
+    s.dots.forEach((d) =>
+      d.addEventListener('click', () => {
+        const i = Number(d.dataset.goto);
+        const range = s.el.offsetHeight - innerHeight;
+        const top = s.el.getBoundingClientRect().top + scrollY;
+        scrollTo({ top: top + (range * (i + 0.5)) / s.total, behavior: 'smooth' });
+      }),
+    ),
+  );
+</script>

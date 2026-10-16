@@ -1,0 +1,49 @@
+---
+// Preguntas frecuentes en estilo Flow. Preguntas y schema FAQPage: utils/faq.ts.
+import { faqs, faqSchema } from '../../utils/faq';
+import { waLink } from '../../utils/whatsapp';
+import Icon from '../Icon.astro';
+import '../../styles/flow.css';
+
+const origen = 'faq';
+---
+
+<section id="faq" class="fl-sec fl-centro" aria-labelledby="faq-titulo">
+  <div class="fl-glow fl-glow--cian" style="bottom:-30vmax;left:-25vmax" aria-hidden="true"></div>
+  <div class="fl-sec__inner">
+    <p class="fl-eyebrow fl-reveal">Resolvemos tus dudas</p>
+    <h2 id="faq-titulo" class="fl-h2 fl-reveal" style="--d:.08s">
+      Preguntas <span class="fl-grad">frecuentes</span>
+    </h2>
+
+    <div class="fl-faq">
+      {
+        faqs.map((item, i) => (
+          <details class="fl-pregunta fl-card fl-reveal" style={`--d:${Math.min(i, 6) * 0.05}s`}>
+            <summary>
+              {item.q}
+              <span class="fl-pregunta__mas" aria-hidden="true" />
+            </summary>
+            <p>{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+
+    <div class="fl-faq-cta fl-reveal">
+      <p>¿Tienes otra pregunta?</p>
+      <a
+        href={waLink(origen, 'Hola, tengo una pregunta')}
+        data-cta={origen}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="fl-btn fl-btn--lima fl-btn--grande"
+      >
+        <Icon name="whatsapp" class="fl-i" />
+        Pregúntanos por WhatsApp
+      </a>
+    </div>
+  </div>
+
+  {faqs.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+</section>

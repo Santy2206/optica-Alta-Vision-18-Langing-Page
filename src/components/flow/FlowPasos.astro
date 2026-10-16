@@ -1,0 +1,61 @@
+---
+// Paso a paso en estilo Flow. Mismo contenido que ComoFunciona.astro.
+import site from '../../utils/site';
+import { waLink } from '../../utils/whatsapp';
+import Icon from '../Icon.astro';
+import '../../styles/flow.css';
+
+const pasos = [
+  { icon: 'eye', titulo: 'Te hacemos el examen visual', detalle: '', acc: '#019FD8' },
+  {
+    icon: 'monitor',
+    titulo: 'Eliges tu montura y tu tipo de lente',
+    detalle: 'Más pequeño para tus gafas, o lentes de contacto blandos',
+    acc: '#C21173',
+  },
+  {
+    icon: 'check',
+    titulo: `Recoges tus gafas en ${site.tiempoEntrega}`,
+    detalle: 'Incluye kit de cuidado: limpiador, estuche y pañuelo',
+    acc: '#7CB928',
+  },
+] as const;
+
+const origen = 'como-funciona';
+---
+
+<section id="como-funciona" class="fl-sec fl-centro" aria-labelledby="pasos-titulo">
+  <div class="fl-glow fl-glow--iris" style="top:-20vmax;right:-20vmax" aria-hidden="true"></div>
+  <div class="fl-sec__inner">
+    <p class="fl-eyebrow fl-reveal">Paso a paso</p>
+    <h2 id="pasos-titulo" class="fl-h2 fl-reveal" style="--d:.08s">
+      Así de fácil <span class="fl-grad">funciona</span>
+    </h2>
+
+    <ol class="fl-pasos">
+      {
+        pasos.map((p, i) => (
+          <li class="fl-paso fl-card fl-reveal" style={`--acc:${p.acc};--d:${0.15 + i * 0.14}s`}>
+            <span class="fl-paso__num" aria-hidden="true">{`0${i + 1}`}</span>
+            <span class="fl-paso__icono">
+              <Icon name={p.icon} class="fl-i" />
+            </span>
+            <h3 class="fl-paso__titulo">{p.titulo}</h3>
+            {p.detalle && <p class="fl-paso__detalle">{p.detalle}</p>}
+          </li>
+        ))
+      }
+    </ol>
+
+    <a
+      href={waLink(origen, 'Hola, quiero agendar mi examen visual')}
+      data-cta={origen}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="fl-btn fl-btn--lima fl-btn--grande fl-cta fl-reveal"
+    >
+      <Icon name="whatsapp" class="fl-i" />
+      Empezar: agendar mi examen
+    </a>
+  </div>
+</section>

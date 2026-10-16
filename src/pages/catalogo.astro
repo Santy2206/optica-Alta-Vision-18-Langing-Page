@@ -13,6 +13,10 @@ import { isPlaceholderImage } from '../utils/images';
 import { getFrameShape } from '../data/frameShape';
 import FrameShapeIcon from '../components/FrameShapeIcon.astro';
 import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
+import FlowPasos from '../components/flow/FlowPasos.astro';
+import FlowOpiniones from '../components/flow/FlowOpiniones.astro';
+import FlowReveal from '../components/flow/FlowReveal.astro';
+import '../styles/flow.css';
 import { getCollection } from 'astro:content';
 
 const { title, description } = seo.catalogo;
@@ -35,33 +39,28 @@ const categorias = [
 >
   <Header />
 
-  <section class="bg-brand-tint py-10 md:py-14">
-    <div class="mx-auto max-w-6xl px-4">
-      <h1 class="text-2xl font-bold md:text-3xl">Catálogo completo</h1>
-      <p class="mt-2 text-slate-600">Filtra por categoría y encuentra tu montura ideal.</p>
-      <button
-        type="button"
-        data-facetest-open
-        class="border-2 border-slate-900 mt-4 inline-block rounded-full bg-verde-neon px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
-      >
+  <main class="flow">
+  <section class="fl-pagina">
+    <div class="fl-glow fl-glow--cian" style="top:-28vmax;right:-18vmax" aria-hidden="true"></div>
+    <div class="fl-glow fl-glow--magenta" style="bottom:-34vmax;left:-24vmax;opacity:.22" aria-hidden="true"></div>
+    <div class="fl-sec__inner">
+      <p class="fl-eyebrow">Óptica Alta Visión 18</p>
+      <h1 class="fl-h1">Catálogo <span class="fl-grad">completo</span></h1>
+      <p class="fl-lead">Filtra por categoría y encuentra tu montura ideal.</p>
+      <button type="button" data-facetest-open class="fl-btn fl-btn--lima mt-6">
         ¿No sabes cuál elegir? Haz el test de tu rostro
       </button>
     </div>
   </section>
 
-  <section class="bg-white py-10 md:py-16">
-    <div class="mx-auto max-w-6xl px-4">
+  <section class="fl-sec !pt-4 md:!pt-6">
+    <div class="fl-sec__inner">
       <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría" data-filter-group>
         {
           categorias.map((cat, i) => (
             <button
               type="button"
-              class:list={[
-                'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-                i === 0
-                  ? 'border-aguamarina bg-aguamarina text-slate-900'
-                  : 'border-slate-300 bg-white text-slate-700 hover:border-aguamarina hover:text-aguamarina',
-              ]}
+              class:list={['fl-chip', i === 0 && 'is-active']}
               data-filter-btn
               data-filter={cat.value}
               aria-pressed={i === 0 ? 'true' : 'false'}
@@ -98,7 +97,7 @@ const categorias = [
 
               return (
                 <article
-                  class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  class="fl-card fl-producto flex flex-col overflow-hidden"
                   data-catalog-item
                   data-category={item.data.category}
                 >
@@ -122,8 +121,8 @@ const categorias = [
                   </div>
                   <div class="flex flex-1 flex-col gap-2 p-4">
                     <div>
-                      <h2 class="line-clamp-3 min-h-[4.125rem] text-[0.95rem] font-semibold leading-[1.375rem] text-slate-900 sm:text-base md:line-clamp-2 md:min-h-[2.75rem]" title={item.data.name}>{item.data.name}</h2>
-                      <p class="text-sm text-slate-500">{item.data.brand}</p>
+                      <h2 class="line-clamp-3 min-h-[4.125rem] text-[0.95rem] font-semibold leading-[1.375rem] text-white sm:text-base md:line-clamp-2 md:min-h-[2.75rem]" title={item.data.name}>{item.data.name}</h2>
+                      <p class="text-sm text-white/60">{item.data.brand}</p>
                     </div>
 
                     {item.data.colors.length > 0 && (
@@ -131,10 +130,7 @@ const categorias = [
                         {item.data.colors.map((color, ci) => (
                           <button
                             type="button"
-                            class:list={[
-                              'h-6 w-6 rounded-full border border-slate-300 transition-shadow',
-                              ci === 0 && 'ring-2 ring-offset-2 ring-slate-900',
-                            ]}
+                            class:list={['fl-swatch', ci === 0 && 'is-sel']}
                             style={
                               color.hex2
                                 ? `background: linear-gradient(135deg, ${color.hex} 50%, ${color.hex2} 50%)`
@@ -153,11 +149,11 @@ const categorias = [
                       </div>
                     )}
 
-                    <p class:list={[isFallbackPrice(item.data.price) ? "text-sm text-slate-600" : "text-base font-medium text-slate-900"]}>{priceLabel}</p>
+                    <p class:list={[isFallbackPrice(item.data.price) ? "text-sm text-white/70" : "text-base font-medium text-white"]}>{priceLabel}</p>
                     <a
                       href={waHref}
                       data-cta={origen}
-                      class="border-2 border-slate-900 mt-auto inline-block rounded-full bg-verde-neon px-4 py-2 text-center text-sm font-semibold text-slate-900 transition-shadow hover:shadow-md"
+                      class="fl-btn fl-btn--lima fl-btn--sm mt-auto"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -166,7 +162,7 @@ const categorias = [
                     {overlayImage && (
                       <button
                         type="button"
-                        class="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
+                        class="fl-btn fl-btn--linea fl-btn--sm"
                         data-tryon-open
                         data-slug={item.id}
                         data-overlay-image={overlayImage}
@@ -185,22 +181,27 @@ const categorias = [
             })}
           </div>
         ) : (
-          <p class="text-center text-sm text-slate-500">
+          <p class="text-center text-sm text-white/60">
             Catálogo vacío — agrega monturas desde el CMS.
           </p>
         )
       }
 
-      <p class="mt-8 hidden text-center text-sm text-slate-500" data-empty-message>
+      <p class="mt-8 hidden text-center text-sm text-white/60" data-empty-message>
         No hay monturas en esta categoría todavía.
       </p>
     </div>
   </section>
 
+  <FlowPasos />
+  <FlowOpiniones />
+  </main>
+
   <Footer />
   <WhatsAppFloat />
   <TryOnModal />
   <FaceShapeTest />
+  <FlowReveal />
 </BaseLayout>
 
 <script>
@@ -222,11 +223,7 @@ const categorias = [
     buttons.forEach((btn) => {
       const active = btn.dataset.filter === filter;
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.classList.toggle('border-aguamarina', active);
-      btn.classList.toggle('bg-aguamarina', active);
-      btn.classList.toggle('text-slate-900', active);
-      btn.classList.toggle('bg-white', !active);
-      btn.classList.toggle('text-slate-700', !active);
+      btn.classList.toggle('is-active', active);
     });
   };
 
@@ -261,9 +258,7 @@ const categorias = [
 
     article.querySelectorAll<HTMLButtonElement>('[data-swatch]').forEach((s) => {
       const selected = s === swatch;
-      s.classList.toggle('ring-2', selected);
-      s.classList.toggle('ring-offset-2', selected);
-      s.classList.toggle('ring-slate-900', selected);
+      s.classList.toggle('is-sel', selected);
     });
   });
 
