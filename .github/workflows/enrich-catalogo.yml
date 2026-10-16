@@ -1,0 +1,55 @@
+# Enriquece el catálogo cuando el cliente sube fotos por el CMS (Decap → commit a main).
+# Genera con fal.ai: {foto}-tryon-src.webp, la foto hover (vista de lado) y el color del
+# marco; luego hace commit de todo de vuelta a main. Ver scripts/enrich-catalogo.mjs.
+#
+# Requiere el secret FAL_KEY en Settings → Secrets and variables → Actions.
+
+name: Enriquecer catálogo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/content/catalogo/*.json'
+      - 'public/uploads/catalogo/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: enrich-catalogo
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    # El commit de este mismo workflow vuelve a disparar el push; con esta guarda no
+    # entra en loop (además el script es idempotente).
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generar tryon-src / hover / colores
+        env:
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: node scripts/enrich-catalogo.mjs
+
+      - name: Commit resultados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/catalogo public/uploads/catalogo
+          if git diff --staged --quiet; then
+            echo "Nada que commitear"
+          else
+            git commit -m "chore(catalog): auto-generate tryon-src, hover images and frame colors via fal"
+            git push
+          fi

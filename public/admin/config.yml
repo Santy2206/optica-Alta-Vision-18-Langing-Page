@@ -117,7 +117,7 @@ collections:
         required: false
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
-        hint: "Opcional. Segunda foto de la montura (otro ángulo o en modelo). Se muestra al pasar el mouse sobre la foto principal. Si un color tiene su propia 'Segunda foto', esa tiene prioridad."
+        hint: "Opcional — se genera sola una vista de lado unos minutos después de subir la foto. Sube una manual solo si quieres reemplazar la generada."
       - label: Mostrar en "Más vendidas" (inicio)
         name: featured
         widget: boolean
@@ -128,7 +128,7 @@ collections:
         widget: list
         required: false
         default: []
-        hint: "Opcional. Cada color de MARCO se muestra como un círculo debajo del nombre. Los colores de lente van dentro de cada marco."
+        hint: "Opcional — el color principal se detecta solo al subir la foto. Edítalo si quieres corregirlo o agregar más colores del mismo modelo."
         fields:
           - { label: Nombre del color del marco, name: name, widget: string, hint: "Ej. Negro, Dorado, Habano" }
           - { label: Color (swatch), name: hex, widget: color }
