@@ -10,18 +10,20 @@ import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from
 
 const all = await getCollection('catalogo');
 const featured = all.filter((item) => item.data.featured);
-// Home: máximo 6. Con menos de 2 "destacadas" el carrusel se ve como una tarjeta suelta,
-// así que completamos con el resto del catálogo.
+// Home: TODAS las destacadas, sin tope. Con menos de 2 el carrusel se ve como una tarjeta
+// suelta, así que se completa con el catálogo (ahí sí limitado a MAX_HOME para no volcar
+// todo el catálogo en el inicio).
 const MAX_HOME = 6;
 // Las formuladas van primero (propuesta principal: examen + gafas formuladas); sort es estable.
 const formuladasPrimero = (list: typeof all) =>
   [...list].sort((x, y) => Number(y.data.category === 'formuladas') - Number(x.data.category === 'formuladas'));
-// Si hay más destacadas que cupos, entran las MÁS RECIENTES (createdAt lo pone el CMS al
-// crear la montura; las anteriores sin fecha cuentan como las más viejas). Antes se cortaba
-// por orden alfabético y una montura recién destacada podía no aparecer nunca.
+// Dentro de cada grupo, las más recientes primero (createdAt lo pone el CMS al crear la
+// montura; las anteriores sin fecha cuentan como las más viejas).
 const createdAt = (item: (typeof all)[number]) => Date.parse(item.data.createdAt ?? '') || 0;
 const masRecientes = (list: typeof all) => [...list].sort((x, y) => createdAt(y) - createdAt(x));
-const items = formuladasPrimero(masRecientes(featured.length > 1 ? featured : all).slice(0, MAX_HOME));
+const items = formuladasPrimero(
+  featured.length > 1 ? masRecientes(featured) : masRecientes(all).slice(0, MAX_HOME),
+);
 
 const siteUrl = Astro.site ?? new URL(Astro.url.origin);
 
