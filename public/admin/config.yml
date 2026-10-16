@@ -104,12 +104,6 @@ collections:
           - { label: Ovalada, value: ovalada }
           - { label: Ojo de gato (cat-eye), value: cat-eye }
         hint: "El test de forma de rostro usa esto para recomendar la montura a quien le favorece. Para lentes blandos elige cualquiera (no se usa)."
-      - label: Precio (COP)
-        name: price
-        widget: number
-        required: false
-        value_type: int
-        hint: "Vacío = se muestra 'Monturas desde $X' (Configuración) o 'Cotiza por WhatsApp'."
       - label: Imagen
         name: image
         widget: image
