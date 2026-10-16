@@ -6,7 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "predev": "node -e \"fs.rmSync('.astro',{recursive:true,force:true})\"",
     "dev": "astro dev",
+    "prebuild": "node -e \"fs.rmSync('.astro',{recursive:true,force:true})\"",
     "build": "node scripts/generate-cutouts.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
