@@ -58,6 +58,12 @@ jobs:
           FAL_KEY: ${{ secrets.FAL_KEY }}
         run: node scripts/enrich-catalogo.mjs
 
+      # Los recortes (quitar fondo) se generan aquí y se commitean: así el build de Netlify
+      # los encuentra hechos y solo corre astro build (segundos).
+      - name: Generar recortes
+        continue-on-error: true
+        run: node scripts/generate-cutouts.mjs
+
       - name: Commit y push
         env:
           PENDING: ${{ steps.pending.outputs.value }}
