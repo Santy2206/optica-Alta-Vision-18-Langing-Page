@@ -291,11 +291,15 @@ async function main() {
 
       // 3. Color del marco: caption del original con IA; sin key, píxeles del tryon-src.
       if (!Array.isArray(entry.colors) || entry.colors.length === 0) {
+        // El caption se lee sobre el tryon-src (fondo blanco, solo la montura): la foto
+        // original suele traer objetos de fondo que contaminan el color (ej. "red").
         const pixelSource = existsSync(tryonPath) ? tryonPath : sourcePath;
-        const color = await detectFrameColor(
-          pixelSource,
-          hasKey ? await getFalUrl() : null,
-        );
+        const captionUrl = hasKey
+          ? existsSync(tryonPath)
+            ? await fal.storage.upload(new Blob([readFileSync(tryonPath)]))
+            : await getFalUrl()
+          : null;
+        const color = await detectFrameColor(pixelSource, captionUrl);
         entry.colors = [{ name: color.name, hex: color.hex, lenses: [] }];
         dirty = true;
         console.log(`color detectado para ${file}: ${color.name} ${color.hex}`);
