@@ -29,7 +29,8 @@ const CATALOGO_DIR = path.join(ROOT, 'src', 'content', 'catalogo');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 
 const KONTEXT_MODEL = 'fal-ai/flux-pro/kontext';
-const CAPTION_MODEL = 'fal-ai/florence-2-large/more-detailed-caption';
+const VISION_MODEL = 'openrouter/router/vision';
+const VISION_LLM = 'google/gemini-2.5-flash';
 
 // Paso 1: de la foto cruda del cliente (fondo del local, reflejos, desenfoque) se
 // recrea el producto desde cero como packshot limpio. Es la imagen de la tarjeta.
@@ -57,16 +58,22 @@ const SIDE_PROMPT =
 // Paleta de nombres para el swatch (los clientes pueden corregirla a mano en el CMS).
 const FRAME_COLORS = [
   ['Negro', [31, 31, 31]],
+  ['Gris oscuro', [85, 87, 90]],
   ['Gris', [128, 130, 133]],
   ['Plateado', [199, 201, 203]],
   ['Dorado', [198, 160, 60]],
+  ['Rosa dorado', [201, 150, 130]],
   ['Champán', [212, 190, 152]],
+  ['Bronce', [140, 108, 78]],
   ['Habano', [124, 74, 41]],
   ['Café', [74, 47, 35]],
   ['Azul', [39, 64, 139]],
   ['Verde', [46, 107, 63]],
   ['Rojo', [163, 44, 44]],
+  ['Vinotinto', [110, 30, 50]],
   ['Rosado', [211, 106, 154]],
+  ['Morado', [100, 60, 140]],
+  ['Naranja', [220, 110, 40]],
 ];
 
 fal.config({ credentials: process.env.FAL_KEY });
@@ -107,42 +114,28 @@ async function kontextEdit(imageUrl, prompt) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-/** Caption de Florence-2 sobre una imagen ya subida a fal (para detectar el color). */
-async function captionImage(imageUrl) {
-  const result = await fal.subscribe(CAPTION_MODEL, {
-    input: { image_url: imageUrl },
+// Pregunta directa a un modelo de visión (OpenRouter vía fal) sobre el MARCO. Mucho más
+// fiable que buscar palabras de color en un caption: se le pide ignorar lentes, fondo y
+// sombras, y responder solo con un nombre de la paleta.
+async function askFrameColor(imageUrl) {
+  const names = FRAME_COLORS.map(([name]) => name).concat('Transparente');
+  const result = await fal.subscribe(VISION_MODEL, {
+    input: {
+      model: VISION_LLM,
+      image_urls: [imageUrl],
+      temperature: 0,
+      system_prompt: 'Respond with only the answer. No markdown, no punctuation, no explanation.',
+      prompt:
+        'This is a product photo of eyeglasses. Identify the color of the FRAME only: the ' +
+        'rim around the lenses, the bridge and the temple arms. Ignore the lenses, the ' +
+        'white background and any shadows. If the frame is see-through acetate, answer ' +
+        `Transparente. Answer with exactly one name from this list: ${names.join(', ')}.`,
+    },
   });
-  return String(result.data?.results ?? '').toLowerCase();
+  return String(result.data?.output ?? '').trim();
 }
 
-// Palabra en inglés del caption → nombre en español. Se evalúa por POSICIÓN en el
-// caption (el color principal se menciona primero; los acentos después).
-const COLOR_KEYWORDS = [
-  ['rose gold', 'Rosado'],
-  ['gold', 'Dorado'],
-  ['silver', 'Plateado'],
-  ['black', 'Negro'],
-  ['tortoise', 'Habano'],
-  ['havana', 'Habano'],
-  ['amber', 'Habano'],
-  ['brown', 'Café'],
-  ['blue', 'Azul'],
-  ['navy', 'Azul'],
-  ['green', 'Verde'],
-  ['red', 'Rojo'],
-  ['burgundy', 'Rojo'],
-  ['pink', 'Rosado'],
-  ['gray', 'Gris'],
-  ['grey', 'Gris'],
-  ['gunmetal', 'Gris'],
-  ['clear', 'Transparente'],
-  ['transparent', 'Transparente'],
-  ['crystal', 'Transparente'],
-  ['beige', 'Champán'],
-  ['champagne', 'Champán'],
-  ['cream', 'Champán'],
-  ['white', 'Transparente'],
-];
+const normalize = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 const PALETTE_HEX = Object.fromEntries(
   FRAME_COLORS.map(([name, rgb]) => [
@@ -152,30 +145,25 @@ const PALETTE_HEX = Object.fromEntries(
 );
 PALETTE_HEX.Transparente = '#dfe3e8';
 
-function colorNameFromCaption(caption) {
-  let best = null;
-  let bestIdx = Infinity;
-  for (const [keyword, name] of COLOR_KEYWORDS) {
-    const idx = caption.indexOf(keyword);
-    if (idx >= 0 && (idx < bestIdx || (idx === bestIdx && keyword.length > (best?.[0].length ?? 0)))) {
-      bestIdx = idx;
-      best = [keyword, name];
-    }
-  }
-  return best ? { name: best[1], hex: PALETTE_HEX[best[1]] } : null;
+/** Respuesta del modelo → { name, hex } de la paleta, o null si no coincide con ninguna. */
+function matchPaletteColor(answer) {
+  const text = normalize(answer);
+  const names = Object.keys(PALETTE_HEX).sort((a, b) => b.length - a.length);
+  const name = names.find((n) => text.includes(normalize(n)));
+  return name ? { name, hex: PALETTE_HEX[name] } : null;
 }
 
 /**
- * Color del marco → { name, hex }. Primario: caption de Florence-2 sobre la foto
- * original (entiende "gold metal frame" aunque el aro tenga 5px). Fallback sin
- * FAL_KEY: heurística de píxeles — menos precisa en metales delgados.
+ * Color del marco → { name, hex }. Primario: el modelo de visión mira la imagen limpia
+ * (frente generado, fondo blanco). Fallback sin FAL_KEY o si responde algo fuera de la
+ * paleta: heurística de píxeles — menos precisa en metales delgados.
  */
 async function detectFrameColor(sourcePath, imageUrl) {
   if (imageUrl) {
-    const caption = await captionImage(imageUrl);
-    const fromCaption = colorNameFromCaption(caption);
-    if (fromCaption) return fromCaption;
-    console.warn(`caption sin color reconocible ("${caption.slice(0, 80)}…"), usando píxeles`);
+    const answer = await askFrameColor(imageUrl);
+    const match = matchPaletteColor(answer);
+    if (match) return match;
+    console.warn(`respuesta de color fuera de la paleta ("${answer.slice(0, 60)}"), usando píxeles`);
   }
   return detectFrameColorFromPixels(sourcePath);
 }
