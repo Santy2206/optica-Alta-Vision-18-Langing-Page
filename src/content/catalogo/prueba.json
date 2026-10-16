@@ -1,10 +1,17 @@
 {
   "brand": "Óptica Alta Visión 18",
   "featured": true,
-  "colors": [],
+  "colors": [
+    {
+      "name": "Rojo",
+      "hex": "#a32c2c",
+      "lenses": []
+    }
+  ],
   "name": "PRUEBA",
   "category": "formuladas",
   "frameShape": "redonda",
   "image": "/uploads/catalogo/prueba.jpeg",
-  "imageAlt": "PRUEBA"
+  "imageAlt": "PRUEBA",
+  "hoverImage": "/uploads/catalogo/prueba-side.webp"
 }
