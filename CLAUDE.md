@@ -48,7 +48,7 @@ public/uploads/{catalogo,promociones}/
 **catalogo** (`getCollection('catalogo')`):
 `name`, `brand` default `"Óptica Alta Visión 18"`, `category` enum `formuladas|sol|ninos|deportivas|contacto`,
 `frameShape?` enum `aviador|cuadrada|rectangular|clubmaster|redonda|ovalada|cat-eye` (obligatorio en el CMS; alimenta el test de forma de rostro vía `frameRecommendations` en `src/data/faceShapeQuiz.ts`; si falta se infiere del nombre),
-`price` number|null (`null` → "Consultar precio"), `image`, `imageAlt`, `hoverImage?` (foto al pasar el mouse), `featured`.
+`createdAt?` (ISO; Decap la pone con {{now}} al crear; el carrusel "Más vendidas" del inicio muestra las 6 `featured` más recientes por esta fecha, las sin fecha cuentan como más viejas), `price` number|null (`null` → "Consultar precio"), `image`, `imageAlt`, `hoverImage?` (foto al pasar el mouse), `featured`.
 
 **promociones** (`getCollection('promociones')`):
 `title`, `description`, `image?`, `active` default false, `ctaText` default "Aprovecha esta promo".

@@ -13,5 +13,6 @@
   "frameShape": "redonda",
   "image": "/uploads/catalogo/prueba-front.webp",
   "imageAlt": "PRUEBA",
-  "hoverImage": "/uploads/catalogo/prueba-front-side.webp"
+  "hoverImage": "/uploads/catalogo/prueba-front-side.webp",
+  "createdAt": "2026-10-16T20:27:11.000Z"
 }

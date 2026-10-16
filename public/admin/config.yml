@@ -122,7 +122,13 @@ collections:
         name: featured
         widget: boolean
         default: false
-        hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio."
+        hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio. El carrusel muestra las 6 destacadas más recientes (según 'Fecha de alta')."
+      - label: Fecha de alta
+        name: createdAt
+        widget: datetime
+        default: "{{now}}"
+        required: false
+        hint: "Se llena sola al crear la montura; no hace falta tocarla. Decide cuáles destacadas entran en el inicio (las más nuevas primero)."
       - label: Colores del marco
         name: colors
         widget: list
