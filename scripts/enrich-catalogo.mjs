@@ -1,10 +1,14 @@
 // Enriquece automáticamente las entradas del catálogo usando fal.ai (FLUX Kontext).
 //
-// El cliente sube UNA foto frontal por el CMS; este script genera lo demás:
-//   1. {foto}-tryon-src.webp — frente recto, patas eliminadas, lente en blanco puro
+// El cliente sube UNA foto frontal por el CMS (puede ser cruda: fondo del local,
+// reflejos, desenfoque); este script genera lo demás, encadenado:
+//   0. {foto}-front.webp — la IA recrea las gafas desde cero como packshot limpio
+//      (fondo blanco, cristal sin color). Reemplaza entry.image: es la foto de la tarjeta.
+//   1. {foto}-front-tryon-src.webp — DESDE el frente: sin patas, lente en blanco puro
 //      (fuente que usa generate-cutouts.mjs para "Probar con cámara").
-//   2. {foto}-side.webp — vista de lado de las mismas gafas → se guarda como hoverImage.
-//   3. colors[] — color dominante del marco detectado de la imagen (nombre + hex).
+//   2. {foto}-front-side.webp — DESDE el frente: vista lateral → hoverImage.
+//   3. colors[] — color del marco (caption sobre el tryon-src limpio).
+// Monturas anteriores (ya con tryon-src) no se reprocesan.
 //
 // Solo rellena lo que FALTA: si el cliente editó hoverImage o colors a mano en el CMS,
 // no se pisa nada. Es idempotente — correrlo de nuevo sobre un catálogo completo no hace
@@ -27,16 +31,28 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const KONTEXT_MODEL = 'fal-ai/flux-pro/kontext';
 const CAPTION_MODEL = 'fal-ai/florence-2-large/more-detailed-caption';
 
+// Paso 1: de la foto cruda del cliente (fondo del local, reflejos, desenfoque) se
+// recrea el producto desde cero como packshot limpio. Es la imagen de la tarjeta.
+const FRONT_PROMPT =
+  'Recreate these exact eyeglasses from scratch as a clean professional e-commerce ' +
+  'product photo. Perfectly straight front view, frame centered and symmetrical, side ' +
+  'arms (temples) not visible. Keep the exact same frame shape, color, material, bridge ' +
+  'and nose pads. The lenses must be completely clear and colorless, as if there were ' +
+  'no glass at all (pure white seen through them). No reflections, no mirrored copy, ' +
+  'no shadows, no background objects, no text. Pure white seamless studio background.';
+
+// Pasos 2 y 3 parten del frente generado (no de la foto cruda).
 const TRYON_PROMPT =
-  'Edit this product photo of eyeglasses: show the exact same frame from a perfectly ' +
-  'straight front view. Remove the temples (side arms) completely. Fill the inside of ' +
-  'each lens with pure solid white. Keep the frame shape, color, material and bridge ' +
-  'identical. Pure white studio background, no shadows.';
+  'Keep this eyeglasses frame exactly identical in shape, color, material and bridge, ' +
+  'perfectly straight front view. Make sure no temples (side arms) are visible anywhere, ' +
+  'including through the lenses. Fill the inside of each lens with pure solid white ' +
+  '(#FFFFFF), as if there were no glass. Pure white background, no shadows.';
 
 const SIDE_PROMPT =
-  'Generate a product photo of the exact same eyeglasses seen from a clean side profile ' +
-  'view, showing one temple arm extended horizontally. Same frame color, material and ' +
-  'lens tint as the original. Pure white studio background, no shadows.';
+  'Show the exact same eyeglasses from a clean three-quarter side profile view, with one ' +
+  'temple arm extended. Same frame shape, color and material. The lenses are completely ' +
+  'clear and colorless, as if there were no glass. No reflections, no shadows. Pure white ' +
+  'seamless studio background.';
 
 // Paleta de nombres para el swatch (los clientes pueden corregirla a mano en el CMS).
 const FRAME_COLORS = [
@@ -63,6 +79,14 @@ function tryOnSrcPath(imageUrl) {
   const disk = toDiskPath(imageUrl);
   const base = path.basename(disk, path.extname(disk));
   return path.join(path.dirname(disk), `${base}-tryon-src.webp`);
+}
+
+/** El frente generado termina en "-front.webp": marca de que ya se procesó esa foto. */
+const isFrontImage = (url) => /-front\.webp$/.test(url);
+
+function frontImageUrl(imageUrl) {
+  const base = path.basename(imageUrl, path.extname(imageUrl));
+  return `/uploads/catalogo/${base}-front.webp`;
 }
 
 function sideImageUrl(imageUrl) {
@@ -233,13 +257,12 @@ async function main() {
   for (const file of files) {
     const filePath = path.join(CATALOGO_DIR, file);
     const entry = JSON.parse(readFileSync(filePath, 'utf8'));
-    const image = entry.image;
+    let image = entry.image;
 
     if (!image || isPlaceholder(image) || !image.startsWith('/uploads/catalogo/')) {
       continue;
     }
-    const sourcePath = toDiskPath(image);
-    if (!existsSync(sourcePath)) {
+    if (!existsSync(toDiskPath(image))) {
       console.warn(`skip ${file}: no existe ${image}`);
       continue;
     }
@@ -247,23 +270,50 @@ async function main() {
     let dirty = false;
 
     try {
-      // La foto se sube a fal una sola vez y la URL sirve para Kontext + caption.
-      let falImageUrl = null;
-      const getFalUrl = async () => {
-        if (!falImageUrl) {
-          falImageUrl = await fal.storage.upload(new Blob([readFileSync(sourcePath)]));
+      // Sube a fal una sola vez cada imagen y reutiliza la URL entre llamadas.
+      const uploads = new Map();
+      const getFalUrl = async (diskPath) => {
+        if (!uploads.has(diskPath)) {
+          uploads.set(diskPath, await fal.storage.upload(new Blob([readFileSync(diskPath)])));
         }
-        return falImageUrl;
+        return uploads.get(diskPath);
       };
 
-      // 1. Fuente para "Probar con cámara" (frente recto, sin patas, lente blanco).
+      // 0. Foto cruda del cliente → frente limpio generado desde cero. Se omite si la
+      // imagen ya es un "-front" o si la montura es anterior a esta automatización
+      // (ya tiene su tryon-src y no se toca).
+      if (!isFrontImage(image) && !existsSync(tryOnSrcPath(image))) {
+        if (!hasKey) {
+          console.warn(`falta frente limpio para ${file} (sin FAL_KEY no se genera)`);
+          continue;
+        }
+        const frontUrl = frontImageUrl(image);
+        const frontPath = toDiskPath(frontUrl);
+        if (!existsSync(frontPath)) {
+          console.log(`generando frente limpio → ${path.basename(frontPath)}`);
+          const out = await kontextEdit(await getFalUrl(toDiskPath(image)), FRONT_PROMPT);
+          await sharp(out).webp({ quality: 92 }).toFile(frontPath);
+          generated++;
+        }
+        entry.image = frontUrl;
+        // Un hover auto-generado de una foto anterior ya no corresponde a esta.
+        if (/-side\.webp$/.test(entry.hoverImage ?? '')) delete entry.hoverImage;
+        image = frontUrl;
+        dirty = true;
+        // Guarda ya: si un paso posterior falla, el frente no se regenera ni se paga dos veces.
+        writeFileSync(filePath, `${JSON.stringify(entry, null, 2)}\n`);
+      }
+
+      const sourcePath = toDiskPath(image);
+
+      // 1. Fuente para "Probar con cámara" (desde el frente: sin patas, lente blanco).
       const tryonPath = tryOnSrcPath(image);
       if (!existsSync(tryonPath)) {
         if (!hasKey) {
           console.warn(`falta tryon-src para ${file} (sin FAL_KEY no se genera)`);
         } else {
           console.log(`generando tryon-src → ${path.basename(tryonPath)}`);
-          const out = await kontextEdit(await getFalUrl(), TRYON_PROMPT);
+          const out = await kontextEdit(await getFalUrl(sourcePath), TRYON_PROMPT);
           await sharp(out).webp({ quality: 90 }).toFile(tryonPath);
           generated++;
         }
@@ -279,7 +329,7 @@ async function main() {
           dirty = true;
         } else if (hasKey) {
           console.log(`generando hover → ${path.basename(sideUrl)}`);
-          const out = await kontextEdit(await getFalUrl(), SIDE_PROMPT);
+          const out = await kontextEdit(await getFalUrl(sourcePath), SIDE_PROMPT);
           await sharp(out).webp({ quality: 90 }).toFile(sidePath);
           entry.hoverImage = sideUrl;
           dirty = true;
@@ -294,11 +344,7 @@ async function main() {
         // El caption se lee sobre el tryon-src (fondo blanco, solo la montura): la foto
         // original suele traer objetos de fondo que contaminan el color (ej. "red").
         const pixelSource = existsSync(tryonPath) ? tryonPath : sourcePath;
-        const captionUrl = hasKey
-          ? existsSync(tryonPath)
-            ? await fal.storage.upload(new Blob([readFileSync(tryonPath)]))
-            : await getFalUrl()
-          : null;
+        const captionUrl = hasKey ? await getFalUrl(pixelSource) : null;
         const color = await detectFrameColor(pixelSource, captionUrl);
         entry.colors = [{ name: color.name, hex: color.hex, lenses: [] }];
         dirty = true;
