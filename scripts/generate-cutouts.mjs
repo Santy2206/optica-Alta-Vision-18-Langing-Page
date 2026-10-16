@@ -10,7 +10,8 @@
 // Volver a correr manualmente: node scripts/generate-cutouts.mjs
 
 import { removeBackground } from '@imgly/background-removal-node';
-import { readdirSync, readFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync, writeFileSync as writeFile, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
@@ -673,11 +674,15 @@ async function normalizeDisplayCutout(rawBuffer) {
     .toBuffer();
 }
 
-/** true si el recorte no existe, o si la foto original es más nueva (se subió una nueva). */
-function needsProcessing(sourcePath, outPath) {
-  if (!existsSync(outPath)) return true;
-  return statSync(sourcePath).mtimeMs > statSync(outPath).mtimeMs;
-}
+/**
+ * Firma del contenido de las fotos de origen de un recorte. Se compara el HASH, no las
+ * fechas de modificación: en un clon limpio de git (Netlify) los mtime son arbitrarios y
+ * hacían re-recortar ~26 imágenes en CADA build (~2.5 min, hasta para borrar una montura).
+ */
+const MANIFEST_PATH = path.join(CUTOUTS_DIR, '.manifest.json');
+const sha1 = (file) => createHash('sha1').update(readFileSync(file)).digest('hex');
+const sourceSignature = (sourcePath, tryOnSource) =>
+  `${sha1(sourcePath)}:${tryOnSource === sourcePath ? '' : sha1(tryOnSource)}`;
 
 async function run() {
   const images = collectRealImages();
@@ -687,6 +692,8 @@ async function run() {
   }
 
   mkdirSync(CUTOUTS_DIR, { recursive: true });
+  const manifest = existsSync(MANIFEST_PATH) ? JSON.parse(readFileSync(MANIFEST_PATH, 'utf-8')) : {};
+  const before = JSON.stringify(manifest);
 
   let done = 0;
   let skipped = 0;
@@ -707,11 +714,12 @@ async function run() {
     }
     const tryOnSource = tryOnSourcePath(sourcePath);
 
-    if (
-      !needsProcessing(sourcePath, outPath) &&
-      !needsProcessing(tryOnSource, tryOnPath) &&
-      !needsProcessing(tryOnSource, photoPath)
-    ) {
+    const key = path.basename(imageUrl, path.extname(imageUrl));
+    const signature = sourceSignature(sourcePath, tryOnSource);
+    const outputsExist = existsSync(outPath) && existsSync(tryOnPath) && existsSync(photoPath);
+    if (outputsExist && (manifest[key] === undefined || manifest[key] === signature)) {
+      // Recortes ya existentes sin firma (anteriores al manifest) se adoptan como vigentes.
+      manifest[key] = signature;
       skipped += 1;
       continue;
     }
@@ -753,6 +761,7 @@ async function run() {
       const photoBuffer = await sharp(photochromicFeathered, { raw: { width, height, channels } }).png().toBuffer();
       writeFileSync(photoPath, photoBuffer);
 
+      manifest[key] = signature;
       done += 1;
       console.log(`[cutouts] ${imageUrl} → ${outUrl} (+ ${tryOnUrl}, ${photoUrl})`);
     } catch (error) {
@@ -760,6 +769,9 @@ async function run() {
       console.warn(`[cutouts] No se pudo recortar ${imageUrl}: ${error.message}`);
     }
   }
+
+  const sorted = Object.fromEntries(Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b)));
+  if (JSON.stringify(sorted) !== before) writeFile(MANIFEST_PATH, `${JSON.stringify(sorted, null, 2)}\n`);
 
   console.log(`[cutouts] Listo. ${done} nuevas, ${skipped} ya existían, ${failed} fallaron.`);
 }

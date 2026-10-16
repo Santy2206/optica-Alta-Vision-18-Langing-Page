@@ -104,18 +104,12 @@ collections:
           - { label: Ovalada, value: ovalada }
           - { label: Ojo de gato (cat-eye), value: cat-eye }
         hint: "El test de forma de rostro usa esto para recomendar la montura a quien le favorece. Para lentes blandos elige cualquiera (no se usa)."
-      - label: Precio (COP)
-        name: price
-        widget: number
-        required: false
-        value_type: int
-        hint: "Vacío = se muestra 'Monturas desde $X' (Configuración) o 'Cotiza por WhatsApp'."
       - label: Imagen
         name: image
         widget: image
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
-        hint: "Sube la foto tal cual la tomaste. El sitio recorta el fondo automáticamente en el siguiente despliegue (no hace falta editarla) y ese recorte es también lo que se usa para 'Probar con cámara'."
+        hint: "Sube la foto tal cual la tomaste (puede tener fondo). La IA genera sola la versión limpia con fondo blanco, la vista de lado y la de 'Probar con cámara'. Después de publicar, la montura aparece en el sitio en unos 3 a 5 minutos."
       - { label: Texto alternativo de imagen, name: imageAlt, widget: string }
       - label: Imagen al pasar el mouse (hover)
         name: hoverImage
@@ -123,18 +117,24 @@ collections:
         required: false
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
-        hint: "Opcional. Segunda foto de la montura (otro ángulo o en modelo). Se muestra al pasar el mouse sobre la foto principal. Si un color tiene su propia 'Segunda foto', esa tiene prioridad."
+        hint: "Opcional — se genera sola una vista de lado unos minutos después de subir la foto. Sube una manual solo si quieres reemplazar la generada."
       - label: Mostrar en "Más vendidas" (inicio)
         name: featured
         widget: boolean
         default: false
-        hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio."
+        hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio. Todas las destacadas aparecen en el carrusel, las más recientes primero."
+      - label: Fecha de alta
+        name: createdAt
+        widget: datetime
+        default: "{{now}}"
+        required: false
+        hint: "Se llena sola al crear la montura; no hace falta tocarla. Ordena el carrusel del inicio (las más nuevas primero)."
       - label: Colores del marco
         name: colors
         widget: list
         required: false
         default: []
-        hint: "Opcional. Cada color de MARCO se muestra como un círculo debajo del nombre. Los colores de lente van dentro de cada marco."
+        hint: "Opcional — el color principal se detecta solo al subir la foto. Edítalo si quieres corregirlo o agregar más colores del mismo modelo."
         fields:
           - { label: Nombre del color del marco, name: name, widget: string, hint: "Ej. Negro, Dorado, Habano" }
           - { label: Color (swatch), name: hex, widget: color }

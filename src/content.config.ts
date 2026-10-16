@@ -28,6 +28,8 @@ const catalogo = defineCollection({
      * Si un color define modelImage, esa tiene prioridad al seleccionar el swatch. */
     hoverImage: z.string().optional(),
     featured: z.boolean().default(false),
+    /** Fecha de alta (ISO). Decap la completa con {{now}} al crear; decide qué destacadas entran en el inicio. */
+    createdAt: z.string().optional(),
     /** Colores del MARCO (swatches en la tarjeta del catálogo) */
     colors: z
       .array(

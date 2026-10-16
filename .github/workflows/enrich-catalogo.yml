@@ -1,0 +1,90 @@
+# Enriquece el catálogo cuando el cliente sube fotos por el CMS (Decap → commit a main).
+# Genera con fal.ai: frente limpio, tryon-src, foto hover (vista de lado) y color del
+# marco; luego hace commit de todo de vuelta a main. Ver scripts/enrich-catalogo.mjs.
+#
+# Coordinación con Netlify: scripts/netlify-ignore.mjs salta el build del commit del CMS
+# mientras haya monturas pendientes. Por eso este workflow SIEMPRE termina con un commit
+# del bot cuando había pendientes (aunque la IA falle): ese commit dispara el único build.
+#
+# Requiere el secret FAL_KEY en Settings → Secrets and variables → Actions.
+
+name: Enriquecer catálogo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/content/catalogo/*.json'
+      - 'public/uploads/catalogo/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: enrich-catalogo
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    # El commit de este mismo workflow no lo vuelve a disparar (GITHUB_TOKEN), y el script
+    # es idempotente; la guarda es un seguro extra.
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: ¿Hay monturas pendientes?
+        id: pending
+        run: |
+          if node scripts/netlify-ignore.mjs --pending; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Si la IA falla no se aborta: el commit final de abajo debe ocurrir igual para que
+      # Netlify (que se saltó el build del CMS) publique la montura.
+      - name: Generar frente / tryon-src / hover / colores
+        continue-on-error: true
+        env:
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: node scripts/enrich-catalogo.mjs
+
+      # Los recortes (quitar fondo) se generan aquí y se commitean: así el build de Netlify
+      # los encuentra hechos y solo corre astro build (segundos).
+      - name: Generar recortes
+        continue-on-error: true
+        run: node scripts/generate-cutouts.mjs
+
+      - name: Commit y push
+        env:
+          PENDING: ${{ steps.pending.outputs.value }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/catalogo public/uploads/catalogo
+          if git diff --staged --quiet; then
+            if [ "$PENDING" != "true" ]; then
+              echo "Nada que commitear"
+              exit 0
+            fi
+            git commit --allow-empty -m "chore(catalog): publish catalog entry (enrichment finished)"
+          else
+            git commit -m "chore(catalog): auto-generate front, tryon-src, hover images and frame colors via fal"
+          fi
+          # main pudo avanzar mientras trabajaba la IA (otra edición del CMS): rebase y reintento.
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 3))
+          done
+          echo "No se pudo hacer push tras 5 intentos"
+          exit 1
