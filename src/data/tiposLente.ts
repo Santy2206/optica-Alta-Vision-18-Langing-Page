@@ -8,8 +8,6 @@ type TipoLente = {
   imagenActiva?: string;
   /** Reflejo de color del lente (hex): se muestra como velo en hover en el selector. */
   tinte?: string;
-  /** Mini-visual especial en el selector (p. ej. el progresivo con sus zonas). */
-  visual?: 'progresivo';
 };
 
 export const tiposLente: readonly TipoLente[] = [
@@ -20,11 +18,10 @@ export const tiposLente: readonly TipoLente[] = [
     descripcion: 'Una sola graduación en todo el lente',
   },
   {
-    imagen: '/images/tipos-lente/progresivos.webp',
-    alt: 'Gafas con lentes progresivos frente a un computador y una ventana',
+    imagen: '/images/tipos-lente/progresivos-zonas.webp',
+    alt: 'Lente progresivo con las zonas de visión marcadas: lejos, intermedio y cerca',
     nombre: 'Progresivos',
     descripcion: 'Lejos · intermedio · cerca',
-    visual: 'progresivo',
   },
   {
     imagen: '/images/tipos-lente/filtro-luz-azul.webp',
