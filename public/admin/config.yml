@@ -27,7 +27,7 @@ auth:
   avatar_url_claim: avatar_url
 
 logo_url: https://decapbridge.com/decapcms-with-bridge.svg
-site_url: https://optica-alta-vision-18.netlify.app
+site_url: https://opticaltavision18.com
 
 media_folder: public/uploads
 public_folder: /uploads
