@@ -4,6 +4,8 @@ type TipoLente = {
   nombre: string;
   /** Misma foto con el lente activado: la tarjeta alterna entre ambas (animación). */
   imagenActiva?: string;
+  /** Reflejo de color del lente (hex): se muestra como velo en hover en el selector. */
+  tinte?: string;
 };
 
 export const tiposLente: readonly TipoLente[] = [
@@ -21,6 +23,7 @@ export const tiposLente: readonly TipoLente[] = [
     imagen: '/images/tipos-lente/filtro-luz-azul.webp',
     alt: 'Gafas con filtro de luz azul junto a un portátil encendido',
     nombre: 'Filtro luz azul',
+    tinte: '#38BDF8',
   },
   {
     imagen: '/images/tipos-lente/fotocromaticos.webp',

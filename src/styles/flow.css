@@ -809,6 +809,17 @@ html:not(.fl-js) .flow .fl-paso::after {
 .fl-lente__opt:hover .fl-lente__thumb-activa {
   opacity: 1;
 }
+/* Reflejo de color del lente (p. ej. filtro azul): velo diagonal en hover. */
+.fl-lente__thumb-tinte {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+  transition: opacity 0.35s ease;
+}
+.fl-lente__opt:hover .fl-lente__thumb-tinte {
+  opacity: 0.7;
+}
 .fl-lente__opt--plano {
   justify-content: center;
   font-weight: 500;

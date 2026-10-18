@@ -37,6 +37,13 @@ import '../../styles/flow.css';
               {tipo.imagenActiva && (
                 <img src={tipo.imagenActiva} alt="" loading="lazy" class="fl-lente__thumb-activa" />
               )}
+              {tipo.tinte && (
+                <span
+                  class="fl-lente__thumb-tinte"
+                  style={`background: linear-gradient(135deg, transparent 25%, ${tipo.tinte} 55%, color-mix(in srgb, ${tipo.tinte} 55%, #fff) 75%, transparent 95%)`}
+                  aria-hidden="true"
+                />
+              )}
             </span>
             <span>{tipo.nombre}</span>
           </button>
