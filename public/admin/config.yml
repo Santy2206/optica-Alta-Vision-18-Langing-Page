@@ -146,34 +146,12 @@ collections:
         hint: "Opcional — el color principal se detecta solo al subir la foto. Edítalo si quieres corregirlo o agregar más colores del mismo modelo."
         fields:
           - { label: Nombre del color del marco, name: name, widget: string, hint: "Ej. Negro, Dorado, Habano" }
-          - { label: Color (swatch), name: hex, widget: color }
+          - { label: Color del marco, name: hex, widget: color }
           - label: Segundo tono (marcos bicolor)
             name: hex2
             widget: color
             required: false
             hint: "Opcional. Si el marco es de dos colores, el círculo se muestra partido."
-          - label: Foto de este color (opcional)
-            name: image
-            widget: image
-            required: false
-            media_folder: /public/uploads/catalogo
-            public_folder: /uploads/catalogo
-          - label: Segunda foto (opcional)
-            name: modelImage
-            widget: image
-            required: false
-            media_folder: /public/uploads/catalogo
-            public_folder: /uploads/catalogo
-            hint: "Otro ángulo, o una persona usando esta montura en este color. Se muestra al pasar el mouse sobre la foto principal."
-          - label: Colores de lente
-            name: lenses
-            widget: list
-            required: false
-            default: []
-            hint: "Opciones de lente para este marco. Se muestran dentro de 'Probar con cámara' (solo informativo) y en el mensaje de WhatsApp."
-            fields:
-              - { label: Nombre del lente, name: name, widget: string, hint: "Ej. Verde clásico, Azul espejado" }
-              - { label: Color (swatch), name: hex, widget: color }
 
   # --- Promociones activables ---
   - name: promociones
