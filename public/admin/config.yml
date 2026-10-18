@@ -152,6 +152,12 @@ collections:
             widget: color
             required: false
             hint: "Opcional. Si el marco es de dos colores, el círculo se muestra partido."
+          # Datos avanzados que genera la IA / edición manual. Ocultos del formulario
+          # (widget: hidden) para que el menú sea simple, pero presentes en el config
+          # para que Decap NO los borre al guardar la montura.
+          - { label: Foto de este color, name: image, widget: hidden, required: false }
+          - { label: Foto en modelo, name: modelImage, widget: hidden, required: false }
+          - { label: Colores de lente, name: lenses, widget: hidden, required: false }
 
   # --- Promociones activables ---
   - name: promociones

@@ -39,11 +39,12 @@ const catalogo = defineCollection({
           name: z.string(),
           hex: z.string(),
           /** Segundo tono para marcos bicolor (el swatch se muestra partido en diagonal) */
-          hex2: z.string().optional(),
-          /** Si se define, al hacer clic en el swatch cambia la foto de la tarjeta */
-          image: z.string().optional(),
+          hex2: z.string().nullish(),
+          /** Si se define, al hacer clic en el swatch cambia la foto de la tarjeta.
+           * nullish: estos campos van ocultos en Decap y puede escribir null. */
+          image: z.string().nullish(),
           /** Si se define, al pasar el mouse por la foto se muestra un modelo usando esta montura en este color */
-          modelImage: z.string().optional(),
+          modelImage: z.string().nullish(),
           /** Colores de LENTE disponibles para este marco (se eligen dentro de "probar con cámara") */
           lenses: z
             .array(
@@ -52,7 +53,8 @@ const catalogo = defineCollection({
                 hex: z.string(),
               }),
             )
-            .default([]),
+            .nullish()
+            .transform((v) => v ?? []),
         }),
       )
       .default([]),
