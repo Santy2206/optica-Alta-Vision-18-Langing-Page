@@ -69,6 +69,8 @@
   "nosotros": {
     "historia": "En Alta Visión 18 creemos que ver bien es disfrutar mejor cada día. Por eso ofrecemos exámenes visuales profesionales y una selección de monturas para toda la familia, con atención cercana.\n\nNuestro compromiso es acompañarte en todo el proceso: desde la fórmula hasta la entrega de tus gafas, cuidando la calidad y el servicio en cada paso.",
     "cita": "Ver bien no debería ser complicado — por eso estamos aquí, cerca de ti.",
-    "fotosLocal": []
+    "fotosLocal": [
+      "/uploads/nosotros/fachada-local.webp"
+    ]
   }
 }
