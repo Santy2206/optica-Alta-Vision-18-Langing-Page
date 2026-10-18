@@ -45,6 +45,13 @@ const addi = pagos.addi === true;
 const sistecredito = pagos.sistecredito === true || pagos.istecredito === true;
 const cuotas = pagos.cuotas === true || addi || sistecredito;
 
+// Billeteras/billeteras digitales (no financian; van antes de los financiadores).
+const billeteras = [
+  pagos.breb === true && 'Bre-B',
+  pagos.nequi === true && 'Nequi',
+  pagos.daviplata === true && 'Daviplata',
+].filter((v): v is string => Boolean(v));
+
 const financiadores = [
   addi && 'ADDI',
   sistecredito && 'Sistecredito',
@@ -52,11 +59,8 @@ const financiadores = [
 
 /** Texto legible de medios de pago para FAQ / microcopy. */
 const mediosPagoTexto = (() => {
-  const base = ['Efectivo', 'tarjeta débito o crédito', 'transferencia'];
-  if (financiadores.length === 1) base.push(financiadores[0]);
-  else if (financiadores.length > 1) {
-    base.push(`${financiadores.slice(0, -1).join(', ')} e ${financiadores[financiadores.length - 1]}`);
-  } else if (pagos.cuotas === true) {
+  const base = ['Efectivo', 'tarjeta débito o crédito', 'transferencia', ...billeteras, ...financiadores];
+  if (financiadores.length === 0 && pagos.cuotas === true) {
     base.push('pagos a cuotas');
   }
   if (base.length === 1) return base[0];

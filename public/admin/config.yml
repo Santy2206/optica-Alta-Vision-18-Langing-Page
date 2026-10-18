@@ -360,6 +360,21 @@ collections:
                 widget: boolean
                 default: false
                 hint: "Activar SOLO si está confirmado. Controla el texto del titular y la respuesta de la FAQ de pagos."
+              - label: Acepta Bre-B
+                name: breb
+                widget: boolean
+                default: false
+                hint: "Billetera Bre-B. Se muestra en la FAQ de medios de pago."
+              - label: Acepta Nequi
+                name: nequi
+                widget: boolean
+                default: false
+                hint: "Billetera Nequi. Se muestra en la FAQ de medios de pago."
+              - label: Acepta Daviplata
+                name: daviplata
+                widget: boolean
+                default: false
+                hint: "Billetera Daviplata. Se muestra en la FAQ de medios de pago."
               - label: Acepta ADDI
                 name: addi
                 widget: boolean

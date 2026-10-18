@@ -53,6 +53,9 @@
   },
   "pagos": {
     "cuotas": true,
+    "breb": true,
+    "nequi": true,
+    "daviplata": true,
     "addi": true,
     "sistecredito": true
   },
