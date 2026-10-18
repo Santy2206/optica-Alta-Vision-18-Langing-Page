@@ -662,14 +662,15 @@ html:not(.fl-js) .flow .fl-paso::after {
   gap: 0.75rem;
 }
 .flow .fl-mapa {
+  display: flex;
   padding: 0.5rem;
   min-height: 320px;
   overflow: hidden;
+  align-self: stretch;
 }
 .flow .fl-mapa iframe {
-  display: block;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
   min-height: 300px;
   border-radius: 0.85rem;
 }
