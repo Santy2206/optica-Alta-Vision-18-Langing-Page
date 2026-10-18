@@ -235,8 +235,19 @@ function classify(rawLandmarks: Landmark[], size: ImageSize): FaceShapeId {
 
   const faceLength = distance(landmarks[POINTS.foreheadTop], landmarks[POINTS.chin]);
   const cheekWidth = widthBetween(landmarks, POINTS.cheekLeft, POINTS.cheekRight);
-  const foreheadWidth = widthBetween(landmarks, POINTS.templeLeft, POINTS.templeRight);
-  const jawWidth = widthBetween(landmarks, POINTS.jawLeft, POINTS.jawRight);
+  // Promedio de anchos por pares simétricos (no de posiciones): promediar
+  // puntos altos y bajos del contorno inflaba la frente y encogía la
+  // mandíbula, y casi todos salían "corazón".
+  const pairWidth = (pairs: readonly (readonly [number, number])[]) =>
+    pairs.reduce((s, [r, l]) => s + distance(landmarks[r], landmarks[l]), 0) / pairs.length;
+  const foreheadWidth = pairWidth([
+    [54, 284],
+    [21, 251],
+  ]);
+  const jawWidth = pairWidth([
+    [58, 288],
+    [172, 397],
+  ]);
 
   // Medidas en "cm" ficticios: solo importan los ratios. Escala ~cara adulta.
   const scale = 14 / Math.max(cheekWidth, 1e-6);
