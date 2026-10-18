@@ -40,7 +40,11 @@ import '../../styles/flow.css';
               {tipo.tinte && (
                 <span
                   class="fl-lente__thumb-tinte"
-                  style={`background: linear-gradient(135deg, transparent 25%, ${tipo.tinte} 55%, color-mix(in srgb, ${tipo.tinte} 55%, #fff) 75%, transparent 95%)`}
+                  style={`background: linear-gradient(135deg, transparent 25%, ${tipo.tinte} 55%, color-mix(in srgb, ${tipo.tinte} 55%, #fff) 75%, transparent 95%);${
+                    tipo.mascara
+                      ? `-webkit-mask-image:url('${tipo.mascara}');mask-image:url('${tipo.mascara}');-webkit-mask-size:cover;mask-size:cover`
+                      : ''
+                  }`}
                   aria-hidden="true"
                 />
               )}

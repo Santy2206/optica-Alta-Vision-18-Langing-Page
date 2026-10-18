@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <filter id="suave" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" />
+    </filter>
+  </defs>
+  <g filter="url(#suave)" fill="#fff">
+    <!-- Cristal izquierdo (perspectiva 3/4) -->
+    <polygon points="105,218 264,224 257,352 118,344" />
+    <!-- Cristal derecho -->
+    <polygon points="333,194 446,200 444,326 337,320" />
+  </g>
+</svg>

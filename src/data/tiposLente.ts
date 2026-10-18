@@ -8,6 +8,8 @@ type TipoLente = {
   imagenActiva?: string;
   /** Reflejo de color del lente (hex): se muestra como velo en hover en el selector. */
   tinte?: string;
+  /** Máscara que recorta el tinte a los cristales de la foto (SVG/PNG). */
+  mascara?: string;
 };
 
 export const tiposLente: readonly TipoLente[] = [
@@ -29,6 +31,7 @@ export const tiposLente: readonly TipoLente[] = [
     nombre: 'Filtro luz azul',
     descripcion: 'Para pantallas y computador',
     tinte: '#38BDF8',
+    mascara: '/images/tipos-lente/filtro-luz-azul-mascara.svg',
   },
   {
     imagen: '/images/tipos-lente/fotocromaticos.webp',
