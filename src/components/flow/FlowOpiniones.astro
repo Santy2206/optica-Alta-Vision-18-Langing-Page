@@ -54,33 +54,43 @@ const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
 
         {testimonios.length > 0 && (
           <ul class="fl-opiniones" aria-label="Opiniones de clientes">
-            {testimonios.map(({ data }, i) => (
-              <li class="fl-opinion fl-card fl-reveal" style={`--acc:${ACC[i % ACC.length]};--d:${(i % 3) * 0.1}s`}>
-                <span class="fl-estrellas" role="img" aria-label={`${data.estrellas} de 5 estrellas`}>
-                  {Array.from({ length: 5 }, (_, j) => (
-                    <Icon name="star" filled class={j < data.estrellas ? 'fl-i' : 'fl-i fl-apagada'} />
-                  ))}
-                </span>
-                <blockquote class="fl-opinion__texto">“{data.texto}”</blockquote>
-                <div class="fl-opinion__autor">
-                  {data.foto ? (
-                    <img src={data.foto} alt="" width="40" height="40" loading="lazy" class="fl-avatar" />
-                  ) : (
-                    <span class="fl-avatar" aria-hidden="true">
-                      {initials(data.nombre)}
-                    </span>
-                  )}
-                  <div>
-                    <p class="fl-opinion__nombre">{data.nombre}</p>
-                    {(data.url || reviewsUrl) && (
-                      <a href={data.url ?? reviewsUrl!} target="_blank" rel="noopener noreferrer" class="fl-opinion__google">
-                        Reseña de Google
-                      </a>
+            {[...testimonios, ...testimonios].map(({ data }, i) => {
+              // La segunda mitad duplica los items para el carrusel infinito de móvil;
+              // queda oculta a lectores de pantalla y al foco, e invisible en escritorio.
+              const dup = i >= testimonios.length;
+              return (
+                <li
+                  class:list={['fl-opinion fl-card', dup ? 'fl-opinion--dup' : 'fl-reveal']}
+                  style={`--acc:${ACC[i % ACC.length]};--d:${(i % 3) * 0.1}s`}
+                  aria-hidden={dup || undefined}
+                  inert={dup || undefined}
+                >
+                  <span class="fl-estrellas" role="img" aria-label={`${data.estrellas} de 5 estrellas`}>
+                    {Array.from({ length: 5 }, (_, j) => (
+                      <Icon name="star" filled class={j < data.estrellas ? 'fl-i' : 'fl-i fl-apagada'} />
+                    ))}
+                  </span>
+                  <blockquote class="fl-opinion__texto">“{data.texto}”</blockquote>
+                  <div class="fl-opinion__autor">
+                    {data.foto ? (
+                      <img src={data.foto} alt="" width="40" height="40" loading="lazy" class="fl-avatar" />
+                    ) : (
+                      <span class="fl-avatar" aria-hidden="true">
+                        {initials(data.nombre)}
+                      </span>
                     )}
+                    <div>
+                      <p class="fl-opinion__nombre">{data.nombre}</p>
+                      {(data.url || reviewsUrl) && (
+                        <a href={data.url ?? reviewsUrl!} target="_blank" rel="noopener noreferrer" class="fl-opinion__google">
+                          Reseña de Google
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
