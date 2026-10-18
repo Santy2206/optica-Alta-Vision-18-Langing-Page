@@ -10,7 +10,7 @@ import FaceShapeTest from '../components/FaceShapeTest.astro';
 import { waLink } from '../utils/whatsapp';
 import { priceLabel as getPriceLabel, isFallbackPrice } from '../utils/precio';
 import { isPlaceholderImage } from '../utils/images';
-import { getFrameShape } from '../data/frameShape';
+import { getFrameShape, FRAME_SHAPES, frameShapeLabel } from '../data/frameShape';
 import { faceShapeInfo, frameRecommendations } from '../data/faceShapeQuiz';
 import FrameShapeIcon from '../components/FrameShapeIcon.astro';
 import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
@@ -51,6 +51,12 @@ const rostros = [
     label: info.label,
   })),
 ] as const;
+
+// Filtro por forma de la montura (el estilo del marco, no el rostro).
+const formas = [
+  { value: 'todos', label: 'Todas' },
+  ...FRAME_SHAPES.map((value) => ({ value, label: frameShapeLabel[value] })),
+] as const;
 ---
 
 <BaseLayout
@@ -66,7 +72,7 @@ const rostros = [
     <div class="fl-sec__inner">
       <p class="fl-eyebrow">Óptica Alta Visión 18</p>
       <h1 class="fl-h1">Catálogo <span class="fl-grad">completo</span></h1>
-      <p class="fl-lead">Filtra por categoría y encuentra tu montura ideal.</p>
+      <p class="fl-lead">Filtra por tipo, género, rostro o estilo y encuentra tu montura ideal.</p>
       <button type="button" data-facetest-open class="fl-btn fl-btn--lima mt-6">
         ¿No sabes cuál elegir? Haz el test de tu rostro
       </button>
@@ -75,50 +81,79 @@ const rostros = [
 
   <section class="fl-sec !pt-4 md:!pt-6">
     <div class="fl-sec__inner">
-      <div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría" data-filter-group>
-        {
-          categorias.map((cat, i) => (
-            <button
-              type="button"
-              class:list={['fl-chip', i === 0 && 'is-active']}
-              data-filter-btn
-              data-filter={cat.value}
-              aria-pressed={i === 0 ? 'true' : 'false'}
-            >
-              {cat.label}
-            </button>
-          ))
-        }
-      </div>
-      <div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar por género" data-genero-group>
-        {
-          generos.map((g, i) => (
-            <button
-              type="button"
-              class:list={['fl-chip', i === 0 && 'is-active']}
-              data-genero-btn
-              data-genero={g.value}
-              aria-pressed={i === 0 ? 'true' : 'false'}
-            >
-              {g.label}
-            </button>
-          ))
-        }
-      </div>
-      <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por forma de rostro" data-rostro-group>
-        {
-          rostros.map((r, i) => (
-            <button
-              type="button"
-              class:list={['fl-chip', i === 0 && 'is-active']}
-              data-rostro-btn
-              data-rostro={r.value}
-              aria-pressed={i === 0 ? 'true' : 'false'}
-            >
-              {r.label}
-            </button>
-          ))
-        }
+      <div class="fl-filtros mb-8">
+        <div class="fl-filtro">
+          <p class="fl-filtro__label">Tipo <span>¿Qué estás buscando?</span></p>
+          <div class="fl-filtro__row" role="group" aria-label="Filtrar por categoría" data-filter-group>
+            {
+              categorias.map((cat, i) => (
+                <button
+                  type="button"
+                  class:list={['fl-chip', i === 0 && 'is-active']}
+                  data-filter-btn
+                  data-filter={cat.value}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                >
+                  {cat.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+        <div class="fl-filtro">
+          <p class="fl-filtro__label">Género <span>¿Para quién es?</span></p>
+          <div class="fl-filtro__row" role="group" aria-label="Filtrar por género" data-genero-group>
+            {
+              generos.map((g, i) => (
+                <button
+                  type="button"
+                  class:list={['fl-chip', i === 0 && 'is-active']}
+                  data-genero-btn
+                  data-genero={g.value}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                >
+                  {g.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+        <div class="fl-filtro">
+          <p class="fl-filtro__label">Tu rostro <span>Solo monturas que favorecen esa cara</span></p>
+          <div class="fl-filtro__row" role="group" aria-label="Filtrar por forma de rostro" data-rostro-group>
+            {
+              rostros.map((r, i) => (
+                <button
+                  type="button"
+                  class:list={['fl-chip', i === 0 && 'is-active']}
+                  data-rostro-btn
+                  data-rostro={r.value}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                >
+                  {r.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+        <div class="fl-filtro">
+          <p class="fl-filtro__label">Estilo de marco <span>La forma de la montura</span></p>
+          <div class="fl-filtro__row" role="group" aria-label="Filtrar por forma de la montura" data-forma-group>
+            {
+              formas.map((f, i) => (
+                <button
+                  type="button"
+                  class:list={['fl-chip', i === 0 && 'is-active']}
+                  data-forma-btn
+                  data-forma={f.value}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                >
+                  {f.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
       </div>
 
       {
@@ -160,6 +195,7 @@ const rostros = [
                   data-category={item.data.category}
                   data-genero={item.data.genero ?? 'unisex'}
                   data-rostro={rostrosFavorecidos.join(' ')}
+                  data-forma={shape ?? ''}
                 >
                   <div class="relative aspect-[4/3] overflow-hidden bg-slate-100" data-photo-hover>
                     {isPlaceholderImage(item.data.image) ? (
@@ -283,12 +319,14 @@ const rostros = [
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter-btn]');
   const generoButtons = document.querySelectorAll<HTMLButtonElement>('[data-genero-btn]');
   const rostroButtons = document.querySelectorAll<HTMLButtonElement>('[data-rostro-btn]');
+  const formaButtons = document.querySelectorAll<HTMLButtonElement>('[data-forma-btn]');
   const items = document.querySelectorAll<HTMLElement>('[data-catalog-item]');
   const emptyMessage = document.querySelector<HTMLElement>('[data-empty-message]');
 
   let categoriaActiva = 'todos';
   let generoActivo = 'todos';
   let rostroActivo = 'todos';
+  let formaActiva = 'todos';
 
   const applyFilters = () => {
     let visibleCount = 0;
@@ -297,7 +335,8 @@ const rostros = [
       const matches =
         (categoriaActiva === 'todos' || item.dataset.category === categoriaActiva) &&
         (generoActivo === 'todos' || (item.dataset.genero ?? 'unisex') === generoActivo) &&
-        (rostroActivo === 'todos' || (item.dataset.rostro ?? '').split(' ').includes(rostroActivo));
+        (rostroActivo === 'todos' || (item.dataset.rostro ?? '').split(' ').includes(rostroActivo)) &&
+        (formaActiva === 'todos' || (item.dataset.forma ?? '') === formaActiva);
       item.classList.toggle('hidden', !matches);
       if (matches) visibleCount += 1;
     });
@@ -316,6 +355,11 @@ const rostros = [
     });
     rostroButtons.forEach((btn) => {
       const active = btn.dataset.rostro === rostroActivo;
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.classList.toggle('is-active', active);
+    });
+    formaButtons.forEach((btn) => {
+      const active = btn.dataset.forma === formaActiva;
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
       btn.classList.toggle('is-active', active);
     });
@@ -362,6 +406,20 @@ const rostros = [
   const initialRostro = params.get('rostro');
   if (initialRostro && Array.from(rostroButtons).some((b) => b.dataset.rostro === initialRostro)) {
     rostroActivo = initialRostro;
+    applyFilters();
+  }
+  formaButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.forma) {
+        formaActiva = btn.dataset.forma;
+        applyFilters();
+      }
+    });
+  });
+
+  const initialForma = params.get('forma');
+  if (initialForma && Array.from(formaButtons).some((b) => b.dataset.forma === initialForma)) {
+    formaActiva = initialForma;
     applyFilters();
   }
 

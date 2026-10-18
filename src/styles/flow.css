@@ -594,6 +594,47 @@ html:not(.fl-js) .flow .fl-paso::after {
   outline: 2px solid var(--lima);
   outline-offset: 2px;
 }
+/* Filtros del catálogo: cada grupo lleva título + qué hace; los chips van en
+   una sola fila deslizable en móvil para no formar un muro de botones. */
+.flow .fl-filtros {
+  display: grid;
+  gap: 1.1rem;
+}
+.flow .fl-filtro__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.45rem;
+}
+.flow .fl-filtro__label span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.55);
+}
+.flow .fl-filtro__row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.flow .fl-filtro__row .fl-chip {
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .flow .fl-filtro__row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+}
 .flow .fl-producto {
   transition:
     transform 0.3s,
