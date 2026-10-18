@@ -53,6 +53,7 @@ const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
         )}
 
         {testimonios.length > 0 && (
+          <div class="fl-opiniones-wrap fl-reveal">
           <ul class="fl-opiniones" aria-label="Opiniones de clientes">
             {[...testimonios, ...testimonios].map(({ data }, i) => {
               // La segunda mitad duplica los items para el carrusel infinito de móvil;
@@ -60,7 +61,7 @@ const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
               const dup = i >= testimonios.length;
               return (
                 <li
-                  class:list={['fl-opinion fl-card', dup ? 'fl-opinion--dup' : 'fl-reveal']}
+                  class:list={['fl-opinion fl-card', dup && 'fl-opinion--dup']}
                   style={`--acc:${ACC[i % ACC.length]};--d:${(i % 3) * 0.1}s`}
                   aria-hidden={dup || undefined}
                   inert={dup || undefined}
@@ -92,6 +93,7 @@ const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
               );
             })}
           </ul>
+          </div>
         )}
       </div>
     </section>
