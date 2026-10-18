@@ -18,5 +18,10 @@
       "hex2": "#D8CBB4"
     }
   ],
-  "hoverImage": "/uploads/catalogo/cateye05-dorado-clasico-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/cateye05-dorado-clasico-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "diamante"
+  ]
 }

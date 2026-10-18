@@ -18,5 +18,12 @@
       "hex2": "#23222E"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-dorado-aviador-clasico-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-dorado-aviador-clasico-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

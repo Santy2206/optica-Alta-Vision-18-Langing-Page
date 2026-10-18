@@ -18,5 +18,9 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/hexagonal04-dorado-a-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "redondo"
+  ]
 }

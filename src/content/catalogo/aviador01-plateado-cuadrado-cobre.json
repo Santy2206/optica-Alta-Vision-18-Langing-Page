@@ -18,5 +18,12 @@
       "hex2": "#1D1717"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-cuadrado-cobre-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

@@ -18,5 +18,12 @@
       "hex2": "#BABABC"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-plateado-clasico-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-clasico-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

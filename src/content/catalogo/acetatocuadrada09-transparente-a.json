@@ -17,5 +17,9 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/acetatocuadrada09-transparente-a-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "redondo"
+  ]
 }

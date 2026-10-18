@@ -17,5 +17,12 @@
       "modelImage": "/uploads/catalogo/aviador01-dorado-rimless-989-hover.webp"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-dorado-rimless-989-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-dorado-rimless-989-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

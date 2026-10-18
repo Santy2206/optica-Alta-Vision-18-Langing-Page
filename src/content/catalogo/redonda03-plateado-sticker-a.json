@@ -18,5 +18,11 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/redonda03-plateado-sticker-a-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

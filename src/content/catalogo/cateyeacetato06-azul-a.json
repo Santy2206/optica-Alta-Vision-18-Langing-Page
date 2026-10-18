@@ -17,5 +17,10 @@
       "lenses": []
     }
   ],
-  "hoverImage": "/uploads/catalogo/cateyeacetato06-azul-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/cateyeacetato06-azul-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "diamante"
+  ]
 }

@@ -18,5 +18,11 @@
       "hex2": "#221E1E"
     }
   ],
-  "hoverImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp"
+  "hoverImage": "/uploads/catalogo/redonda03-plateado-968-hover.webp",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

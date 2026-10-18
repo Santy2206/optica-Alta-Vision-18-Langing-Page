@@ -17,5 +17,12 @@
       "lenses": []
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-negro-cuadrado-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-negro-cuadrado-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

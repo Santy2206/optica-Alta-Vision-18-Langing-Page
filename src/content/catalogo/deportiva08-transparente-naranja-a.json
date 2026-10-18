@@ -17,5 +17,9 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/deportiva08-transparente-naranja-a-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "redondo"
+  ]
 }

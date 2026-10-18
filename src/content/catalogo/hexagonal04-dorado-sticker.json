@@ -17,5 +17,9 @@
       "lenses": []
     }
   ],
-  "hoverImage": "/uploads/catalogo/hexagonal04-dorado-sticker-hover.webp"
+  "hoverImage": "/uploads/catalogo/hexagonal04-dorado-sticker-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo"
+  ]
 }

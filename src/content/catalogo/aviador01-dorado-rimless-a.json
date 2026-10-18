@@ -18,5 +18,12 @@
       "hex2": "#161615"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-dorado-rimless-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-dorado-rimless-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

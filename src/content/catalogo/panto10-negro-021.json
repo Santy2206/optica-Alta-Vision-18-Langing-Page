@@ -17,5 +17,10 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/panto10-negro-021-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "corazon"
+  ]
 }

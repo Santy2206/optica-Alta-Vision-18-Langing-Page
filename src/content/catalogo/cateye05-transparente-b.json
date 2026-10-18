@@ -17,5 +17,10 @@
       "modelImage": "/uploads/catalogo/cateye05-transparente-b-hover.webp"
     }
   ],
-  "hoverImage": "/uploads/catalogo/cateye05-transparente-b-hover.webp"
+  "hoverImage": "/uploads/catalogo/cateye05-transparente-b-hover.webp",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "diamante"
+  ]
 }

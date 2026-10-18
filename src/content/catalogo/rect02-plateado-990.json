@@ -17,5 +17,9 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/rect02-plateado-990-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "redondo"
+  ]
 }

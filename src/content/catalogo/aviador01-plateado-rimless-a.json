@@ -18,5 +18,12 @@
       "hex2": "#575461"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-plateado-rimless-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-rimless-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

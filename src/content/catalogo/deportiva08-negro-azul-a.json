@@ -17,5 +17,9 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/deportiva08-negro-azul-a-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "redondo"
+  ]
 }

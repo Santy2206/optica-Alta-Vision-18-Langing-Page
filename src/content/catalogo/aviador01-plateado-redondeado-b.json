@@ -17,5 +17,12 @@
       "modelImage": "/uploads/catalogo/aviador01-plateado-redondeado-b-hover.webp"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-plateado-redondeado-b-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-redondeado-b-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

@@ -18,5 +18,12 @@
       "hex2": "#1A1918"
     }
   ],
-  "hoverImage": "/uploads/catalogo/aviador01-plateado-simple-977-hover.webp"
+  "hoverImage": "/uploads/catalogo/aviador01-plateado-simple-977-hover.webp",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "cuadrado",
+    "corazon",
+    "diamante"
+  ]
 }

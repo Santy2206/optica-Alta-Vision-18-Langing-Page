@@ -18,5 +18,10 @@
       "hex2": "#1B1615"
     }
   ],
-  "hoverImage": "/uploads/catalogo/cateye05-rimless-dorado-a-hover.webp"
+  "hoverImage": "/uploads/catalogo/cateye05-rimless-dorado-a-hover.webp",
+  "rostros": [
+    "ovalado",
+    "cuadrado",
+    "diamante"
+  ]
 }

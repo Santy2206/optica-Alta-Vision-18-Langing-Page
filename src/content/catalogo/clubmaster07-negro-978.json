@@ -18,5 +18,10 @@
     }
   ],
   "hoverImage": "/uploads/catalogo/clubmaster07-negro-978-hover.webp",
-  "genero": "unisex"
+  "genero": "unisex",
+  "rostros": [
+    "ovalado",
+    "redondo",
+    "diamante"
+  ]
 }
