@@ -64,7 +64,8 @@ const steps = ORDER.flatMap(([id, accent]) => {
   ];
 });
 
-const heroFrame = steps[0];
+// Hero: un marco ancho (acetato cuadrado) — se muestra gigante, cortado por el borde derecho.
+const heroFrame = steps.find((s) => s.id === 'acetatocuadrada09-verde-a') ?? steps[0];
 
 // ---------- Escena 5: confianza (solo datos reales; lo que esté vacío no se muestra) ----------
 const { rating, total, url: reviewsUrl } = site.googleReviews;
@@ -202,9 +203,9 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
           <p class="hero__eyebrow">Óptica Alta Visión 18 · Fontibón</p>
           <h1 id="hero-titulo" class="hero__h1">
             <span class="hero__linea">
-              <span class="tipeo">Ve mejor</span>
+              <span data-type>Ve mejor</span>
             </span>
-            <span class="hero__linea hero__linea--grad">en {entrega}.</span>
+            <span class="hero__linea hero__linea--grad"><span data-type>en {entrega}.</span></span>
           </h1>
           <p class="hero__sub">
             Examen visual, monturas reales del catálogo y un probador con tu cámara. Sin salir de la
@@ -713,20 +714,16 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    opacity: 0;
-    transform: translateY(0.4em);
-    animation: subir 0.9s 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   }
-  .tipeo {
+  /* Cursor del tipeo (JS): queda pegado al último carácter escrito, parpadea y se retira. */
+  .cursor-tipeo {
     display: inline-block;
-    overflow: hidden;
-    vertical-align: bottom;
-    white-space: nowrap;
-    width: 0;
-    border-right: 0.07em solid var(--lima);
-    animation:
-      escribir 1.2s 0.3s steps(8, end) forwards,
-      cursor 0.8s 1.5s step-end infinite;
+    width: 0.055em;
+    height: 0.85em;
+    margin-left: 0.05em;
+    background: var(--lima);
+    vertical-align: -0.05em;
+    animation: parpadeo 0.8s step-end infinite;
   }
   .hero__sub {
     margin-top: 1.5rem;
@@ -735,7 +732,7 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.75);
     opacity: 0;
-    animation: subir 0.8s 1.9s ease-out forwards;
+    animation: subir 0.8s 3s ease-out forwards;
   }
   .hero__cta {
     margin-top: 2rem;
@@ -743,20 +740,30 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
     flex-wrap: wrap;
     gap: 0.75rem;
     opacity: 0;
-    animation: subir 0.8s 2.1s ease-out forwards;
+    animation: subir 0.8s 3.3s ease-out forwards;
   }
   .hero__marco {
-    transform: translate3d(calc(var(--hp) * -5vw), calc(var(--hp) * 14vh), 0)
-      rotate(calc(var(--hp) * -10deg)) scale(calc(1 + var(--hp) * 0.18));
-    will-change: transform;
+    width: 135%;
+    margin-left: 8%;
+  }
+  /* Desktop: el marco sale del grid, queda enorme y la mitad se corta en el borde derecho. */
+  @media (min-width: 900px) {
+    .hero__marco {
+      position: absolute;
+      top: 50%;
+      right: -30vw;
+      width: 56vw;
+      margin-left: 0;
+      translate: 0 -50%;
+      pointer-events: none;
+    }
   }
   .hero__img {
     width: 100%;
     height: auto;
     filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
-    opacity: 0;
-    transform: translateX(8vw) rotate(-8deg);
-    animation: entrar 1.3s 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    /* El contenedor ignora el mouse (no tapa los CTAs), la imagen sí lo recibe para el hover. */
+    pointer-events: auto;
   }
   .hero__scroll {
     position: absolute;
@@ -780,23 +787,12 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
     animation: caer 1.8s ease-in-out infinite;
   }
 
-  @keyframes escribir {
-    to {
-      width: 8.3ch;
-    }
-  }
-  @keyframes cursor {
+  @keyframes parpadeo {
     50% {
-      border-color: transparent;
+      opacity: 0;
     }
   }
   @keyframes subir {
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes entrar {
     to {
       opacity: 1;
       transform: none;
@@ -1018,6 +1014,7 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
       top: 50%;
       transform: translateY(-50%);
       flex-direction: column;
+      align-items: flex-end;
       gap: 0.6rem;
     }
     .stage__dot span {
@@ -1036,17 +1033,20 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
   }
   .stage__dot::after {
     content: '';
-    width: 0.55rem;
-    height: 0.55rem;
+    width: 0.7rem;
+    height: 0.7rem;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.25);
     transition:
       transform 0.3s,
-      background 0.3s;
+      background 0.3s,
+      box-shadow 0.3s;
   }
   .stage__dot.is-active::after {
     background: var(--lima);
-    transform: scale(1.5);
+    transform: scale(1.4);
+    box-shadow: 0 0 14px rgba(57, 255, 20, 0.6);
   }
   @media (min-width: 900px) {
     .stage__dot:hover,
@@ -1492,9 +1492,7 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
 
   /* Sin movimiento: todo visible y quieto. */
   @media (prefers-reduced-motion: reduce) {
-    .tipeo {
-      width: auto;
-      border: 0;
+    .cursor-tipeo {
       animation: none;
     }
     .hero__linea--grad,
@@ -1555,6 +1553,55 @@ const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
   addEventListener('resize', setHeader, { passive: true });
 
   const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  // Ajuste de las gafas del hero: como cuando uno se las acomoda — bajan un poquito,
+  // suben de golpe y asientan con un rebote pequeño. Se dispara al terminar el tipeo
+  // y en cada hover sobre la imagen.
+  const heroImg = hero?.querySelector<HTMLElement>('.hero__img');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ajusteGafas: Keyframe[] = [
+    { transform: 'translateY(0) rotate(0deg)' },
+    { transform: 'translateY(2.4%) rotate(-4.5deg)', offset: 0.22 },
+    { transform: 'translateY(-1.9%) rotate(3deg)', offset: 0.48 },
+    { transform: 'translateY(0.7%) rotate(-1.4deg)', offset: 0.7 },
+    { transform: 'translateY(-0.25%) rotate(0.5deg)', offset: 0.86 },
+    { transform: 'translateY(0) rotate(0deg)' },
+  ];
+  const ajustarGafas = () =>
+    heroImg?.animate(ajusteGafas, { duration: 850, easing: 'cubic-bezier(0.3, 0.7, 0.3, 1)' });
+  if (heroImg && !reduceMotion) heroImg.addEventListener('mouseenter', ajustarGafas);
+
+  // Tipeo del titular: escribe cada línea letra por letra con el cursor pegado al último
+  // carácter; al terminar parpadea un rato y se retira. Sin JS o con "reducir movimiento"
+  // el título sale completo de una vez.
+  const tipeos = Array.from(document.querySelectorAll<HTMLElement>('[data-type]'));
+  if (tipeos.length > 0 && !reduceMotion) {
+    const cursorEl = document.createElement('i');
+    cursorEl.className = 'cursor-tipeo';
+    cursorEl.setAttribute('aria-hidden', 'true');
+    const textos = tipeos.map((el) => el.textContent ?? '');
+    tipeos.forEach((el) => (el.textContent = ''));
+    let li = 0;
+    let ci = 0;
+    const teclear = () => {
+      const el = tipeos[li];
+      ci += 1;
+      el.textContent = textos[li].slice(0, ci);
+      el.after(cursorEl);
+      if (ci < textos[li].length) {
+        setTimeout(teclear, 85);
+        return;
+      }
+      li += 1;
+      ci = 0;
+      if (li < tipeos.length) setTimeout(teclear, 420);
+      else {
+        ajustarGafas();
+        setTimeout(() => cursorEl.remove(), 2600);
+      }
+    };
+    setTimeout(teclear, 450);
+  }
 
   type Stage = {
     el: HTMLElement;
