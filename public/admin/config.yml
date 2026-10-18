@@ -47,12 +47,14 @@ collections:
     slug: "{{slug}}"
     identifier_field: name
     fields:
-      - { label: Nombre, name: name, widget: string }
-      - label: Marca
-        name: brand
-        widget: string
-        default: "Óptica Alta Visión 18"
-        hint: "Por defecto la marca de la casa. Cámbiala solo si es de otra marca."
+      # ===== LO QUE TÚ LLENAS (manual) =====
+      - label: Foto de la montura
+        name: image
+        widget: image
+        media_folder: /public/uploads/catalogo
+        public_folder: /uploads/catalogo
+        hint: "ÚNICO paso obligatorio: sube la foto tal cual la tomaste (puede tener fondo). Al publicar, la IA genera sola la versión limpia con fondo blanco, la vista de lado, la de 'Probar con cámara' y los colores. La montura aparece en el sitio en unos 3 a 5 minutos."
+      - { label: Nombre, name: name, widget: string, hint: "Ej. Aviador Plateado Clásico" }
       - label: Categoría
         name: category
         widget: select
@@ -62,15 +64,6 @@ collections:
           - { label: Niños, value: ninos }
           - { label: Deportivas, value: deportivas }
           - { label: Lentes blandos, value: contacto }
-      - label: Género
-        name: genero
-        widget: select
-        required: false
-        options:
-          - { label: Unisex, value: unisex }
-          - { label: Hombre, value: hombre }
-          - { label: Mujer, value: mujer }
-        hint: "La IA lo detecta sola al subir la foto. Cámbialo solo si se equivoca."
       - label: Forma de la montura
         name: frameShape
         widget: select
@@ -82,20 +75,12 @@ collections:
           - { label: Redonda / panto, value: redonda }
           - { label: Ovalada, value: ovalada }
           - { label: Ojo de gato (cat-eye), value: cat-eye }
-        hint: "El test de forma de rostro usa esto para recomendar la montura a quien le favorece. Para lentes blandos elige cualquiera (no se usa)."
-      - label: Imagen
-        name: image
-        widget: image
-        media_folder: /public/uploads/catalogo
-        public_folder: /uploads/catalogo
-        hint: "Sube la foto tal cual la tomaste (puede tener fondo). La IA genera sola la versión limpia con fondo blanco, la vista de lado y la de 'Probar con cámara'. Después de publicar, la montura aparece en el sitio en unos 3 a 5 minutos."
-      - label: Imagen al pasar el mouse (hover)
-        name: hoverImage
-        widget: image
-        required: false
-        media_folder: /public/uploads/catalogo
-        public_folder: /uploads/catalogo
-        hint: "Opcional — se genera sola una vista de lado unos minutos después de subir la foto. Sube una manual solo si quieres reemplazar la generada."
+        hint: "La IA NO detecta esto: elígelo tú. El test de forma de rostro lo usa para recomendar la montura a quien le favorece. Para lentes blandos elige cualquiera (no se usa)."
+      - label: Marca
+        name: brand
+        widget: string
+        default: "Óptica Alta Visión 18"
+        hint: "Por defecto la marca de la casa. Cámbiala solo si es de otra marca."
       - label: Mostrar en "Más vendidas" (inicio)
         name: featured
         widget: boolean
@@ -107,6 +92,24 @@ collections:
         default: "{{now}}"
         required: false
         hint: "Se llena sola al crear la montura; no hace falta tocarla. Ordena el carrusel del inicio (las más nuevas primero)."
+
+      # ===== LO QUE LA IA LLENA SOLA (no hace falta tocar) =====
+      - label: "Género — lo detecta la IA"
+        name: genero
+        widget: select
+        required: false
+        options:
+          - { label: Unisex, value: unisex }
+          - { label: Hombre, value: hombre }
+          - { label: Mujer, value: mujer }
+        hint: "La IA lo detecta sola al subir la foto. Cámbialo solo si se equivoca."
+      - label: "Vista de lado (hover) — la genera la IA"
+        name: hoverImage
+        widget: image
+        required: false
+        media_folder: /public/uploads/catalogo
+        public_folder: /uploads/catalogo
+        hint: "Se genera sola unos minutos después de subir la foto. Sube una manual solo si quieres reemplazar la generada."
       # Colores del marco: la IA los detecta sola al subir la foto (nombre, tono,
       # segundo tono, foto por color, foto en modelo y colores de lente). Todo el
       # bloque va oculto (widget: hidden) para que el formulario sea simple, pero
