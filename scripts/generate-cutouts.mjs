@@ -27,7 +27,7 @@ const isPlaceholder = (url) => url.includes('/placeholder-');
 /** Misma regla que src/utils/cutout.ts: dónde queda el recorte de una foto dada. */
 function cutoutPublicPath(imageUrl) {
   const base = path.basename(imageUrl, path.extname(imageUrl));
-  return `/uploads/catalogo/cutouts/${base}.png`;
+  return `/uploads/catalogo/cutouts/${base}.webp`;
 }
 
 /**
@@ -39,13 +39,13 @@ function cutoutPublicPath(imageUrl) {
  */
 function tryOnPublicPath(imageUrl) {
   const base = path.basename(imageUrl, path.extname(imageUrl));
-  return `/uploads/catalogo/cutouts/${base}-tryon.png`;
+  return `/uploads/catalogo/cutouts/${base}-tryon.webp`;
 }
 
 /** Variante con el lente oscurecido, para cuando el cliente elige lente "Fotocromático". */
 function tryOnPhotochromicPublicPath(imageUrl) {
   const base = path.basename(imageUrl, path.extname(imageUrl));
-  return `/uploads/catalogo/cutouts/${base}-tryon-fotocromatico.png`;
+  return `/uploads/catalogo/cutouts/${base}-tryon-fotocromatico.webp`;
 }
 
 /**
@@ -670,7 +670,7 @@ async function normalizeDisplayCutout(rawBuffer) {
     },
   })
     .composite([{ input: resized, gravity: 'centre' }])
-    .png()
+    .webp({ quality: 84, alphaQuality: 92 })
     .toBuffer();
 }
 
@@ -754,11 +754,15 @@ async function run() {
       });
 
       const clearFeathered = await featherAlpha(clear, width, height, channels);
-      const tryOnBuffer = await sharp(clearFeathered, { raw: { width, height, channels } }).png().toBuffer();
+      const tryOnBuffer = await sharp(clearFeathered, { raw: { width, height, channels } })
+        .webp({ quality: 88, alphaQuality: 95 })
+        .toBuffer();
       writeFileSync(tryOnPath, tryOnBuffer);
 
       const photochromicFeathered = await featherAlpha(photochromic, width, height, channels);
-      const photoBuffer = await sharp(photochromicFeathered, { raw: { width, height, channels } }).png().toBuffer();
+      const photoBuffer = await sharp(photochromicFeathered, { raw: { width, height, channels } })
+        .webp({ quality: 88, alphaQuality: 95 })
+        .toBuffer();
       writeFileSync(photoPath, photoBuffer);
 
       manifest[key] = signature;

@@ -5,7 +5,7 @@ import { isPlaceholderImage } from './images';
 /** Misma regla que scripts/generate-cutouts.mjs: dónde queda el recorte de una foto dada. */
 function cutoutPublicPath(imageUrl: string): string {
   const base = path.basename(imageUrl, path.extname(imageUrl));
-  return `/uploads/catalogo/cutouts/${base}.png`;
+  return `/uploads/catalogo/cutouts/${base}.webp`;
 }
 
 /**
@@ -16,13 +16,13 @@ function cutoutPublicPath(imageUrl: string): string {
  */
 function tryOnPublicPath(imageUrl: string): string {
   const base = path.basename(imageUrl, path.extname(imageUrl));
-  return `/uploads/catalogo/cutouts/${base}-tryon.png`;
+  return `/uploads/catalogo/cutouts/${base}-tryon.webp`;
 }
 
 /** Variante con el lente oscurecido, para cuando el cliente elige lente "Fotocromático". */
 function tryOnPhotochromicPublicPath(imageUrl: string): string {
   const base = path.basename(imageUrl, path.extname(imageUrl));
-  return `/uploads/catalogo/cutouts/${base}-tryon-fotocromatico.png`;
+  return `/uploads/catalogo/cutouts/${base}-tryon-fotocromatico.webp`;
 }
 
 /**

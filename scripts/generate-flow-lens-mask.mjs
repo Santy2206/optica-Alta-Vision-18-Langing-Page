@@ -1,6 +1,6 @@
 // Máscara del cristal de un marco, para los efectos de lente de la sección animada de /prueba
 // (monofocal, progresivo, luz azul, fotocromático). Se saca de la diferencia entre el recorte del
-// probador con lente transparente (`{foto}-tryon.png`) y el fotocromático (`-tryon-fotocromatico.png`):
+// probador con lente transparente (`{foto}-tryon.webp`) y el fotocromático (`-tryon-fotocromatico.webp`):
 // justo donde uno es transparente y el otro está relleno, ahí está el cristal. Como ambos salen de la
 // misma imagen, la máscara calza al píxel con el marco que se muestra.
 //
@@ -19,8 +19,8 @@ const OUT = path.join(ROOT, 'public', 'images', 'flow');
 
 const slug = process.argv[2] ?? 'aviador01-negro-cuadrado-a';
 
-const clear = await sharp(path.join(CUTOUTS, `${slug}-tryon.png`)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-const photo = await sharp(path.join(CUTOUTS, `${slug}-tryon-fotocromatico.png`)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+const clear = await sharp(path.join(CUTOUTS, `${slug}-tryon.webp`)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+const photo = await sharp(path.join(CUTOUTS, `${slug}-tryon-fotocromatico.webp`)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 const { width: w, height: h } = clear.info;
 if (photo.info.width !== w || photo.info.height !== h) throw new Error('Los recortes no tienen el mismo tamaño');
 

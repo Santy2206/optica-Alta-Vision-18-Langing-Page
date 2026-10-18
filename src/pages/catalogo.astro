@@ -74,8 +74,8 @@ const categorias = [
 
       {
         items.length > 0 ? (
-          <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4" data-catalog-grid>
-            {items.map((item) => {
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4" data-catalog-grid>
+            {items.map((item, idx) => {
               const origen = `catalogo:${item.id}`;
               const waHref = waLink(origen, `Hola, quiero información sobre ${item.data.name}`);
               const priceLabel = getPriceLabel(item.data.price);
@@ -111,7 +111,9 @@ const categorias = [
                       <img
                         src={displayImage}
                         alt={item.data.imageAlt}
-                        loading="lazy"
+                        loading={idx < 4 ? 'eager' : 'lazy'}
+                        fetchpriority={idx < 4 ? 'high' : 'auto'}
+                        decoding="async"
                         class="h-full w-full object-contain"
                         data-product-image
                         data-default-image={displayImage}
