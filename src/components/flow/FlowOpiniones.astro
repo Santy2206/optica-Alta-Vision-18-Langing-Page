@@ -97,3 +97,17 @@ const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
     </section>
   )
 }
+
+<script>
+  // Carrusel móvil: si el usuario toca una opinión se pausa para que pueda
+  // leerla; al volver a desplazar la página se reanuda solo.
+  const lista = document.querySelector('.fl-opiniones');
+  if (lista) {
+    const pausar = () => lista.classList.add('is-pausa');
+    lista.addEventListener('touchstart', pausar, { passive: true });
+    lista.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse') pausar();
+    });
+    window.addEventListener('scroll', () => lista.classList.remove('is-pausa'), { passive: true });
+  }
+</script>

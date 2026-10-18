@@ -376,7 +376,8 @@ html:not(.fl-js) .flow .fl-paso::after {
     transform: translateX(-50%);
   }
 }
-.flow .fl-opiniones:hover {
+.flow .fl-opiniones:hover,
+.flow .fl-opiniones.is-pausa {
   animation-play-state: paused;
 }
 .flow .fl-opinion {
