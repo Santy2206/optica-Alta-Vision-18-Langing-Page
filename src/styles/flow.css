@@ -994,18 +994,28 @@ html:not(.fl-js) .flow .fl-paso::after {
   padding: 0.9rem;
   flex: 1;
 }
+/* Alto fijo de 2 líneas para que marca/precio/botón queden alineados
+   entre tarjetas aunque el nombre sea corto o largo. */
 .flow .fl-vendida__nombre {
   font-weight: 600;
   font-size: 0.95rem;
   line-height: 1.3;
+  min-height: 2.47rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .flow .fl-vendida__marca {
   font-size: 0.78rem;
   color: var(--texto-suave);
 }
+/* Siempre ocupa el alto de un swatch (aunque esté vacía) para alinear el
+   precio y el botón entre tarjetas. */
 .flow .fl-vendida__swatches {
   display: flex;
   gap: 0.35rem;
+  min-height: 0.85rem;
 }
 .flow .fl-vendida__swatch {
   width: 0.85rem;

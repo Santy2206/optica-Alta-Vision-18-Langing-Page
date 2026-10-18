@@ -62,25 +62,25 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
                   <div class="fl-vendida__info">
                     <p class="fl-vendida__nombre" title={item.data.name}>{item.data.name}</p>
                     <p class="fl-vendida__marca">{item.data.brand}</p>
-                    {item.data.colors.length > 0 && (
-                      <div class="fl-vendida__swatches" aria-label="Colores disponibles">
-                        {item.data.colors.map((c) => (
-                          <span
-                            class="fl-vendida__swatch"
-                            title={c.name}
-                            style={
-                              c.hex2
-                                ? `background: linear-gradient(135deg, ${c.hex} 50%, ${c.hex2} 50%)`
-                                : `background-color: ${c.hex}`
-                            }
-                          />
-                        ))}
-                      </div>
-                    )}
+                    {/* Siempre renderiza la fila (vacía si no hay colores) para que
+                        precio y CTA queden alineados entre tarjetas. */}
+                    <div class="fl-vendida__swatches" aria-label="Colores disponibles">
+                      {item.data.colors.map((c) => (
+                        <span
+                          class="fl-vendida__swatch"
+                          title={c.name}
+                          style={
+                            c.hex2
+                              ? `background: linear-gradient(135deg, ${c.hex} 50%, ${c.hex2} 50%)`
+                              : `background-color: ${c.hex}`
+                          }
+                        />
+                      ))}
+                    </div>
                     <p class:list={['fl-vendida__precio', isFallbackPrice(item.data.price) && 'fl-vendida__precio--suave']}>
                       {priceLabel(item.data.price)}
                     </p>
-                    <a href={waHref} data-cta={dup ? undefined : origen} class="fl-btn fl-btn--lima fl-btn--sm" target="_blank" rel="noopener noreferrer" tabindex={dup ? -1 : undefined}>
+                    <a href={waHref} data-cta={dup ? undefined : origen} class="fl-btn fl-btn--lima fl-btn--sm fl-vendida__cta" target="_blank" rel="noopener noreferrer" tabindex={dup ? -1 : undefined}>
                       Me interesa
                     </a>
                   </div>
