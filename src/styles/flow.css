@@ -594,52 +594,72 @@ html:not(.fl-js) .flow .fl-paso::after {
   outline: 2px solid var(--lima);
   outline-offset: 2px;
 }
-/* Filtros del catálogo: cada grupo lleva título + qué hace; los chips van en
-   una sola fila deslizable en móvil para no formar un muro de botones. */
+/* Filtros del catálogo: dropdowns compactos — etiqueta arriba, select abajo.
+   Una fila en escritorio, dos en móvil. */
 .flow .fl-filtros {
   display: grid;
-  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 0.9rem;
 }
-/* Cada filtro es UNA línea: etiqueta a la izquierda, chips deslizables a la
-   derecha — el bloque entero queda en ~4 filas compactas. */
+@media (min-width: 768px) {
+  .flow .fl-filtros {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 .flow .fl-filtro {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
+  display: block;
+  min-width: 0;
 }
 .flow .fl-filtro__label {
-  flex: 0 0 auto;
-  width: min(8.5rem, 30vw);
+  display: block;
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  line-height: 1.25;
   color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.35rem;
 }
 .flow .fl-filtro__label span {
-  display: block;
   font-size: 0.7rem;
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
   color: rgba(255, 255, 255, 0.5);
 }
-.flow .fl-filtro__row {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-wrap: nowrap;
-  gap: 0.45rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+.flow .fl-filtro__label span::before {
+  content: '· ';
 }
-.flow .fl-filtro__row .fl-chip {
-  flex-shrink: 0;
-  padding: 0.4rem 0.95rem;
-  font-size: 0.82rem;
+.flow .fl-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.55rem 2.4rem 0.55rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  cursor: pointer;
+  color-scheme: dark;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+.flow .fl-select:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.flow .fl-select:focus-visible {
+  outline: 2px solid var(--lima);
+  outline-offset: 2px;
+}
+.flow .fl-select option {
+  background: var(--tinta, #0d0d14);
+  color: #fff;
 }
 .flow .fl-producto {
   transition:

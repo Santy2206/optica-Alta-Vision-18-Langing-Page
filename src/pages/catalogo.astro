@@ -82,78 +82,30 @@ const formas = [
   <section class="fl-sec !pt-4 md:!pt-6">
     <div class="fl-sec__inner">
       <div class="fl-filtros mb-8">
-        <div class="fl-filtro">
-          <p class="fl-filtro__label">Tipo <span>¿Qué estás buscando?</span></p>
-          <div class="fl-filtro__row" role="group" aria-label="Filtrar por categoría" data-filter-group>
-            {
-              categorias.map((cat, i) => (
-                <button
-                  type="button"
-                  class:list={['fl-chip', i === 0 && 'is-active']}
-                  data-filter-btn
-                  data-filter={cat.value}
-                  aria-pressed={i === 0 ? 'true' : 'false'}
-                >
-                  {cat.label}
-                </button>
-              ))
-            }
-          </div>
-        </div>
-        <div class="fl-filtro">
-          <p class="fl-filtro__label">Género <span>¿Para quién es?</span></p>
-          <div class="fl-filtro__row" role="group" aria-label="Filtrar por género" data-genero-group>
-            {
-              generos.map((g, i) => (
-                <button
-                  type="button"
-                  class:list={['fl-chip', i === 0 && 'is-active']}
-                  data-genero-btn
-                  data-genero={g.value}
-                  aria-pressed={i === 0 ? 'true' : 'false'}
-                >
-                  {g.label}
-                </button>
-              ))
-            }
-          </div>
-        </div>
-        <div class="fl-filtro">
-          <p class="fl-filtro__label">Tu rostro <span>Solo monturas que favorecen esa cara</span></p>
-          <div class="fl-filtro__row" role="group" aria-label="Filtrar por forma de rostro" data-rostro-group>
-            {
-              rostros.map((r, i) => (
-                <button
-                  type="button"
-                  class:list={['fl-chip', i === 0 && 'is-active']}
-                  data-rostro-btn
-                  data-rostro={r.value}
-                  aria-pressed={i === 0 ? 'true' : 'false'}
-                >
-                  {r.label}
-                </button>
-              ))
-            }
-          </div>
-        </div>
-        <div class="fl-filtro">
-          <p class="fl-filtro__label">Estilo de marco <span>La forma de la montura</span></p>
-          <div class="fl-filtro__row" role="group" aria-label="Filtrar por forma de la montura" data-forma-group>
-            {
-              formas.map((f, i) => (
-                <button
-                  type="button"
-                  class:list={['fl-chip', i === 0 && 'is-active']}
-                  data-forma-btn
-                  data-forma={f.value}
-                  aria-pressed={i === 0 ? 'true' : 'false'}
-                >
-                  {f.label}
-                </button>
-              ))
-            }
-          </div>
-        </div>
+        <label class="fl-filtro">
+          <span class="fl-filtro__label">Tipo <span>¿Qué estás buscando?</span></span>
+          <select class="fl-select" data-filter-select aria-label="Filtrar por tipo de producto">
+            {categorias.map((cat, i) => <option value={cat.value}>{i === 0 ? 'Todos los tipos' : cat.label}</option>)}
+          </select>
+        </label>
+        <label class="fl-filtro">
+          <span class="fl-filtro__label">Género <span>¿Para quién es?</span></span>
+          <select class="fl-select" data-genero-select aria-label="Filtrar por género">
+            {generos.map((g) => <option value={g.value}>{g.label}</option>)}
+          </select>
+        </label>
+        <label class="fl-filtro">
+          <span class="fl-filtro__label">Tu rostro <span>Solo lo que te favorece</span></span>
+          <select class="fl-select" data-rostro-select aria-label="Filtrar por forma de rostro">
+            {rostros.map((r, i) => <option value={r.value}>{i === 0 ? 'Todos los rostros' : r.label}</option>)}
+          </select>
+        </label>
+        <label class="fl-filtro">
+          <span class="fl-filtro__label">Estilo <span>La forma de la montura</span></span>
+          <select class="fl-select" data-forma-select aria-label="Filtrar por forma de la montura">
+            {formas.map((f) => <option value={f.value}>{f.label}</option>)}
+          </select>
+        </label>
       </div>
 
       {
@@ -316,112 +268,61 @@ const formas = [
 </BaseLayout>
 
 <script>
-  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter-btn]');
-  const generoButtons = document.querySelectorAll<HTMLButtonElement>('[data-genero-btn]');
-  const rostroButtons = document.querySelectorAll<HTMLButtonElement>('[data-rostro-btn]');
-  const formaButtons = document.querySelectorAll<HTMLButtonElement>('[data-forma-btn]');
+  const selects = {
+    categoria: document.querySelector<HTMLSelectElement>('[data-filter-select]'),
+    genero: document.querySelector<HTMLSelectElement>('[data-genero-select]'),
+    rostro: document.querySelector<HTMLSelectElement>('[data-rostro-select]'),
+    forma: document.querySelector<HTMLSelectElement>('[data-forma-select]'),
+  };
   const items = document.querySelectorAll<HTMLElement>('[data-catalog-item]');
   const emptyMessage = document.querySelector<HTMLElement>('[data-empty-message]');
 
-  let categoriaActiva = 'todos';
-  let generoActivo = 'todos';
-  let rostroActivo = 'todos';
-  let formaActiva = 'todos';
+  const state = { categoria: 'todos', genero: 'todos', rostro: 'todos', forma: 'todos' };
+  type FiltroKey = keyof typeof state;
 
   const applyFilters = () => {
     let visibleCount = 0;
 
     items.forEach((item) => {
       const matches =
-        (categoriaActiva === 'todos' || item.dataset.category === categoriaActiva) &&
-        (generoActivo === 'todos' || (item.dataset.genero ?? 'unisex') === generoActivo) &&
-        (rostroActivo === 'todos' || (item.dataset.rostro ?? '').split(' ').includes(rostroActivo)) &&
-        (formaActiva === 'todos' || (item.dataset.forma ?? '') === formaActiva);
+        (state.categoria === 'todos' || item.dataset.category === state.categoria) &&
+        (state.genero === 'todos' || (item.dataset.genero ?? 'unisex') === state.genero) &&
+        (state.rostro === 'todos' || (item.dataset.rostro ?? '').split(' ').includes(state.rostro)) &&
+        (state.forma === 'todos' || (item.dataset.forma ?? '') === state.forma);
       item.classList.toggle('hidden', !matches);
       if (matches) visibleCount += 1;
     });
 
     emptyMessage?.classList.toggle('hidden', visibleCount > 0);
 
-    buttons.forEach((btn) => {
-      const active = btn.dataset.filter === categoriaActiva;
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.classList.toggle('is-active', active);
-    });
-    generoButtons.forEach((btn) => {
-      const active = btn.dataset.genero === generoActivo;
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.classList.toggle('is-active', active);
-    });
-    rostroButtons.forEach((btn) => {
-      const active = btn.dataset.rostro === rostroActivo;
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.classList.toggle('is-active', active);
-    });
-    formaButtons.forEach((btn) => {
-      const active = btn.dataset.forma === formaActiva;
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.classList.toggle('is-active', active);
+    (Object.keys(selects) as FiltroKey[]).forEach((key) => {
+      const select = selects[key];
+      if (select && select.value !== state[key]) select.value = state[key];
     });
   };
 
-  buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.filter) {
-        categoriaActiva = btn.dataset.filter;
-        applyFilters();
-      }
-    });
-  });
-
-  generoButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.genero) {
-        generoActivo = btn.dataset.genero;
-        applyFilters();
-      }
+  (Object.keys(selects) as FiltroKey[]).forEach((key) => {
+    selects[key]?.addEventListener('change', () => {
+      state[key] = selects[key]!.value;
+      applyFilters();
     });
   });
 
   const params = new URLSearchParams(window.location.search);
-  const initialFilter = params.get('categoria');
-  if (initialFilter && Array.from(buttons).some((b) => b.dataset.filter === initialFilter)) {
-    categoriaActiva = initialFilter;
-    applyFilters();
-  }
-  rostroButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.rostro) {
-        rostroActivo = btn.dataset.rostro;
-        applyFilters();
-      }
-    });
+  const paramNames: Record<FiltroKey, string> = {
+    categoria: 'categoria',
+    genero: 'genero',
+    rostro: 'rostro',
+    forma: 'forma',
+  };
+  (Object.keys(selects) as FiltroKey[]).forEach((key) => {
+    const value = params.get(paramNames[key]);
+    const select = selects[key];
+    if (value && select && Array.from(select.options).some((o) => o.value === value)) {
+      state[key] = value;
+    }
   });
-
-  const initialGenero = params.get('genero');
-  if (initialGenero && Array.from(generoButtons).some((b) => b.dataset.genero === initialGenero)) {
-    generoActivo = initialGenero;
-    applyFilters();
-  }
-  const initialRostro = params.get('rostro');
-  if (initialRostro && Array.from(rostroButtons).some((b) => b.dataset.rostro === initialRostro)) {
-    rostroActivo = initialRostro;
-    applyFilters();
-  }
-  formaButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (btn.dataset.forma) {
-        formaActiva = btn.dataset.forma;
-        applyFilters();
-      }
-    });
-  });
-
-  const initialForma = params.get('forma');
-  if (initialForma && Array.from(formaButtons).some((b) => b.dataset.forma === initialForma)) {
-    formaActiva = initialForma;
-    applyFilters();
-  }
+  applyFilters();
 
   document.addEventListener('click', (e) => {
     const swatch = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-swatch]');
