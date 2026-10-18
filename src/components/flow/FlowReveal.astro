@@ -1,0 +1,24 @@
+---
+// Revelado al entrar en pantalla para todo elemento .fl-reveal. Se monta una vez por página.
+// Sin JS o con "reducir movimiento" el contenido queda visible (el CSS solo oculta con .fl-js).
+import '../../styles/flow.css';
+---
+
+<script>
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const els = Array.from(document.querySelectorAll<HTMLElement>('.fl-reveal'));
+  if (!quieto && 'IntersectionObserver' in window && els.length) {
+    document.documentElement.classList.add('fl-js');
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add('is-in');
+          io.unobserve(e.target);
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -6% 0px' },
+    );
+    els.forEach((el) => io.observe(el));
+  }
+</script>

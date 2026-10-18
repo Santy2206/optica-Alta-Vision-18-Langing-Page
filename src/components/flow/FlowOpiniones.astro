@@ -1,0 +1,89 @@
+---
+// Opiniones de clientes (reseñas de Google de la colección `testimonios`) en estilo Flow.
+import { getCollection } from 'astro:content';
+import site from '../../utils/site';
+import Icon from '../Icon.astro';
+import '../../styles/flow.css';
+
+const testimonios = (await getCollection('testimonios', ({ data }) => data.active)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const { rating, total, url: reviewsUrl } = site.googleReviews;
+const fmtRating = (n: number) => n.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const initials = (fullName: string) =>
+  fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
+---
+
+{
+  (testimonios.length > 0 || rating !== null) && (
+    <section id="opiniones" class="fl-sec fl-sec--tenue fl-centro" aria-labelledby="opiniones-titulo">
+      <div class="fl-glow fl-glow--magenta" style="top:-25vmax;left:-25vmax" aria-hidden="true" />
+      <div class="fl-sec__inner">
+        <p class="fl-eyebrow fl-reveal">Opiniones</p>
+        <h2 id="opiniones-titulo" class="fl-h2 fl-reveal" style="--d:.08s">
+          Lo que dicen <span class="fl-grad">nuestros clientes</span>
+        </h2>
+
+        {rating !== null && (
+          <div class="fl-resumen fl-reveal" style="--d:.14s">
+            <span class="fl-resumen__nota">
+              {fmtRating(rating)}
+              <span class="sr-only"> de 5 estrellas</span>
+            </span>
+            <span class="fl-estrellas fl-estrellas--g" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, i) => (
+                <Icon name="star" filled class={i < Math.round(rating) ? 'fl-i' : 'fl-i fl-apagada'} />
+              ))}
+            </span>
+            <span class="fl-resumen__txt">
+              {total !== null ? `${total.toLocaleString('es-CO')} reseñas en Google` : 'Calificación en Google'}
+            </span>
+            {reviewsUrl && (
+              <a href={reviewsUrl} target="_blank" rel="noopener noreferrer" class="fl-link">
+                Ver en Google
+              </a>
+            )}
+          </div>
+        )}
+
+        {testimonios.length > 0 && (
+          <ul class="fl-opiniones" aria-label="Opiniones de clientes">
+            {testimonios.map(({ data }, i) => (
+              <li class="fl-opinion fl-card fl-reveal" style={`--acc:${ACC[i % ACC.length]};--d:${(i % 3) * 0.1}s`}>
+                <span class="fl-estrellas" role="img" aria-label={`${data.estrellas} de 5 estrellas`}>
+                  {Array.from({ length: 5 }, (_, j) => (
+                    <Icon name="star" filled class={j < data.estrellas ? 'fl-i' : 'fl-i fl-apagada'} />
+                  ))}
+                </span>
+                <blockquote class="fl-opinion__texto">“{data.texto}”</blockquote>
+                <div class="fl-opinion__autor">
+                  {data.foto ? (
+                    <img src={data.foto} alt="" width="40" height="40" loading="lazy" class="fl-avatar" />
+                  ) : (
+                    <span class="fl-avatar" aria-hidden="true">
+                      {initials(data.nombre)}
+                    </span>
+                  )}
+                  <div>
+                    <p class="fl-opinion__nombre">{data.nombre}</p>
+                    {(data.url || reviewsUrl) && (
+                      <a href={data.url ?? reviewsUrl!} target="_blank" rel="noopener noreferrer" class="fl-opinion__google">
+                        Reseña de Google
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}

@@ -15,6 +15,11 @@
   --color-aguamarina: #00b4b0;
   --color-verde-neon: #39ff14;
   --color-fucsia: #c1096f; /* tono exacto muestreado del logo (public/logo.png) */
+  /* Resto de la paleta del logo (muestreada de public/logo.png): para escenas oscuras y degradados. */
+  --color-tinta: #1b1b19; /* negro del texto "ÓPTICA" */
+  --color-cian: #019fd8; /* arco azul del ojo */
+  --color-lima: #7cb928; /* hoja verde del ojo */
+  --color-iris: #6a47b8; /* iris morado */
 
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", "Poppins", ui-sans-serif, system-ui, sans-serif;

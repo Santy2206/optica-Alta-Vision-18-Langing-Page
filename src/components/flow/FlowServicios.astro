@@ -1,0 +1,65 @@
+---
+// Servicios en estilo Flow. Mismo contenido que Servicios.astro.
+import Icon from '../Icon.astro';
+import '../../styles/flow.css';
+
+const services = [
+  {
+    icon: 'eye',
+    title: 'Examen de optometría',
+    description: 'Evaluación de agudeza visual y graduación con equipo especializado.',
+    acc: '#019FD8',
+  },
+  {
+    icon: 'layers',
+    title: 'Lentes blandos',
+    description: 'Venta y asesoría de lentes de contacto blandos según tu fórmula y estilo de vida.',
+    acc: '#C21173',
+  },
+  {
+    icon: 'check',
+    title: 'Kit de cuidado',
+    description: 'Con tu compra recibes limpiador, estuche y pañuelo para cuidar tus gafas desde el primer día.',
+    acc: '#7CB928',
+  },
+  {
+    icon: 'wrench',
+    title: 'Mantenimiento',
+    description: 'Ajustes, cambio de tornillos, soldadura básica y limpieza profesional.',
+    acc: '#6A47B8',
+  },
+  {
+    icon: 'shield',
+    title: 'Garantías',
+    description: 'Aseguramos tus gafas por defectos de fábrica con acompañamiento.',
+    acc: '#019FD8',
+  },
+] as const;
+---
+
+<section id="servicios" class="fl-sec fl-sec--tenue fl-centro" aria-labelledby="servicios-titulo">
+  <div class="fl-sec__inner">
+    <p class="fl-eyebrow fl-reveal">Lo que ofrecemos</p>
+    <h2 id="servicios-titulo" class="fl-h2 fl-reveal" style="--d:.08s">
+      Nuestros <span class="fl-grad">servicios</span>
+    </h2>
+    <p class="fl-lead fl-reveal" style="--d:.14s">
+      Examen visual, lentes blandos, kit de cuidado, mantenimiento y garantía, con atención cercana de principio a
+      fin.
+    </p>
+
+    <ul class="fl-servicios">
+      {
+        services.map((s, i) => (
+          <li class="fl-servicio fl-card fl-reveal" style={`--acc:${s.acc};--d:${0.15 + i * 0.09}s`}>
+            <span class="fl-servicio__icono">
+              <Icon name={s.icon} class="fl-i" />
+            </span>
+            <h3 class="fl-servicio__titulo">{s.title}</h3>
+            <p class="fl-servicio__texto">{s.description}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
