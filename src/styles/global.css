@@ -84,3 +84,12 @@
     background-image: linear-gradient(90deg, var(--color-aguamarina), var(--color-fucsia) 50%, var(--color-verde-neon));
   }
 }
+
+/* El badge "Powered by Netlify" lo inyecta Netlify al servir el HTML (Snippet
+   injection del plan). Se oculta aquí por si la casilla sigue activa en el
+   panel; idealmente también se desactiva en Netlify → Post processing. */
+#netlify-badge,
+.netlify-badge,
+[data-netlify-badge] {
+  display: none !important;
+}
