@@ -818,11 +818,11 @@ html:not(.fl-js) .flow .fl-paso::after {
 .fl-lente__thumb {
   position: relative;
   display: block;
-  width: 3rem;
-  height: 3rem;
+  width: 4.5rem;
+  height: 4.5rem;
   flex-shrink: 0;
   overflow: hidden;
-  border-radius: 0.6rem;
+  border-radius: 0.8rem;
 }
 .fl-lente__thumb img {
   width: 100%;
@@ -864,11 +864,6 @@ html:not(.fl-js) .flow .fl-paso::after {
   .fl-lente__card {
     max-width: 27rem;
     padding: 1.6rem;
-  }
-  .fl-lente__thumb {
-    width: 4.5rem;
-    height: 4.5rem;
-    border-radius: 0.8rem;
   }
   .fl-lente__opt {
     gap: 1.1rem;
