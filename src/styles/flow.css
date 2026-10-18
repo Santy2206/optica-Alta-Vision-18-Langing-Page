@@ -374,6 +374,9 @@ html:not(.fl-js) .flow .fl-paso::after {
   display: flex;
   width: max-content;
   text-align: left;
+  /* pan-y: el swipe vertical sigue scrolleando la página (y reanuda el loop),
+     el horizontal lo toma el drag del carrusel. */
+  touch-action: pan-y;
   animation: fl-opiniones-scroll 75s linear infinite;
 }
 @keyframes fl-opiniones-scroll {
@@ -381,9 +384,14 @@ html:not(.fl-js) .flow .fl-paso::after {
     transform: translateX(-50%);
   }
 }
-.flow .fl-opiniones:hover,
-.flow .fl-opiniones.is-pausa {
+.flow .fl-opiniones:hover {
   animation-play-state: paused;
+}
+/* Mientras el dedo arrastra, la animación se apaga y la pista obedece al
+   transform inline (FlowOpiniones.astro). */
+.flow .fl-opiniones.is-arrastrando {
+  animation: none;
+  cursor: grabbing;
 }
 .flow .fl-opinion {
   flex: 0 0 min(85vw, 21rem);

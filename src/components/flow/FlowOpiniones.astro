@@ -101,15 +101,64 @@ const ACC = ['#019FD8', '#C21173', '#7CB928', '#6A47B8'];
 }
 
 <script>
-  // Carrusel móvil: si el usuario toca una opinión se pausa para que pueda
-  // leerla; al volver a desplazar la página se reanuda solo.
-  const lista = document.querySelector('.fl-opiniones');
+  // Carrusel móvil: al tocar una opinión la pista queda bajo el dedo — el usuario
+  // la arrastra a su ritmo para leer (loop infinito: al pasar el borde envuelve a
+  // la copia idéntica). Cuando vuelve a desplazar la página, el carrusel retoma el
+  // movimiento automático desde donde quedó (animation-delay negativo).
+  const lista = document.querySelector<HTMLElement>('.fl-opiniones');
   if (lista) {
-    const pausar = () => lista.classList.add('is-pausa');
-    lista.addEventListener('touchstart', pausar, { passive: true });
+    const DURACION_S = 75; // igual que `fl-opiniones-scroll` en flow.css
+    let inicioX = 0;
+    let inicioOffset = 0;
+    let movio = false;
+
+    const mitad = () => lista.scrollWidth / 2;
+    const wrap = (x: number) => {
+      const m = mitad();
+      while (x < -m) x += m;
+      while (x > 0) x -= m;
+      return x;
+    };
+    const offsetActual = () => {
+      const tx = new DOMMatrixReadOnly(getComputedStyle(lista).transform).m41;
+      return Number.isFinite(tx) ? tx : 0;
+    };
+
     lista.addEventListener('pointerdown', (e) => {
-      if (e.pointerType !== 'mouse') pausar();
+      if (e.pointerType === 'mouse') return;
+      inicioX = e.clientX;
+      inicioOffset = offsetActual();
+      movio = false;
+      // Las animaciones CSS pisan los estilos inline: hay que apagarla para poder
+      // mover la pista con transform a mano.
+      lista.classList.add('is-arrastrando');
+      lista.style.transform = `translateX(${inicioOffset}px)`;
     });
-    window.addEventListener('scroll', () => lista.classList.remove('is-pausa'), { passive: true });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!lista.classList.contains('is-arrastrando') || e.pointerType === 'mouse') return;
+      const delta = e.clientX - inicioX;
+      if (Math.abs(delta) > 4) movio = true;
+      lista.style.transform = `translateX(${wrap(inicioOffset + delta)}px)`;
+    }, { passive: true });
+
+    window.addEventListener('pointerup', () => {
+      if (!lista.classList.contains('is-arrastrando')) return;
+      inicioOffset = offsetActual();
+      // Si hubo arrastre, tragarse el click que sigue al soltar (evita abrir el
+      // link "Reseña de Google" cuando el dedo se soltó sobre él).
+      if (movio) {
+        lista.addEventListener('click', (ev) => ev.preventDefault(), { capture: true, once: true });
+      }
+    });
+
+    // Al volver a scrollear la página, reanudar el loop desde el punto donde quedó.
+    window.addEventListener('scroll', () => {
+      if (!lista.classList.contains('is-arrastrando')) return;
+      const progreso = -wrap(offsetActual()) / mitad();
+      lista.style.animationDelay = `${-(progreso * DURACION_S)}s`;
+      lista.classList.remove('is-arrastrando');
+      lista.style.transform = '';
+    }, { passive: true });
   }
 </script>
