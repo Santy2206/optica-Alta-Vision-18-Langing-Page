@@ -785,11 +785,29 @@ html:not(.fl-js) .flow .fl-paso::after {
   border-color: color-mix(in srgb, var(--cian) 70%, transparent);
   background: color-mix(in srgb, var(--cian) 10%, transparent);
 }
-.fl-lente__opt img {
+.fl-lente__thumb {
+  position: relative;
+  display: block;
   width: 3rem;
   height: 3rem;
-  object-fit: cover;
+  flex-shrink: 0;
+  overflow: hidden;
   border-radius: 0.6rem;
+}
+.fl-lente__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Segunda foto (p. ej. fotocromático oscurecido): aparece en hover. */
+.fl-lente__thumb-activa {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.fl-lente__opt:hover .fl-lente__thumb-activa {
+  opacity: 1;
 }
 .fl-lente__opt--plano {
   justify-content: center;

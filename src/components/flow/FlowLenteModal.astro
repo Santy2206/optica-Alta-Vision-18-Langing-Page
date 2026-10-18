@@ -32,7 +32,12 @@ import '../../styles/flow.css';
       {
         tiposLente.map((tipo) => (
           <button type="button" class="fl-lente__opt" data-lente-opt={tipo.nombre}>
-            <img src={tipo.imagen} alt="" loading="lazy" />
+            <span class="fl-lente__thumb">
+              <img src={tipo.imagen} alt="" loading="lazy" />
+              {tipo.imagenActiva && (
+                <img src={tipo.imagenActiva} alt="" loading="lazy" class="fl-lente__thumb-activa" />
+              )}
+            </span>
             <span>{tipo.nombre}</span>
           </button>
         ))
