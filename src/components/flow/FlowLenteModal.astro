@@ -4,7 +4,32 @@
 // (delegación de eventos); al elegir se abre WhatsApp con la montura + el lente.
 import Icon from '../Icon.astro';
 import { tiposLente } from '../../data/tiposLente';
+import { getTryOnOverlayImage } from '../../utils/cutout';
+import { getCollection } from 'astro:content';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import '../../styles/flow.css';
+
+// Mini-visual del progresivo: mismo marco + máscara del cristal que la escena de
+// lentes del home (scripts/generate-flow-lens-mask.mjs → lente-mascara.{json,png}).
+const lensMask = JSON.parse(
+  readFileSync(path.join(process.cwd(), 'public', 'images', 'flow', 'lente-mascara.json'), 'utf-8'),
+) as { slug: string; lenses: Array<{ x0: number; x1: number; y0: number; y1: number }> };
+const lensItem = (await getCollection('catalogo')).find((i) => i.id === lensMask.slug);
+const lensFrame = lensItem
+  ? getTryOnOverlayImage(lensItem.data.colors[0]?.image || lensItem.data.image)
+  : null;
+
+// Zonas del progresivo: líneas a 1/3 y 2/3 y "neblina" en las esquinas inferiores (idéntico al home).
+const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+const progFondo = [
+  'linear-gradient(to bottom, transparent 33%, rgba(255,255,255,.55) 33%, rgba(255,255,255,.55) calc(33% + 1px), transparent calc(33% + 1px), transparent 66%, rgba(255,255,255,.55) 66%, rgba(255,255,255,.55) calc(66% + 1px), transparent calc(66% + 1px))',
+  ...lensMask.lenses.flatMap((l) => [
+    `radial-gradient(ellipse ${((l.x1 - l.x0) * 55).toFixed(0)}% 42% at ${pct(l.x0)} 100%, rgba(255,255,255,.5), transparent 70%)`,
+    `radial-gradient(ellipse ${((l.x1 - l.x0) * 55).toFixed(0)}% 42% at ${pct(l.x1)} 100%, rgba(255,255,255,.5), transparent 70%)`,
+  ]),
+  'linear-gradient(to bottom, rgba(1,159,216,.18), rgba(1,159,216,.05) 45%, rgba(194,17,115,.14))',
+].join(',');
 ---
 
 <div
@@ -32,20 +57,30 @@ import '../../styles/flow.css';
       {
         tiposLente.map((tipo) => (
           <button type="button" class="fl-lente__opt" data-lente-opt={tipo.nombre}>
-            <span class="fl-lente__thumb">
-              <img src={tipo.imagen} alt="" loading="lazy" />
-              {tipo.imagenActiva && (
-                <img src={tipo.imagenActiva} alt="" loading="lazy" class="fl-lente__thumb-activa" />
-              )}
-              {tipo.tinte && (
-                <span
-                  class="fl-lente__thumb-tinte"
-                  style={`background: linear-gradient(135deg, transparent 25%, ${tipo.tinte} 55%, color-mix(in srgb, ${tipo.tinte} 55%, #fff) 75%, transparent 95%)`}
-                  aria-hidden="true"
-                />
-              )}
+            {tipo.visual === 'progresivo' && lensFrame ? (
+              <span class="fl-lente__thumb fl-lente__thumb--prog">
+                <img src={lensFrame} alt="" loading="lazy" class="fl-lente__thumb-frame" />
+                <span class="fl-lente__thumb-fx" style={`background:${progFondo}`} aria-hidden="true" />
+              </span>
+            ) : (
+              <span class="fl-lente__thumb">
+                <img src={tipo.imagen} alt="" loading="lazy" />
+                {tipo.imagenActiva && (
+                  <img src={tipo.imagenActiva} alt="" loading="lazy" class="fl-lente__thumb-activa" />
+                )}
+                {tipo.tinte && (
+                  <span
+                    class="fl-lente__thumb-tinte"
+                    style={`background: linear-gradient(135deg, transparent 25%, ${tipo.tinte} 55%, color-mix(in srgb, ${tipo.tinte} 55%, #fff) 75%, transparent 95%)`}
+                    aria-hidden="true"
+                  />
+                )}
+              </span>
+            )}
+            <span class="fl-lente__txt">
+              <span>{tipo.nombre}</span>
+              {tipo.descripcion && <small>{tipo.descripcion}</small>}
             </span>
-            <span>{tipo.nombre}</span>
           </button>
         ))
       }

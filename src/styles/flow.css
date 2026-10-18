@@ -809,16 +809,43 @@ html:not(.fl-js) .flow .fl-paso::after {
 .fl-lente__opt:hover .fl-lente__thumb-activa {
   opacity: 1;
 }
-/* Reflejo de color del lente (p. ej. filtro azul): velo diagonal en hover. */
+/* Reflejo de color del lente (p. ej. filtro azul): velo diagonal en hover.
+   Sin mix-blend-mode — generaba un halo borroso alrededor de la miniatura. */
 .fl-lente__thumb-tinte {
   position: absolute;
   inset: 0;
-  opacity: 0.18;
-  mix-blend-mode: screen;
+  opacity: 0.15;
   transition: opacity 0.35s ease;
 }
 .fl-lente__opt:hover .fl-lente__thumb-tinte {
-  opacity: 0.7;
+  opacity: 0.45;
+}
+.fl-lente__txt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.fl-lente__txt small {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+/* Mini-visual del progresivo: el marco recortado + efecto de zonas, ancho panorámico. */
+.fl-lente__thumb--prog {
+  width: 4.7rem;
+  height: auto;
+  aspect-ratio: 995 / 360;
+  background: #e8edf2;
+}
+.fl-lente__thumb-frame {
+  position: absolute;
+  inset: 0;
+}
+.fl-lente__thumb-fx {
+  position: absolute;
+  inset: 0;
+  -webkit-mask: url('/images/flow/lente-mascara.png') center / 100% 100% no-repeat;
+  mask: url('/images/flow/lente-mascara.png') center / 100% 100% no-repeat;
 }
 .fl-lente__opt--plano {
   justify-content: center;
