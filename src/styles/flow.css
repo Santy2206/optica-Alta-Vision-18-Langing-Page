@@ -971,10 +971,12 @@ html:not(.fl-js) .flow .fl-paso::after {
   flex-direction: column;
   overflow: hidden;
 }
+/* Misma presentación que la foto de la tarjeta del catálogo: recorte
+   transparente sobre fondo claro (slate-100), object-contain completo. */
 .flow .fl-vendida__foto {
   display: block;
   aspect-ratio: 4/3;
-  background: rgba(255, 255, 255, 0.04);
+  background: #f1f5f9;
 }
 .flow .fl-vendida__img {
   width: 100%;
