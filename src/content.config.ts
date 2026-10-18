@@ -32,7 +32,8 @@ const catalogo = defineCollection({
     featured: z.boolean().default(false),
     /** Fecha de alta (ISO). Decap la completa con {{now}} al crear; decide qué destacadas entran en el inicio. */
     createdAt: z.string().optional(),
-    /** Colores del MARCO (swatches en la tarjeta del catálogo) */
+    /** Colores del MARCO (swatches en la tarjeta del catálogo). Campo hidden en
+     * Decap: va nullish por si escribe null, y siempre cae en []. */
     colors: z
       .array(
         z.object({
@@ -57,7 +58,8 @@ const catalogo = defineCollection({
             .transform((v) => v ?? []),
         }),
       )
-      .default([]),
+      .nullish()
+      .transform((v) => v ?? []),
   }),
 });
 

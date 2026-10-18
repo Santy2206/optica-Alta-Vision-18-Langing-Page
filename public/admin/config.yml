@@ -138,26 +138,14 @@ collections:
         default: "{{now}}"
         required: false
         hint: "Se llena sola al crear la montura; no hace falta tocarla. Ordena el carrusel del inicio (las más nuevas primero)."
+      # Colores del marco: la IA los detecta sola al subir la foto (nombre, tono,
+      # segundo tono, foto por color, foto en modelo y colores de lente). Todo el
+      # bloque va oculto (widget: hidden) para que el formulario sea simple, pero
+      # queda declarado para que Decap NO borre los datos al guardar la montura.
       - label: Colores del marco
         name: colors
-        widget: list
+        widget: hidden
         required: false
-        default: []
-        hint: "Opcional — el color principal se detecta solo al subir la foto. Edítalo si quieres corregirlo o agregar más colores del mismo modelo."
-        fields:
-          - { label: Nombre del color del marco, name: name, widget: string, hint: "Ej. Negro, Dorado, Habano" }
-          - { label: Color del marco, name: hex, widget: color }
-          - label: Segundo tono (marcos bicolor)
-            name: hex2
-            widget: color
-            required: false
-            hint: "Opcional. Si el marco es de dos colores, el círculo se muestra partido."
-          # Datos avanzados que genera la IA / edición manual. Ocultos del formulario
-          # (widget: hidden) para que el menú sea simple, pero presentes en el config
-          # para que Decap NO los borre al guardar la montura.
-          - { label: Foto de este color, name: image, widget: hidden, required: false }
-          - { label: Foto en modelo, name: modelImage, widget: hidden, required: false }
-          - { label: Colores de lente, name: lenses, widget: hidden, required: false }
 
   # --- Promociones activables ---
   - name: promociones
