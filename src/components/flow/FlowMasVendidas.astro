@@ -6,7 +6,8 @@ import { getCollection } from 'astro:content';
 import { waLink } from '../../utils/whatsapp';
 import { priceLabel, isFallbackPrice } from '../../utils/precio';
 import { isPlaceholderImage } from '../../utils/images';
-import { getDisplayImage } from '../../utils/cutout';
+import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../../utils/cutout';
+import Icon from '../Icon.astro';
 import '../../styles/flow.css';
 
 const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).sort(
@@ -40,10 +41,15 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
               const dup = i >= vendidas.length;
               const origen = `vendidas:${item.id}`;
               const waHref = waLink(origen, `Hola, me interesa ${item.data.name}`);
-              const src = item.data.colors[0]?.image || item.data.image;
+              const firstColor = item.data.colors[0];
+              const src = firstColor?.image || item.data.image;
               const displayImage = isPlaceholderImage(item.data.image)
                 ? item.data.image
                 : getDisplayImage(src);
+              // Igual que en el catálogo: el try-on solo aparece si ya existe el
+              // recorte transparente de la foto de este color / de la montura.
+              const overlayImage = getTryOnOverlayImage(src);
+              const overlayImagePhotochromic = getTryOnPhotochromicImage(src);
               return (
                 <li
                   class:list={['fl-card fl-vendida', dup && 'fl-vendida--dup']}
@@ -97,6 +103,23 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
                       <a href={waHref} data-cta={dup ? undefined : origen} class="fl-btn fl-btn--lima fl-btn--sm fl-vendida__cta" target="_blank" rel="noopener noreferrer" tabindex={dup ? -1 : undefined}>
                         Me interesa
                       </a>
+                    )}
+                    {overlayImage && (
+                      <button
+                        type="button"
+                        class="fl-btn fl-btn--linea fl-btn--sm"
+                        data-tryon-open
+                        data-slug={item.id}
+                        data-overlay-image={overlayImage}
+                        data-overlay-image-photochromic={overlayImagePhotochromic ?? ''}
+                        data-name={item.data.name}
+                        data-frame={firstColor?.name ?? ''}
+                        data-lenses={JSON.stringify(firstColor?.lenses ?? [])}
+                        tabindex={dup ? -1 : undefined}
+                      >
+                        <Icon name="eye" class="h-4 w-4" />
+                        Probar con cámara
+                      </button>
                     )}
                   </div>
                 </li>

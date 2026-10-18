@@ -1031,8 +1031,12 @@ html:not(.fl-js) .flow .fl-paso::after {
   font-weight: 400;
   color: var(--texto-suave);
 }
-.flow .fl-vendida__info .fl-btn {
+/* Solo el CTA principal se ancla al fondo; el botón de try-on queda pegado
+   debajo (si tuviera margin-top:auto se crearía un hueco entre los dos). */
+.flow .fl-vendida__cta {
   margin-top: auto;
+}
+.flow .fl-vendida__info .fl-btn {
   align-self: stretch;
 }
 @media (min-width: 900px) {
