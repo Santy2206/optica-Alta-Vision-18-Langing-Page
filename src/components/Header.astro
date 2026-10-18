@@ -7,8 +7,10 @@ const whatsappHref = waLink('header', 'Hola, quiero agendar un examen visual');
 const navLinks = [
   { label: 'Inicio', href: '/' },
   { label: 'Catálogo', href: '/catalogo' },
+  { label: 'Promociones', href: '/#promociones' },
   { label: 'Nosotros', href: '/nosotros' },
   { label: 'Servicios', href: '/#servicios' },
+  { label: 'Test de rostro', href: '/#test-rostro' },
   { label: 'Ubicación', href: '/#ubicacion' },
 ];
 
@@ -26,7 +28,7 @@ const isActive = (href: string) => href === path || (href !== '/' && path.starts
       <img src="/logo.webp" alt="Óptica Alta Visión 18 — inicio" width="310" height="96" class="h-10 w-auto md:h-14" />
     </a>
 
-    <nav class="hidden items-center gap-6 lg:flex" aria-label="Navegación principal">
+    <nav class="hidden items-center gap-5 xl:flex" aria-label="Navegación principal">
       {
         navLinks.map((link) => (
           <a
@@ -57,7 +59,7 @@ const isActive = (href: string) => href === path || (href !== '/' && path.starts
 
       <button
         type="button"
-        class="inline-flex items-center justify-center rounded-full p-2 text-slate-900 hover:bg-slate-100 lg:hidden"
+        class="inline-flex items-center justify-center rounded-full p-2 text-slate-900 hover:bg-slate-100 xl:hidden"
         aria-label="Abrir menú"
         aria-expanded="false"
         aria-controls="mobile-menu"
@@ -73,7 +75,7 @@ const isActive = (href: string) => href === path || (href !== '/' && path.starts
 
   <nav
     id="mobile-menu"
-    class="hidden flex-col gap-1 border-t border-slate-200 bg-white px-4 py-3 lg:hidden"
+    class="hidden flex-col gap-1 border-t border-slate-200 bg-white px-4 py-3 xl:hidden"
     aria-label="Navegación móvil"
     data-mobile-menu
   >
