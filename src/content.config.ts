@@ -20,6 +20,12 @@ const catalogo = defineCollection({
     genero: z.enum(['unisex', 'hombre', 'mujer']).optional(),
     /** Forma de la montura (test de forma de rostro). Si falta, se infiere del nombre. */
     frameShape: z.enum(FRAME_SHAPES).optional(),
+    /** Rostros que favorece la montura (filtro del catálogo). La IA lo rellena
+     * desde frameShape; si está vacío la página lo deriva igual. */
+    rostros: z
+      .array(z.enum(['ovalado', 'redondo', 'cuadrado', 'corazon', 'diamante']))
+      .nullish()
+      .transform((v) => v ?? []),
     /** null/omitido = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp".
      * Decap deja el campo ausente si no se llena (required: false); no envía null. */
     price: z.number().nullable().optional().default(null),

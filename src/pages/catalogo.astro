@@ -131,13 +131,17 @@ const formas = [
               // Misma foto de fondo recortado que displayImage para que combine con bg-slate-100.
               const hoverSource = firstColor?.modelImage || item.data.hoverImage;
               const hoverImage = hoverSource ? getDisplayImage(hoverSource) : '';
-              // Rostros a los que favorece esta montura (filtro "forma de rostro").
+              // Rostros a los que favorece (filtro "forma de rostro"): primero el
+              // campo `rostros` del JSON (lo llena la IA; el CMS lo puede corregir);
+              // si está vacío se deriva del frameShape con la matriz del test.
               const shape = getFrameShape(item.data);
-              const rostrosFavorecidos = shape
-                ? (Object.keys(frameRecommendations) as Array<keyof typeof frameRecommendations>).filter(
-                    (rostro) => frameRecommendations[rostro].includes(shape),
-                  )
-                : [];
+              const rostrosFavorecidos = item.data.rostros.length
+                ? item.data.rostros
+                : shape
+                  ? (Object.keys(frameRecommendations) as Array<keyof typeof frameRecommendations>).filter(
+                      (rostro) => frameRecommendations[rostro].includes(shape),
+                    )
+                  : [];
 
               return (
                 <article

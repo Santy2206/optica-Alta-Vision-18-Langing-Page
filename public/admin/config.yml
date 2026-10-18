@@ -47,14 +47,13 @@ collections:
     slug: "{{slug}}"
     identifier_field: name
     fields:
-      # ===== LO QUE TÚ LLENAS (manual) =====
+      # ===== LO QUE TÚ LLENAS =====
       - label: Foto de la montura
         name: image
         widget: image
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
-        hint: "ÚNICO paso obligatorio: sube la foto tal cual la tomaste (puede tener fondo). Al publicar, la IA genera sola la versión limpia con fondo blanco, la vista de lado, la de 'Probar con cámara' y los colores. La montura aparece en el sitio en unos 3 a 5 minutos."
-      - { label: Nombre, name: name, widget: string, hint: "Ej. Aviador Plateado Clásico" }
+      - { label: Nombre, name: name, widget: string }
       - label: Categoría
         name: category
         widget: select
@@ -75,26 +74,12 @@ collections:
           - { label: Redonda / panto, value: redonda }
           - { label: Ovalada, value: ovalada }
           - { label: Ojo de gato (cat-eye), value: cat-eye }
-        hint: "La IA NO detecta esto: elígelo tú. El test de forma de rostro lo usa para recomendar la montura a quien le favorece. Para lentes blandos elige cualquiera (no se usa)."
-      - label: Marca
-        name: brand
-        widget: string
-        default: "Óptica Alta Visión 18"
-        hint: "Por defecto la marca de la casa. Cámbiala solo si es de otra marca."
-      - label: Mostrar en "Más vendidas" (inicio)
-        name: featured
-        widget: boolean
-        default: false
-        hint: "Activa esto para que la montura aparezca en el carrusel de la página de inicio. Todas las destacadas aparecen en el carrusel, las más recientes primero."
-      - label: Fecha de alta
-        name: createdAt
-        widget: datetime
-        default: "{{now}}"
-        required: false
-        hint: "Se llena sola al crear la montura; no hace falta tocarla. Ordena el carrusel del inicio (las más nuevas primero)."
+      - { label: Marca, name: brand, widget: string, default: "Óptica Alta Visión 18" }
+      - { label: 'Mostrar en "Más vendidas" (inicio)', name: featured, widget: boolean, default: false }
+      - { label: Fecha de alta (automática), name: createdAt, widget: datetime, default: "{{now}}", required: false }
 
-      # ===== LO QUE LA IA LLENA SOLA (no hace falta tocar) =====
-      - label: "Género — lo detecta la IA"
+      # ===== LO GENERA LA IA =====
+      - label: "Género · IA"
         name: genero
         widget: select
         required: false
@@ -102,22 +87,36 @@ collections:
           - { label: Unisex, value: unisex }
           - { label: Hombre, value: hombre }
           - { label: Mujer, value: mujer }
-        hint: "La IA lo detecta sola al subir la foto. Cámbialo solo si se equivoca."
-      - label: "Vista de lado (hover) — la genera la IA"
+      - label: "Rostros que favorece · IA"
+        name: rostros
+        widget: select
+        multiple: true
+        required: false
+        options:
+          - { label: Ovalado, value: ovalado }
+          - { label: Redondo, value: redondo }
+          - { label: Cuadrado, value: cuadrado }
+          - { label: Corazón, value: corazon }
+          - { label: Diamante, value: diamante }
+      - label: "Vista de lado (hover) · IA"
         name: hoverImage
         widget: image
         required: false
         media_folder: /public/uploads/catalogo
         public_folder: /uploads/catalogo
-        hint: "Se genera sola unos minutos después de subir la foto. Sube una manual solo si quieres reemplazar la generada."
-      # Colores del marco: la IA los detecta sola al subir la foto (nombre, tono,
-      # segundo tono, foto por color, foto en modelo y colores de lente). Todo el
-      # bloque va oculto (widget: hidden) para que el formulario sea simple, pero
-      # queda declarado para que Decap NO borre los datos al guardar la montura.
-      - label: Colores del marco
+      # Colores visibles pero mínimos (nombre + tonos). image/modelImage/lenses
+      # van hidden DENTRO del item para que Decap los conserve al guardar.
+      - label: "Colores del marco · IA"
         name: colors
-        widget: hidden
+        widget: list
         required: false
+        fields:
+          - { label: Nombre del color, name: name, widget: string }
+          - { label: Color, name: hex, widget: color }
+          - { label: Segundo tono, name: hex2, widget: color, required: false }
+          - { label: Foto del color, name: image, widget: hidden, required: false }
+          - { label: Foto en modelo, name: modelImage, widget: hidden, required: false }
+          - { label: Lentes, name: lenses, widget: hidden, required: false }
 
   # --- Promociones activables ---
   - name: promociones

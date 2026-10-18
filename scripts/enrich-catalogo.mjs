@@ -140,6 +140,16 @@ const normalize = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLo
 // Género de la montura: misma llamada de visión que el color. Reglas ambiguas
 // (aviador/clubmaster neutras, tamaño medio) se resuelven a "unisex".
 const GENEROS = ['unisex', 'hombre', 'mujer'];
+
+// Rostros que favorece cada forma de montura — la MISMA matriz que usa el test
+// (src/data/faceShapeQuiz.ts → frameRecommendations). Determinista, sin visión.
+const FACE_RECS = {
+  ovalado: ['aviador', 'cat-eye', 'rectangular', 'cuadrada', 'redonda', 'clubmaster', 'ovalada'],
+  redondo: ['cuadrada', 'rectangular', 'clubmaster', 'aviador'],
+  cuadrado: ['redonda', 'ovalada', 'cat-eye', 'aviador'],
+  corazon: ['redonda', 'ovalada', 'aviador'],
+  diamante: ['cat-eye', 'ovalada', 'clubmaster', 'aviador'],
+};
 async function askFrameGender(imageUrl) {
   const result = await fal.subscribe(VISION_MODEL, {
     input: {
@@ -382,6 +392,15 @@ async function main() {
         }
         dirty = true;
         console.log(`género detectado para ${file}: ${entry.genero}${generoRegla ? ' (regla de forma)' : ''}`);
+      }
+
+      // 5. Rostros que favorece (filtro del catálogo): sale de frameShape con la
+      // matriz de arriba. Solo se rellena si está vacío — si el cliente lo corrigió
+      // a mano en el CMS se respeta.
+      if (entry.frameShape && (!Array.isArray(entry.rostros) || entry.rostros.length === 0)) {
+        entry.rostros = Object.keys(FACE_RECS).filter((r) => FACE_RECS[r].includes(entry.frameShape));
+        dirty = true;
+        console.log(`rostros detectados para ${file}: ${entry.rostros.join(', ')}`);
       }
     } catch (err) {
       // Un producto con foto rara o un fallo de fal no debe tumbar el resto del lote.
