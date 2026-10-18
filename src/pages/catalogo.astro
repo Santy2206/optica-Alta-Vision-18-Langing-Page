@@ -120,7 +120,8 @@ const generos = [
 
               return (
                 <article
-                  class="fl-card fl-producto flex flex-col overflow-hidden"
+                  id={item.id}
+                  class="fl-card fl-producto flex flex-col overflow-hidden scroll-mt-24"
                   data-catalog-item
                   data-category={item.data.category}
                   data-genero={item.data.genero ?? 'unisex'}

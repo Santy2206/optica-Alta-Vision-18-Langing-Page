@@ -369,7 +369,21 @@ const localBusiness = {
               }
             </div>
 
-            <a href="/catalogo" class="btn btn--lima stage__cta">Ver todo el catálogo</a>
+            {/* Un CTA por paso: cada uno lleva a la tarjeta de ESA montura
+                en /catalogo (#slug). Se muestra solo la del paso activo. */}
+            <div class="stage__ctas">
+              {steps.map((s, i) => (
+                <a
+                  href={`/catalogo#${s.id}`}
+                  class="btn btn--lima stage__cta"
+                  data-step={i}
+                  data-hide-inactive
+                  aria-hidden={i === 0 ? undefined : 'true'}
+                >
+                  Ver esta montura
+                </a>
+              ))}
+            </div>
           </div>
 
           <div class="stage__visual">
@@ -1046,6 +1060,38 @@ const localBusiness = {
   .stage__faces strong {
     color: #fff;
     font-weight: 600;
+  }
+  /* CTAs apilados: uno por montura; solo el del paso activo es visible. */
+  .stage__ctas {
+    position: relative;
+    margin-top: 1rem;
+    height: 3rem;
+    display: none;
+  }
+  .stage__ctas .stage__cta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-top: 0;
+    display: inline-flex;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s,
+      transform 0.2s,
+      box-shadow 0.2s,
+      background-color 0.2s;
+  }
+  .stage__ctas .stage__cta.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+  @media (min-width: 900px) {
+    .stage__ctas {
+      display: block;
+      margin-top: 1.5rem;
+    }
   }
   .stage__cta {
     margin-top: 1rem;
