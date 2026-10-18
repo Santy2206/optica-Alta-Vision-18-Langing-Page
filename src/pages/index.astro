@@ -464,14 +464,11 @@ const localBusiness = {
                   data-hide-inactive
                   aria-hidden={i === 0 ? undefined : 'true'}
                 >
+                  {/* Lleva al catálogo de formuladas para elegir la montura;
+                      allá "Me interesa" abre el selector de tipo de lente. */}
                   <a
-                    href={waLink(
-                      `flow-lentes:${l.titulo.toLowerCase()}-con-montura`,
-                      `Hola, quiero cotizar ${l.nombre.toLowerCase()} con la montura ${lensItem?.data.name ?? 'que vi en la página'}`,
-                    )}
+                    href="/catalogo?categoria=formuladas"
                     class="btn btn--lima stage__cta"
-                    target="_blank"
-                    rel="noopener noreferrer"
                   >
                     Cotizar con montura
                   </a>
