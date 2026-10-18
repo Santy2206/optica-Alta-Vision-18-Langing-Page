@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers Static Assets: sirve dist/ tal cual (sitio estático).
+  // Al existir este archivo, `wrangler deploy` NO corre el auto-config que
+  // instala @astrojs/cloudflare — el build se queda como el de Netlify.
+  "name": "optica-alta-vision-18-langing-page",
+  "compatibility_date": "2026-10-18",
+  "assets": {
+    "directory": "./dist",
+    // /catalogo sirve /catalogo/index.html igual que en Netlify.
+    "html_handling": "auto-trailing-slash"
+  }
+}
