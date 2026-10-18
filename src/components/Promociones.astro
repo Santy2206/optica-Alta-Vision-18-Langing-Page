@@ -1,9 +1,19 @@
 ---
+// Promociones del CMS como carrusel continuo (mismo patrón que opiniones y
+// "más vendidas"): la pista repite las tarjetas hasta llenar ~2 viewports y
+// traduce -50% para el loop infinito. Con 1 promo el set se repite suficiente.
 import { getCollection } from 'astro:content';
 import { waLink } from '../utils/whatsapp';
 import '../styles/flow.css';
 
 const promos = await getCollection('promociones', ({ data }) => data.active === true);
+
+// El loop necesita que la pista sea ≥ 2× el viewport con mitades idénticas.
+// Cada tarjeta ~34rem (~550px): repite el set hasta cubrir ~2800px por mitad
+// (pantallas de hasta ~2560px quedan cubiertas).
+const copiasPorMitad = Math.max(1, Math.ceil(2800 / (promos.length * 560)));
+const repeticiones = copiasPorMitad * 2;
+const duracionS = copiasPorMitad * promos.length * 7; // ~80px/s, como opiniones
 ---
 
 {
@@ -11,41 +21,111 @@ const promos = await getCollection('promociones', ({ data }) => data.active === 
     <section class="fl-sec fl-sec--tenue" aria-label="Promociones activas">
       <div class="fl-glow fl-glow--cian" style="top:-30vmax;left:-25vmax" aria-hidden="true" />
       <div class="fl-sec__inner">
-        {promos.map((item) => {
-          const origen = `promo:${item.id}`;
-          const waHref = waLink(origen, `Hola, quiero aprovechar la promoción: ${item.data.title}`);
+        <div class="fl-promos-wrap">
+          <ul class="fl-promos" style={`animation-duration:${duracionS}s`}>
+            {Array.from({ length: repeticiones }, (_, c) =>
+              promos.map((item) => {
+                const dup = c > 0;
+                const origen = `promo:${item.id}`;
+                const waHref = waLink(origen, `Hola, quiero aprovechar la promoción: ${item.data.title}`);
 
-          return (
-            <article class="fl-card fl-promo fl-reveal">
-              <div>
-                <span class="fl-promo__badge">Promoción</span>
-                <h2 class="fl-promo__titulo">{item.data.title}</h2>
-                <p class="fl-promo__texto">{item.data.description}</p>
-                <a
-                  href={waHref}
-                  data-cta={origen}
-                  class="fl-btn fl-btn--lima fl-promo__cta"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {item.data.ctaText}
-                </a>
-              </div>
+                return (
+                  <li
+                    class:list={[dup && 'fl-promo--dup']}
+                    aria-hidden={dup || undefined}
+                    inert={dup || undefined}
+                  >
+                    <article class="fl-card fl-promo">
+                      <div>
+                        <span class="fl-promo__badge">Promoción</span>
+                        <h2 class="fl-promo__titulo">{item.data.title}</h2>
+                        <p class="fl-promo__texto">{item.data.description}</p>
+                        <a
+                          href={waHref}
+                          data-cta={dup ? undefined : origen}
+                          class="fl-btn fl-btn--lima fl-promo__cta"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          tabindex={dup ? -1 : undefined}
+                        >
+                          {item.data.ctaText}
+                        </a>
+                      </div>
 
-              {item.data.image && item.data.image.trim() !== '' && (
-                <div class="fl-promo__imgwrap">
-                  <img
-                    src={item.data.image}
-                    alt={item.data.title}
-                    loading="lazy"
-                    class="fl-promo__img"
-                  />
-                </div>
-              )}
-            </article>
-          );
-        })}
+                      {item.data.image && item.data.image.trim() !== '' && (
+                        <div class="fl-promo__imgwrap">
+                          <img
+                            src={item.data.image}
+                            alt={dup ? '' : item.data.title}
+                            loading="lazy"
+                            class="fl-promo__img"
+                          />
+                        </div>
+                      )}
+                    </article>
+                  </li>
+                );
+              }),
+            )}
+          </ul>
+        </div>
       </div>
     </section>
   )
 }
+
+<script>
+  // Carrusel de promociones: corre solo en loop; al tocar una tarjeta queda bajo
+  // el dedo, y al volver a desplazar la página retoma el loop desde donde quedó.
+  const pista = document.querySelector<HTMLElement>('.fl-promos');
+  if (pista) {
+    let inicioX = 0;
+    let inicioOffset = 0;
+    let movio = false;
+
+    const mitad = () => pista.scrollWidth / 2;
+    const wrap = (x: number) => {
+      const m = mitad();
+      while (x < -m) x += m;
+      while (x > 0) x -= m;
+      return x;
+    };
+    const offsetActual = () => {
+      const tx = new DOMMatrixReadOnly(getComputedStyle(pista).transform).m41;
+      return Number.isFinite(tx) ? tx : 0;
+    };
+
+    pista.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse') return;
+      inicioX = e.clientX;
+      inicioOffset = offsetActual();
+      movio = false;
+      pista.classList.add('is-arrastrando');
+      pista.style.transform = `translateX(${inicioOffset}px)`;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!pista.classList.contains('is-arrastrando') || e.pointerType === 'mouse') return;
+      const delta = e.clientX - inicioX;
+      if (Math.abs(delta) > 4) movio = true;
+      pista.style.transform = `translateX(${wrap(inicioOffset + delta)}px)`;
+    }, { passive: true });
+
+    window.addEventListener('pointerup', () => {
+      if (!pista.classList.contains('is-arrastrando')) return;
+      inicioOffset = offsetActual();
+      if (movio) {
+        pista.addEventListener('click', (ev) => ev.preventDefault(), { capture: true, once: true });
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      if (!pista.classList.contains('is-arrastrando')) return;
+      const dur = parseFloat(getComputedStyle(pista).animationDuration) || 35;
+      const progreso = -wrap(offsetActual()) / mitad();
+      pista.style.animationDelay = `${-(progreso * dur)}s`;
+      pista.classList.remove('is-arrastrando');
+      pista.style.transform = '';
+    }, { passive: true });
+  }
+</script>

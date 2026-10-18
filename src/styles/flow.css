@@ -642,6 +642,18 @@ html:not(.fl-js) .flow .fl-paso::after {
   .flow .fl-vendida--dup {
     display: none;
   }
+  /* Promos: igual, scroll manual y sin duplicados. */
+  .flow .fl-promos-wrap {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .flow .fl-promos {
+    animation: none;
+  }
+  .flow .fl-promo--dup {
+    display: none;
+  }
   .fl-js .fl-reveal {
     opacity: 1;
     transform: none;
@@ -1017,12 +1029,47 @@ html:not(.fl-js) .flow .fl-paso::after {
   }
 }
 
-/* ---------- Promociones del CMS (estilo Flow) ---------- */
+/* ---------- Promociones del CMS (carrusel continuo, como opiniones) ---------- */
+.flow .fl-promos-wrap {
+  margin: 0 -1.25rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.flow .fl-promos {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  padding: 0 1.25rem;
+  list-style: none;
+  margin: 0;
+  /* pan-y: el swipe vertical sigue scrolleando la página (y reanuda el loop),
+     el horizontal lo toma el drag del carrusel. */
+  touch-action: pan-y;
+  animation: fl-promos-scroll 35s linear infinite;
+}
+@keyframes fl-promos-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.flow .fl-promos:hover {
+  animation-play-state: paused;
+}
+.flow .fl-promos.is-arrastrando {
+  animation: none;
+}
+.flow .fl-promos > li {
+  flex-shrink: 0;
+  width: min(88vw, 34rem);
+  display: flex;
+}
 .flow .fl-promo {
   display: grid;
   gap: 1.5rem;
   align-items: center;
   padding: 1.5rem;
+  width: 100%;
 }
 @media (min-width: 768px) {
   .flow .fl-promo {
@@ -1030,9 +1077,6 @@ html:not(.fl-js) .flow .fl-paso::after {
     gap: 2.5rem;
     padding: 2.5rem;
   }
-}
-.flow .fl-promo + .fl-promo {
-  margin-top: 1.5rem;
 }
 .flow .fl-promo__badge {
   display: inline-flex;
@@ -1073,56 +1117,4 @@ html:not(.fl-js) .flow .fl-paso::after {
   }
 }
 
-/* ---------- Carrusel de banners del CMS (loop continuo, como opiniones) ---------- */
-.flow .fl-bannercar {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-}
-.flow .fl-bannercar__pista {
-  display: flex;
-  width: max-content;
-  animation: fl-bannercar-scroll 45s linear infinite;
-}
-@keyframes fl-bannercar-scroll {
-  to {
-    transform: translateX(-50%);
-  }
-}
-.flow .fl-bannercar:hover .fl-bannercar__pista {
-  animation-play-state: paused;
-}
-/* Cada banner ocupa todo el viewport, como antes. % dentro de un contenedor
-   max-content resuelve circular, así que vw. */
-.flow .fl-bannercar__item {
-  flex: 0 0 100vw;
-}
-.flow .fl-bannercar__slide {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4/3;
-}
-@media (min-width: 640px) {
-  .flow .fl-bannercar__slide {
-    aspect-ratio: 16/6;
-  }
-}
-.flow .fl-bannercar__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-@media (prefers-reduced-motion: reduce) {
-  .flow .fl-bannercar {
-    overflow-x: auto;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-  .flow .fl-bannercar__pista {
-    animation: none;
-  }
-  .flow .fl-bannercar__dup {
-    display: none;
-  }
-}
+
