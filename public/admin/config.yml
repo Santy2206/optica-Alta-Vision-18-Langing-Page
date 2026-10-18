@@ -92,6 +92,15 @@ collections:
           - { label: Niños, value: ninos }
           - { label: Deportivas, value: deportivas }
           - { label: Lentes blandos, value: contacto }
+      - label: Género
+        name: genero
+        widget: select
+        required: false
+        options:
+          - { label: Unisex, value: unisex }
+          - { label: Hombre, value: hombre }
+          - { label: Mujer, value: mujer }
+        hint: "La IA lo detecta sola al subir la foto. Cámbialo solo si se equivoca."
       - label: Forma de la montura
         name: frameShape
         widget: select

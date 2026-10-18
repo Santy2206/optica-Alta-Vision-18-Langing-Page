@@ -32,6 +32,13 @@ const categorias = [
   { value: 'deportivas', label: 'Deportivas' },
   { value: 'contacto', label: 'Lentes blandos' },
 ] as const;
+
+const generos = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'unisex', label: 'Unisex' },
+  { value: 'hombre', label: 'Hombre' },
+  { value: 'mujer', label: 'Mujer' },
+] as const;
 ---
 
 <BaseLayout
@@ -56,7 +63,7 @@ const categorias = [
 
   <section class="fl-sec !pt-4 md:!pt-6">
     <div class="fl-sec__inner">
-      <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría" data-filter-group>
+      <div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría" data-filter-group>
         {
           categorias.map((cat, i) => (
             <button
@@ -67,6 +74,21 @@ const categorias = [
               aria-pressed={i === 0 ? 'true' : 'false'}
             >
               {cat.label}
+            </button>
+          ))
+        }
+      </div>
+      <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por género" data-genero-group>
+        {
+          generos.map((g, i) => (
+            <button
+              type="button"
+              class:list={['fl-chip', i === 0 && 'is-active']}
+              data-genero-btn
+              data-genero={g.value}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {g.label}
             </button>
           ))
         }
@@ -101,6 +123,7 @@ const categorias = [
                   class="fl-card fl-producto flex flex-col overflow-hidden"
                   data-catalog-item
                   data-category={item.data.category}
+                  data-genero={item.data.genero ?? 'unisex'}
                 >
                   <div class="relative aspect-[4/3] overflow-hidden bg-slate-100" data-photo-hover>
                     {isPlaceholderImage(item.data.image) ? (
@@ -203,7 +226,7 @@ const categorias = [
       }
 
       <p class="mt-8 hidden text-center text-sm text-white/60" data-empty-message>
-        No hay monturas en esta categoría todavía.
+        No hay monturas con estos filtros todavía.
       </p>
     </div>
   </section>
@@ -222,14 +245,20 @@ const categorias = [
 
 <script>
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter-btn]');
+  const generoButtons = document.querySelectorAll<HTMLButtonElement>('[data-genero-btn]');
   const items = document.querySelectorAll<HTMLElement>('[data-catalog-item]');
   const emptyMessage = document.querySelector<HTMLElement>('[data-empty-message]');
 
-  const applyFilter = (filter: string) => {
+  let categoriaActiva = 'todos';
+  let generoActivo = 'todos';
+
+  const applyFilters = () => {
     let visibleCount = 0;
 
     items.forEach((item) => {
-      const matches = filter === 'todos' || item.dataset.category === filter;
+      const matches =
+        (categoriaActiva === 'todos' || item.dataset.category === categoriaActiva) &&
+        (generoActivo === 'todos' || (item.dataset.genero ?? 'unisex') === generoActivo);
       item.classList.toggle('hidden', !matches);
       if (matches) visibleCount += 1;
     });
@@ -237,7 +266,12 @@ const categorias = [
     emptyMessage?.classList.toggle('hidden', visibleCount > 0);
 
     buttons.forEach((btn) => {
-      const active = btn.dataset.filter === filter;
+      const active = btn.dataset.filter === categoriaActiva;
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.classList.toggle('is-active', active);
+    });
+    generoButtons.forEach((btn) => {
+      const active = btn.dataset.genero === generoActivo;
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
       btn.classList.toggle('is-active', active);
     });
@@ -245,14 +279,32 @@ const categorias = [
 
   buttons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      if (btn.dataset.filter) applyFilter(btn.dataset.filter);
+      if (btn.dataset.filter) {
+        categoriaActiva = btn.dataset.filter;
+        applyFilters();
+      }
+    });
+  });
+
+  generoButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.genero) {
+        generoActivo = btn.dataset.genero;
+        applyFilters();
+      }
     });
   });
 
   const params = new URLSearchParams(window.location.search);
   const initialFilter = params.get('categoria');
   if (initialFilter && Array.from(buttons).some((b) => b.dataset.filter === initialFilter)) {
-    applyFilter(initialFilter);
+    categoriaActiva = initialFilter;
+    applyFilters();
+  }
+  const initialGenero = params.get('genero');
+  if (initialGenero && Array.from(generoButtons).some((b) => b.dataset.genero === initialGenero)) {
+    generoActivo = initialGenero;
+    applyFilters();
   }
 
   document.addEventListener('click', (e) => {

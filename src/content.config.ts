@@ -16,6 +16,8 @@ const catalogo = defineCollection({
     /** Marca del marco. Por defecto la casa (monturas propias). */
     brand: z.string().default('Óptica Alta Visión 18'),
     category: z.enum(['formuladas', 'sol', 'ninos', 'deportivas', 'contacto']),
+    /** Para quién es la montura. La IA lo rellena al subir la foto; el CMS lo puede corregir. */
+    genero: z.enum(['unisex', 'hombre', 'mujer']).optional(),
     /** Forma de la montura (test de forma de rostro). Si falta, se infiere del nombre. */
     frameShape: z.enum(FRAME_SHAPES).optional(),
     /** null/omitido = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp".

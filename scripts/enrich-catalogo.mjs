@@ -137,6 +137,30 @@ async function askFrameColor(imageUrl) {
 
 const normalize = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
+// Género de la montura: misma llamada de visión que el color. Reglas ambiguas
+// (aviador/clubmaster neutras, tamaño medio) se resuelven a "unisex".
+const GENEROS = ['unisex', 'hombre', 'mujer'];
+async function askFrameGender(imageUrl) {
+  const result = await fal.subscribe(VISION_MODEL, {
+    input: {
+      model: VISION_LLM,
+      image_urls: [imageUrl],
+      temperature: 0,
+      system_prompt: 'Respond with only the answer. No markdown, no punctuation, no explanation.',
+      prompt:
+        'This is a product photo of an eyeglasses frame. Based on its design (size, ' +
+        'thickness, shape and color), decide who it is marketed for. Frames that look ' +
+        'delicate, small, cat-eye or jewel-toned are usually mujer; big, thick, angular ' +
+        'or sporty ones are usually hombre; neutral/medium classic shapes (aviador, ' +
+        'rectangular, redonda) are unisex. Answer with exactly one word: unisex, ' +
+        'hombre or mujer.',
+    },
+  });
+  const answer = normalize(String(result.data?.output ?? ''));
+  const found = GENEROS.find((g) => answer.includes(g));
+  return found ?? 'unisex';
+}
+
 const PALETTE_HEX = Object.fromEntries(
   FRAME_COLORS.map(([name, rgb]) => [
     name,
@@ -337,6 +361,14 @@ async function main() {
         entry.colors = [{ name: color.name, hex: color.hex, lenses: [] }];
         dirty = true;
         console.log(`color detectado para ${file}: ${color.name} ${color.hex}`);
+      }
+
+      // 4. Género (filtro del catálogo): visión sobre la misma imagen limpia.
+      if (!entry.genero || !GENEROS.includes(entry.genero)) {
+        const genderSource = existsSync(tryonPath) ? tryonPath : sourcePath;
+        entry.genero = hasKey ? await askFrameGender(await getFalUrl(genderSource)) : 'unisex';
+        dirty = true;
+        console.log(`género detectado para ${file}: ${entry.genero}`);
       }
     } catch (err) {
       // Un producto con foto rara o un fallo de fal no debe tumbar el resto del lote.
