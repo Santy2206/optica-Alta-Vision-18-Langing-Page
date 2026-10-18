@@ -450,14 +450,12 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
 
       <div class="mt-6 flex flex-col gap-3 sm:flex-row">
         <a
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/catalogo"
           class="border-2 border-slate-900 flex flex-1 items-center justify-center gap-2 rounded-full bg-verde-neon px-4 py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition-shadow hover:shadow-md"
-          data-facetest-result-whatsapp
+          data-facetest-result-catalogo
         >
-          <Icon name="whatsapp" class="h-4 w-4 shrink-0" />
-          <span data-facetest-result-whatsapp-label>Pedir recomendaciones para mi rostro</span>
+          <Icon name="eye" class="h-4 w-4 shrink-0" />
+          <span data-facetest-result-catalogo-label>Ver monturas para mi rostro</span>
         </a>
         <button
           type="button"
@@ -474,7 +472,6 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
 <script>
   import { calculateFaceShape, isValidMeasurement } from '../data/faceShapeQuiz';
   import type { FaceMeasurements, FaceShapeResult, JawContour } from '../data/faceShapeQuiz';
-  import { waLink } from '../utils/whatsapp';
   import {
     checkAlignment,
     detectFaceShape,
@@ -803,17 +800,15 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       const baseLabel =
         modal!.querySelector<HTMLElement>(`[data-facetest-result-label="${shapeId}"]`)?.textContent ?? '';
       const label = detail?.displayLabel ?? baseLabel;
-      const whatsapp = modal!.querySelector<HTMLAnchorElement>('[data-facetest-result-whatsapp]');
-      if (whatsapp) {
+      // El CTA lleva al catálogo con el filtro de rostro ya aplicado.
+      const catalogo = modal!.querySelector<HTMLAnchorElement>('[data-facetest-result-catalogo]');
+      if (catalogo) {
         const origen = `test-rostro:${shapeId}`;
         const forma = baseLabel.trim().toLowerCase();
-        whatsapp.href = waLink(
-          origen,
-          `Hola, hice el test de rostro y mi resultado fue: ${label}. ¿Qué monturas me recomiendan para rostro ${forma}?`,
-        );
-        whatsapp.dataset.cta = origen;
-        const ctaLabel = whatsapp.querySelector<HTMLElement>('[data-facetest-result-whatsapp-label]');
-        if (ctaLabel) ctaLabel.textContent = `Pedir recomendaciones para rostro ${forma}`;
+        catalogo.href = `/catalogo?rostro=${shapeId}`;
+        catalogo.dataset.cta = origen;
+        const ctaLabel = catalogo.querySelector<HTMLElement>('[data-facetest-result-catalogo-label]');
+        if (ctaLabel) ctaLabel.textContent = `Ver monturas para rostro ${forma}`;
       }
     }
 

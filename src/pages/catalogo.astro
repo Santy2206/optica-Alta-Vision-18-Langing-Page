@@ -11,6 +11,7 @@ import { waLink } from '../utils/whatsapp';
 import { priceLabel as getPriceLabel, isFallbackPrice } from '../utils/precio';
 import { isPlaceholderImage } from '../utils/images';
 import { getFrameShape } from '../data/frameShape';
+import { faceShapeInfo, frameRecommendations } from '../data/faceShapeQuiz';
 import FrameShapeIcon from '../components/FrameShapeIcon.astro';
 import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import FlowPasos from '../components/flow/FlowPasos.astro';
@@ -38,6 +39,17 @@ const generos = [
   { value: 'unisex', label: 'Unisex' },
   { value: 'hombre', label: 'Hombre' },
   { value: 'mujer', label: 'Mujer' },
+] as const;
+
+// Filtro por forma de rostro: las caras salen del mismo mapa que usa el test
+// (faceShapeInfo) — una montura aparece para un rostro si su frameShape está
+// recomendada para él (frameRecommendations).
+const rostros = [
+  { value: 'todos', label: 'Todos' },
+  ...Object.entries(faceShapeInfo).map(([value, info]) => ({
+    value,
+    label: info.label,
+  })),
 ] as const;
 ---
 
@@ -78,7 +90,7 @@ const generos = [
           ))
         }
       </div>
-      <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por género" data-genero-group>
+      <div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar por género" data-genero-group>
         {
           generos.map((g, i) => (
             <button
@@ -89,6 +101,21 @@ const generos = [
               aria-pressed={i === 0 ? 'true' : 'false'}
             >
               {g.label}
+            </button>
+          ))
+        }
+      </div>
+      <div class="mb-8 flex flex-wrap gap-2" role="group" aria-label="Filtrar por forma de rostro" data-rostro-group>
+        {
+          rostros.map((r, i) => (
+            <button
+              type="button"
+              class:list={['fl-chip', i === 0 && 'is-active']}
+              data-rostro-btn
+              data-rostro={r.value}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {r.label}
             </button>
           ))
         }
@@ -117,6 +144,13 @@ const generos = [
               // Misma foto de fondo recortado que displayImage para que combine con bg-slate-100.
               const hoverSource = firstColor?.modelImage || item.data.hoverImage;
               const hoverImage = hoverSource ? getDisplayImage(hoverSource) : '';
+              // Rostros a los que favorece esta montura (filtro "forma de rostro").
+              const shape = getFrameShape(item.data);
+              const rostrosFavorecidos = shape
+                ? (Object.keys(frameRecommendations) as Array<keyof typeof frameRecommendations>).filter(
+                    (rostro) => frameRecommendations[rostro].includes(shape),
+                  )
+                : [];
 
               return (
                 <article
@@ -125,6 +159,7 @@ const generos = [
                   data-catalog-item
                   data-category={item.data.category}
                   data-genero={item.data.genero ?? 'unisex'}
+                  data-rostro={rostrosFavorecidos.join(' ')}
                 >
                   <div class="relative aspect-[4/3] overflow-hidden bg-slate-100" data-photo-hover>
                     {isPlaceholderImage(item.data.image) ? (
@@ -247,11 +282,13 @@ const generos = [
 <script>
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter-btn]');
   const generoButtons = document.querySelectorAll<HTMLButtonElement>('[data-genero-btn]');
+  const rostroButtons = document.querySelectorAll<HTMLButtonElement>('[data-rostro-btn]');
   const items = document.querySelectorAll<HTMLElement>('[data-catalog-item]');
   const emptyMessage = document.querySelector<HTMLElement>('[data-empty-message]');
 
   let categoriaActiva = 'todos';
   let generoActivo = 'todos';
+  let rostroActivo = 'todos';
 
   const applyFilters = () => {
     let visibleCount = 0;
@@ -259,7 +296,8 @@ const generos = [
     items.forEach((item) => {
       const matches =
         (categoriaActiva === 'todos' || item.dataset.category === categoriaActiva) &&
-        (generoActivo === 'todos' || (item.dataset.genero ?? 'unisex') === generoActivo);
+        (generoActivo === 'todos' || (item.dataset.genero ?? 'unisex') === generoActivo) &&
+        (rostroActivo === 'todos' || (item.dataset.rostro ?? '').split(' ').includes(rostroActivo));
       item.classList.toggle('hidden', !matches);
       if (matches) visibleCount += 1;
     });
@@ -273,6 +311,11 @@ const generos = [
     });
     generoButtons.forEach((btn) => {
       const active = btn.dataset.genero === generoActivo;
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.classList.toggle('is-active', active);
+    });
+    rostroButtons.forEach((btn) => {
+      const active = btn.dataset.rostro === rostroActivo;
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
       btn.classList.toggle('is-active', active);
     });
@@ -302,9 +345,23 @@ const generos = [
     categoriaActiva = initialFilter;
     applyFilters();
   }
+  rostroButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.rostro) {
+        rostroActivo = btn.dataset.rostro;
+        applyFilters();
+      }
+    });
+  });
+
   const initialGenero = params.get('genero');
   if (initialGenero && Array.from(generoButtons).some((b) => b.dataset.genero === initialGenero)) {
     generoActivo = initialGenero;
+    applyFilters();
+  }
+  const initialRostro = params.get('rostro');
+  if (initialRostro && Array.from(rostroButtons).some((b) => b.dataset.rostro === initialRostro)) {
+    rostroActivo = initialRostro;
     applyFilters();
   }
 
