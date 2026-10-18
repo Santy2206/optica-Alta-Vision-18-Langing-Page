@@ -598,50 +598,48 @@ html:not(.fl-js) .flow .fl-paso::after {
    una sola fila deslizable en móvil para no formar un muro de botones. */
 .flow .fl-filtros {
   display: grid;
+  gap: 0.6rem;
+}
+/* Cada filtro es UNA línea: etiqueta a la izquierda, chips deslizables a la
+   derecha — el bloque entero queda en ~4 filas compactas. */
+.flow .fl-filtro {
+  display: flex;
+  align-items: center;
   gap: 0.9rem;
 }
-@media (min-width: 768px) {
-  .flow .fl-filtros {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem 2.5rem;
-  }
-}
 .flow .fl-filtro__label {
-  font-size: 0.78rem;
+  flex: 0 0 auto;
+  width: min(8.5rem, 30vw);
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  line-height: 1.25;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 0.4rem;
 }
 .flow .fl-filtro__label span {
-  font-size: 0.78rem;
+  display: block;
+  font-size: 0.7rem;
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
-  color: rgba(255, 255, 255, 0.55);
-}
-.flow .fl-filtro__label span::before {
-  content: '· ';
+  color: rgba(255, 255, 255, 0.5);
 }
 .flow .fl-filtro__row {
   display: flex;
+  flex: 1;
+  min-width: 0;
   flex-wrap: nowrap;
-  gap: 0.5rem;
+  gap: 0.45rem;
   overflow-x: auto;
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.25rem;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 .flow .fl-filtro__row .fl-chip {
   flex-shrink: 0;
-}
-@media (min-width: 768px) {
-  .flow .fl-filtro__row {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    padding-bottom: 0;
-  }
+  padding: 0.4rem 0.95rem;
+  font-size: 0.82rem;
 }
 .flow .fl-producto {
   transition:
