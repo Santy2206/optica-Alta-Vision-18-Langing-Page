@@ -36,6 +36,12 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
         {/* Carrusel continuo: la lista va duplicada y traduce -50% (loop).
             Los duplicados son aria-hidden/inert. */}
         <div class="fl-vendidas__riel fl-reveal" style="--d:.15s">
+          <button type="button" class="fl-vendidas__nav fl-vendidas__nav--prev" data-nav="prev" aria-label="Monturas anteriores">
+            ‹
+          </button>
+          <button type="button" class="fl-vendidas__nav fl-vendidas__nav--next" data-nav="next" aria-label="Monturas siguientes">
+            ›
+          </button>
           <ul class="fl-vendidas" aria-label="Monturas más vendidas">
             {[...vendidas, ...vendidas].map((item, i) => {
               const dup = i >= vendidas.length;
@@ -154,8 +160,41 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
       const tx = new DOMMatrixReadOnly(getComputedStyle(riel).transform).m41;
       return Number.isFinite(tx) ? tx : 0;
     };
+    // Mover la fase del loop a un offset dado: animation-delay negativo hace
+    // que la animación continúe desde ese punto (sirve esté corriendo o en pausa).
+    const irAOffset = (x: number) => {
+      if (riel.classList.contains('is-arrastrando')) {
+        riel.classList.remove('is-arrastrando');
+        riel.style.transform = '';
+      }
+      const dur = parseFloat(getComputedStyle(riel).animationDuration) || DURACION_S;
+      riel.style.animationDelay = `${-((-wrap(x) / mitad()) * dur)}s`;
+    };
+
+    // Flechas prev/next: saltar una tarjeta en cada dirección.
+    const pitch = () => {
+      const card = riel.querySelector('li');
+      const gap = parseFloat(getComputedStyle(riel).gap) || 0;
+      return (card?.offsetWidth ?? 260) + gap;
+    };
+    const cont = riel.parentElement;
+    cont?.querySelector('[data-nav="prev"]')?.addEventListener('click', () => irAOffset(offsetActual() + pitch()));
+    cont?.querySelector('[data-nav="next"]')?.addEventListener('click', () => irAOffset(offsetActual() - pitch()));
+
+    // Retomar el loop solo cuando el usuario deja de interactuar: suelta el
+    // dedo y pasan unos segundos, o vuelve a desplazar la página.
+    let timerRetomar = 0;
+    const reanudar = () => {
+      if (!riel.classList.contains('is-arrastrando')) return;
+      irAOffset(offsetActual());
+    };
+    const programarRetomar = () => {
+      clearTimeout(timerRetomar);
+      timerRetomar = window.setTimeout(reanudar, 4000);
+    };
 
     riel.addEventListener('pointerdown', (e) => {
+      clearTimeout(timerRetomar);
       if (e.pointerType === 'mouse') return;
       inicioX = e.clientX;
       inicioOffset = offsetActual();
@@ -181,15 +220,16 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
       if (movio) {
         riel.addEventListener('click', (ev) => ev.preventDefault(), { capture: true, once: true });
       }
+      // Tras unos segundos sin tocar nada, el carrusel retoma solo.
+      programarRetomar();
     });
 
     // Al volver a scrollear la página, reanudar el loop desde el punto donde quedó.
-    window.addEventListener('scroll', () => {
-      if (!riel.classList.contains('is-arrastrando')) return;
-      const progreso = -wrap(offsetActual()) / mitad();
-      riel.style.animationDelay = `${-(progreso * DURACION_S)}s`;
-      riel.classList.remove('is-arrastrando');
-      riel.style.transform = '';
-    }, { passive: true });
+    window.addEventListener('scroll', reanudar, { passive: true });
+
+    // Si el foco sale del riel (tab), también retoma.
+    riel.addEventListener('focusout', (e) => {
+      if (!riel.contains(e.relatedTarget as Node | null)) reanudar();
+    });
   }
 </script>
