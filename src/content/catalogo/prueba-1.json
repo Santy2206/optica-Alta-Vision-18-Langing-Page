@@ -14,5 +14,6 @@
   "createdAt": "2026-10-16T19:46:00.000-05:00",
   "image": "/uploads/catalogo/prueba-front.webp",
   "category": "formuladas",
-  "hoverImage": "/uploads/catalogo/prueba-front-side.webp"
+  "hoverImage": "/uploads/catalogo/prueba-front-side.webp",
+  "genero": "unisex"
 }
