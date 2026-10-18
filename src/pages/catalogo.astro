@@ -15,6 +15,7 @@ import FrameShapeIcon from '../components/FrameShapeIcon.astro';
 import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import FlowPasos from '../components/flow/FlowPasos.astro';
 import FlowOpiniones from '../components/flow/FlowOpiniones.astro';
+import FlowLenteModal from '../components/flow/FlowLenteModal.astro';
 import FlowReveal from '../components/flow/FlowReveal.astro';
 import '../styles/flow.css';
 import { getCollection } from 'astro:content';
@@ -150,15 +151,27 @@ const categorias = [
                     )}
 
                     <p class:list={[isFallbackPrice(item.data.price) ? "text-sm text-white/70" : "text-base font-medium text-white"]}>{priceLabel}</p>
-                    <a
-                      href={waHref}
-                      data-cta={origen}
-                      class="fl-btn fl-btn--lima fl-btn--sm mt-auto"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Me interesa
-                    </a>
+                    {item.data.category === 'formuladas' ? (
+                      <button
+                        type="button"
+                        class="fl-btn fl-btn--lima fl-btn--sm mt-auto"
+                        data-lente-open
+                        data-name={item.data.name}
+                        data-origen={origen}
+                      >
+                        Me interesa
+                      </button>
+                    ) : (
+                      <a
+                        href={waHref}
+                        data-cta={origen}
+                        class="fl-btn fl-btn--lima fl-btn--sm mt-auto"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Me interesa
+                      </a>
+                    )}
                     {overlayImage && (
                       <button
                         type="button"
@@ -195,6 +208,7 @@ const categorias = [
 
   <FlowPasos />
   <FlowOpiniones />
+  <FlowLenteModal />
   </main>
 
   <Footer />

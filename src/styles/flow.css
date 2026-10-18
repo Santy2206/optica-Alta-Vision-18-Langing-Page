@@ -679,3 +679,126 @@ html:not(.fl-js) .flow .fl-paso::after {
     min-height: 420px;
   }
 }
+
+/* ---------- Selector de tipo de lente (catálogo → WhatsApp) ---------- */
+.fl-lente {
+  /* El modal vive fuera de .flow (fijo al viewport), así que repite los tokens. */
+  --tinta: var(--color-tinta);
+  --cian: var(--color-cian);
+  --magenta: var(--color-fucsia);
+  --lima: var(--color-lima);
+  --iris: var(--color-iris);
+  --vidrio: rgba(255, 255, 255, 0.06);
+  --vidrio-borde: rgba(255, 255, 255, 0.14);
+  --texto-suave: rgba(255, 255, 255, 0.72);
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.fl-lente[hidden] {
+  display: none;
+}
+.fl-lente__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 9, 0.65);
+  backdrop-filter: blur(5px);
+}
+.fl-lente__card {
+  position: relative;
+  width: 100%;
+  max-width: 24rem;
+  border: 1px solid var(--vidrio-borde);
+  border-radius: 1.4rem;
+  background: #232320;
+  padding: 1.4rem;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+.fl-lente__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.fl-lente__titulo {
+  margin-top: 0.5rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.fl-lente__marco {
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+.fl-lente__cerrar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid var(--vidrio-borde);
+  background: var(--vidrio);
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s, border-color 0.2s;
+}
+.fl-lente__cerrar:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.fl-lente__cerrar :where(svg) {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.fl-lente__opciones {
+  margin-top: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.fl-lente__opt {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--vidrio-borde);
+  background: var(--vidrio);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    background-color 0.2s;
+}
+.fl-lente__opt:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--cian) 70%, transparent);
+  background: color-mix(in srgb, var(--cian) 10%, transparent);
+}
+.fl-lente__opt img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 0.6rem;
+}
+.fl-lente__opt--plano {
+  justify-content: center;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+.fl-lente__nota {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+}

@@ -1,0 +1,102 @@
+---
+// Selector de tipo de lente para monturas "formuladas" del catálogo.
+// Cualquier botón con data-lente-open + data-name + data-origen abre este modal
+// (delegación de eventos); al elegir se abre WhatsApp con la montura + el lente.
+import Icon from '../Icon.astro';
+import { tiposLente } from '../../data/tiposLente';
+import '../../styles/flow.css';
+---
+
+<div
+  class="fl-lente"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="lente-titulo"
+  data-lente-modal
+  hidden
+>
+  <div class="fl-lente__backdrop" data-lente-close></div>
+  <div class="fl-lente__card">
+    <div class="fl-lente__head">
+      <div>
+        <p class="fl-eyebrow">Cotiza tu fórmula</p>
+        <h2 id="lente-titulo" class="fl-lente__titulo">Elige el tipo de lente</h2>
+        <p class="fl-lente__marco" data-lente-frame>—</p>
+      </div>
+      <button type="button" class="fl-lente__cerrar" aria-label="Cerrar" data-lente-close>
+        <Icon name="close" />
+      </button>
+    </div>
+
+    <div class="fl-lente__opciones" role="list">
+      {
+        tiposLente.map((tipo) => (
+          <button type="button" class="fl-lente__opt" data-lente-opt={tipo.nombre}>
+            <img src={tipo.imagen} alt="" loading="lazy" />
+            <span>{tipo.nombre}</span>
+          </button>
+        ))
+      }
+      <button type="button" class="fl-lente__opt fl-lente__opt--plano" data-lente-opt="">
+        <span>Solo la montura / aún no lo sé</span>
+      </button>
+    </div>
+
+    <p class="fl-lente__nota">Te abrimos WhatsApp con la montura y el lente elegidos.</p>
+  </div>
+</div>
+
+<script>
+  import { waLink, trackCta } from '../../utils/whatsapp';
+
+  const modal = document.querySelector<HTMLElement>('[data-lente-modal]');
+  const frameLabel = modal?.querySelector<HTMLElement>('[data-lente-frame]');
+  let origen = 'catalogo';
+  let nombre = '';
+
+  const abrir = (nombreMarco: string, origenMarco: string) => {
+    nombre = nombreMarco;
+    origen = origenMarco;
+    if (frameLabel) frameLabel.textContent = nombre;
+    modal?.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const cerrar = () => {
+    modal?.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+  };
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+
+    const opener = t.closest<HTMLElement>('[data-lente-open]');
+    if (opener) {
+      abrir(opener.dataset.name ?? '', opener.dataset.origen ?? 'catalogo');
+      return;
+    }
+
+    if (!modal || modal.hasAttribute('hidden')) return;
+
+    if (t.closest('[data-lente-close]')) {
+      cerrar();
+      return;
+    }
+
+    const opt = t.closest<HTMLElement>('[data-lente-opt]');
+    if (opt) {
+      const tipo = opt.dataset.lenteOpt ?? '';
+      const ref = tipo ? `${origen}:lente-${tipo.toLowerCase().replace(/\s+/g, '-')}` : origen;
+      const mensaje = tipo
+        ? `Hola, me interesa ${nombre} con lentes ${tipo}`
+        : `Hola, me interesa ${nombre}`;
+      trackCta(ref);
+      window.open(waLink(ref, mensaje), '_blank', 'noopener,noreferrer');
+      cerrar();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.hasAttribute('hidden')) cerrar();
+  });
+</script>
