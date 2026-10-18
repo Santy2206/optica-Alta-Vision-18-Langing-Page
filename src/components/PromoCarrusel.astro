@@ -1,8 +1,10 @@
 ---
-// Carrusel de banners del CMS (colección "carrusel"). Ya no es el hero:
-// va debajo de "Cómo funciona" y solo se renderiza si hay slides activos.
+// Carrusel de banners del CMS (colección "carrusel"). Va debajo del hero y solo
+// se renderiza si hay slides activos. Se desplaza en loop continuo como el
+// carrusel de opiniones (la lista va duplicada y traduce -50%).
 import { getCollection } from 'astro:content';
 import { waLink } from '../utils/whatsapp';
+import '../styles/flow.css';
 
 const slides = (await getCollection('carrusel', ({ data }) => data.active)).sort(
   (a, b) => a.data.order - b.data.order,
@@ -11,117 +13,46 @@ const slides = (await getCollection('carrusel', ({ data }) => data.active)).sort
 
 {
   slides.length > 0 && (
-  <section
-    class="relative w-full overflow-hidden bg-tinta"
-    aria-roledescription="carousel"
-    aria-label="Promociones destacadas"
-    data-carousel
-  >
-    <div class="relative aspect-[4/3] w-full sm:aspect-[16/6]" data-carousel-track>
-      {slides.map((slide, i) => {
-        const customLink = slide.data.link?.trim();
-        const href = customLink || waLink(`carrusel:${slide.id}`, 'Hola, vi el banner en la página y quiero más información');
-        const isExternal = href.startsWith('http');
-        return (
-          <a
-            href={href}
-            target={isExternal ? '_blank' : undefined}
-            rel={isExternal ? 'noopener noreferrer' : undefined}
-            data-cta={customLink ? undefined : `carrusel:${slide.id}`}
-            class:list={[
-              'absolute inset-0 transition-opacity duration-700 ease-in-out',
-              i === 0 ? 'opacity-100' : 'pointer-events-none opacity-0',
-            ]}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${i + 1} de ${slides.length}`}
-            data-carousel-slide
-          >
-            <img
-              src={slide.data.image}
-              alt={slide.data.imageAlt}
-              loading="lazy"
-              decoding="async"
-              class="h-full w-full object-cover"
-            />
-          </a>
-        );
-      })}
-    </div>
-
-    {slides.length > 1 && (
-      <div
-        class="absolute inset-x-0 bottom-4 flex justify-center gap-2"
-        role="tablist"
-        aria-label="Seleccionar banner"
-      >
-        {slides.map((_, i) => (
-          <button
-            type="button"
-            class:list={[
-              'h-6 w-6 rounded-full bg-clip-content p-[7px] transition-colors',
-              i === 0 ? 'bg-white' : 'bg-white/50',
-            ]}
-            role="tab"
-            aria-label={`Ver banner ${i + 1}`}
-            aria-selected={i === 0 ? 'true' : 'false'}
-            data-carousel-dot
-          />
-        ))}
-      </div>
-    )}
-  </section>
+    <section
+      class="fl-bannercar"
+      aria-roledescription="carousel"
+      aria-label="Promociones destacadas"
+    >
+      <ul class="fl-bannercar__pista">
+        {[...slides, ...slides].map((slide, i) => {
+          const dup = i >= slides.length;
+          const customLink = slide.data.link?.trim();
+          const href =
+            customLink ||
+            waLink(`carrusel:${slide.id}`, 'Hola, vi el banner en la página y quiero más información');
+          const isExternal = href.startsWith('http');
+          return (
+            <li
+              class:list={['fl-bannercar__item', dup && 'fl-bannercar__dup']}
+              aria-hidden={dup || undefined}
+              inert={dup || undefined}
+            >
+              <a
+                href={href}
+                target={isExternal ? '_blank' : undefined}
+                rel={isExternal ? 'noopener noreferrer' : undefined}
+                data-cta={customLink ? undefined : `carrusel:${slide.id}`}
+                class="fl-bannercar__slide"
+                aria-label={dup ? undefined : `${slide.data.imageAlt} (banner ${(i % slides.length) + 1} de ${slides.length})`}
+                tabindex={dup ? -1 : undefined}
+              >
+                <img
+                  src={slide.data.image}
+                  alt={dup ? '' : slide.data.imageAlt}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  class="fl-bannercar__img"
+                />
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   )
 }
-
-<script>
-  const section = document.querySelector<HTMLElement>('[data-carousel]');
-  const slides = document.querySelectorAll<HTMLElement>('[data-carousel-slide]');
-  const dots = document.querySelectorAll<HTMLButtonElement>('[data-carousel-dot]');
-
-  if (section && slides.length > 1) {
-    let current = 0;
-    let timer: ReturnType<typeof setInterval> | undefined;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const goTo = (index: number) => {
-      slides[current].classList.add('opacity-0', 'pointer-events-none');
-      slides[current].classList.remove('opacity-100');
-      dots[current]?.classList.replace('bg-white', 'bg-white/50');
-      dots[current]?.setAttribute('aria-selected', 'false');
-
-      current = index;
-
-      slides[current].classList.remove('opacity-0', 'pointer-events-none');
-      slides[current].classList.add('opacity-100');
-      dots[current]?.classList.replace('bg-white/50', 'bg-white');
-      dots[current]?.setAttribute('aria-selected', 'true');
-    };
-
-    const next = () => goTo((current + 1) % slides.length);
-
-    const stop = () => {
-      if (timer) clearInterval(timer);
-    };
-
-    const start = () => {
-      if (prefersReducedMotion) return;
-      stop();
-      timer = setInterval(next, 5000);
-    };
-
-    dots.forEach((dot, i) => {
-      dot.addEventListener('click', () => {
-        goTo(i);
-        start();
-      });
-    });
-
-    section.addEventListener('mouseenter', stop);
-    section.addEventListener('mouseleave', start);
-    section.addEventListener('focusin', stop);
-    section.addEventListener('focusout', start);
-
-    start();
-  }
-</script>

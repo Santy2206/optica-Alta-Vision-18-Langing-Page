@@ -2,6 +2,6 @@
   "image": "/uploads/catalogo/cateye05-rosado-930.webp",
   "imageAlt": "Banner de prueba 2",
   "link": "/catalogo",
-  "active": false,
+  "active": true,
   "order": 1
 }
