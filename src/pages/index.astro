@@ -5,7 +5,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
-import { getTryOnOverlayImage, getDisplayImage } from '../utils/cutout';
+import { getTryOnOverlayImage, getTryOnPhotochromicImage, getDisplayImage } from '../utils/cutout';
 import { frameRecommendations, faceShapeInfo } from '../data/faceShapeQuiz';
 import { frameShapeLabel, getFrameShape } from '../data/frameShape';
 import site from '../utils/site';
@@ -70,6 +70,13 @@ const steps = ORDER.flatMap(([id, accent]) => {
 
 // Hero: un marco ancho (acetato cuadrado) — se muestra gigante, cortado por el borde derecho.
 const heroFrame = steps.find((s) => s.id === 'acetatocuadrada09-verde-a') ?? steps[0];
+// El mismo marco hace de "marco de prueba": el botón del hero abre el probador con él
+// directamente. Si todavía no tiene recorte para la cámara, el botón lleva al catálogo.
+const heroItem = heroFrame ? byId.get(heroFrame.id) : undefined;
+const heroColor = heroItem?.data.colors[0];
+const heroSrc = heroColor?.image || heroItem?.data.image;
+const heroOverlay = getTryOnOverlayImage(heroSrc);
+const heroOverlayPhotochromic = getTryOnPhotochromicImage(heroSrc);
 
 // ---------- Escena 5: confianza (solo datos reales; lo que esté vacío no se muestra) ----------
 const { rating, total, url: reviewsUrl } = site.googleReviews;
@@ -259,7 +266,25 @@ const localBusiness = {
             página.
           </p>
           <div class="hero__cta">
-            <a href="/catalogo" class="btn btn--lima">Pruébatelo con tu cámara</a>
+            {
+              heroItem && heroOverlay ? (
+                <button
+                  type="button"
+                  class="btn btn--lima"
+                  data-tryon-open
+                  data-slug={heroItem.id}
+                  data-overlay-image={heroOverlay}
+                  data-overlay-image-photochromic={heroOverlayPhotochromic ?? ''}
+                  data-name={heroItem.data.name}
+                  data-frame={heroColor?.name ?? ''}
+                  data-lenses={JSON.stringify(heroColor?.lenses ?? [])}
+                >
+                  Pruébatelo con tu cámara
+                </button>
+              ) : (
+                <a href="/catalogo" class="btn btn--lima">Pruébatelo con tu cámara</a>
+              )
+            }
             <a href="#escenario" class="btn btn--linea">Ver cómo funciona</a>
           </div>
         </div>
