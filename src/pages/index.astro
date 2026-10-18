@@ -657,11 +657,14 @@ const localBusiness = {
         </div>
       </div>
     </section>
+
+    {/* Los modales van dentro de .flow: sus estilos están bajo ese scope
+        en flow.css (texto blanco, glass, etc.). */}
+    <FlowLenteModal />
+    <TryOnModal />
   </main>
   <Footer />
   <WhatsAppFloat />
-  <FlowLenteModal />
-  <TryOnModal />
   <FaceShapeTest />
   <FlowReveal />
 </BaseLayout>
