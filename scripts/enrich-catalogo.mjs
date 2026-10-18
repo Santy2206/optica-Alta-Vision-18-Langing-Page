@@ -368,7 +368,8 @@ async function main() {
       // clasifica Gemini sobre la imagen limpia.
       if (!entry.genero || !GENEROS.includes(entry.genero)) {
         const ref = `${entry.frameShape || ''} ${entry.name || ''} ${file}`;
-        const generoRegla = /cat[\s-]?eye/i.test(ref)
+        const refColores = (entry.colors || []).map((c) => c.name || '').join(' ');
+        const generoRegla = /cat[\s-]?eye|rosad|\brosa\b|oro rosa/i.test(`${ref} ${refColores}`)
           ? 'mujer'
           : /aviador/i.test(ref)
             ? 'hombre'
