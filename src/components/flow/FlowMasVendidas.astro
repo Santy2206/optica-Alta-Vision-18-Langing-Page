@@ -32,9 +32,12 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
           </a>
         </div>
 
+        {/* Carrusel continuo: la lista va duplicada y traduce -50% (loop).
+            Los duplicados son aria-hidden/inert. */}
         <div class="fl-vendidas__riel fl-reveal" style="--d:.15s">
           <ul class="fl-vendidas" aria-label="Monturas más vendidas">
-            {vendidas.map((item) => {
+            {[...vendidas, ...vendidas].map((item, i) => {
+              const dup = i >= vendidas.length;
               const origen = `vendidas:${item.id}`;
               const waHref = waLink(origen, `Hola, me interesa ${item.data.name}`);
               const src = item.data.colors[0]?.image || item.data.image;
@@ -42,11 +45,15 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
                 ? item.data.image
                 : getDisplayImage(src);
               return (
-                <li class="fl-card fl-vendida">
-                  <a href="/catalogo" class="fl-vendida__foto" aria-label={`Ver ${item.data.name} en el catálogo`}>
+                <li
+                  class:list={['fl-card fl-vendida', dup && 'fl-vendida--dup']}
+                  aria-hidden={dup || undefined}
+                  inert={dup || undefined}
+                >
+                  <a href="/catalogo" class="fl-vendida__foto" aria-label={dup ? undefined : `Ver ${item.data.name} en el catálogo`} tabindex={dup ? -1 : undefined}>
                     <img
                       src={displayImage}
-                      alt={item.data.imageAlt}
+                      alt={dup ? '' : item.data.imageAlt}
                       loading="lazy"
                       decoding="async"
                       class="fl-vendida__img"
@@ -73,7 +80,7 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
                     <p class:list={['fl-vendida__precio', isFallbackPrice(item.data.price) && 'fl-vendida__precio--suave']}>
                       {priceLabel(item.data.price)}
                     </p>
-                    <a href={waHref} data-cta={origen} class="fl-btn fl-btn--lima fl-btn--sm" target="_blank" rel="noopener noreferrer">
+                    <a href={waHref} data-cta={dup ? undefined : origen} class="fl-btn fl-btn--lima fl-btn--sm" target="_blank" rel="noopener noreferrer" tabindex={dup ? -1 : undefined}>
                       Me interesa
                     </a>
                   </div>
@@ -86,3 +93,65 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
     </section>
   )
 }
+
+<script>
+  // Carrusel "más vendidas": corre solo en loop; al tocar una tarjeta queda bajo
+  // el dedo (loop infinito: al pasar el borde envuelve a la copia idéntica), y al
+  // volver a desplazar la página retoma el movimiento desde donde quedó.
+  const riel = document.querySelector<HTMLElement>('.fl-vendidas');
+  if (riel) {
+    const DURACION_S = 75; // igual que `fl-vendidas-scroll` en flow.css
+    let inicioX = 0;
+    let inicioOffset = 0;
+    let movio = false;
+
+    const mitad = () => riel.scrollWidth / 2;
+    const wrap = (x: number) => {
+      const m = mitad();
+      while (x < -m) x += m;
+      while (x > 0) x -= m;
+      return x;
+    };
+    const offsetActual = () => {
+      const tx = new DOMMatrixReadOnly(getComputedStyle(riel).transform).m41;
+      return Number.isFinite(tx) ? tx : 0;
+    };
+
+    riel.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse') return;
+      inicioX = e.clientX;
+      inicioOffset = offsetActual();
+      movio = false;
+      // Las animaciones CSS pisan los estilos inline: hay que apagarla para poder
+      // mover la pista con transform a mano.
+      riel.classList.add('is-arrastrando');
+      riel.style.transform = `translateX(${inicioOffset}px)`;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!riel.classList.contains('is-arrastrando') || e.pointerType === 'mouse') return;
+      const delta = e.clientX - inicioX;
+      if (Math.abs(delta) > 4) movio = true;
+      riel.style.transform = `translateX(${wrap(inicioOffset + delta)}px)`;
+    }, { passive: true });
+
+    window.addEventListener('pointerup', () => {
+      if (!riel.classList.contains('is-arrastrando')) return;
+      inicioOffset = offsetActual();
+      // Si hubo arrastre, tragarse el click que sigue al soltar (evita abrir el
+      // link cuando el dedo se soltó encima de una tarjeta/botón).
+      if (movio) {
+        riel.addEventListener('click', (ev) => ev.preventDefault(), { capture: true, once: true });
+      }
+    });
+
+    // Al volver a scrollear la página, reanudar el loop desde el punto donde quedó.
+    window.addEventListener('scroll', () => {
+      if (!riel.classList.contains('is-arrastrando')) return;
+      const progreso = -wrap(offsetActual()) / mitad();
+      riel.style.animationDelay = `${-(progreso * DURACION_S)}s`;
+      riel.classList.remove('is-arrastrando');
+      riel.style.transform = '';
+    }, { passive: true });
+  }
+</script>
