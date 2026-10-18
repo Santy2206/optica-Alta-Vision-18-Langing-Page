@@ -25,7 +25,9 @@ const catalogo = defineCollection({
     price: z.number().nullable().optional().default(null),
     /** Ruta pública, p.ej. /uploads/catalogo/rayban-aviator.webp */
     image: z.string(),
-    imageAlt: z.string(),
+    /** El alt visible siempre sale de `name`; se conserva opcional solo para no
+     * romper JSONs viejos que aún lo traen. */
+    imageAlt: z.string().optional(),
     /** Segunda foto de la montura (otro ángulo o en modelo). Se muestra al pasar el mouse.
      * Si un color define modelImage, esa tiene prioridad al seleccionar el swatch. */
     hoverImage: z.string().optional(),

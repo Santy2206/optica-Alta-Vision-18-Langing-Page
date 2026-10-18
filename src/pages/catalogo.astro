@@ -157,7 +157,7 @@ const formas = [
                     ) : (
                       <img
                         src={displayImage}
-                        alt={item.data.imageAlt}
+                        alt={item.data.name}
                         loading={idx < 4 ? 'eager' : 'lazy'}
                         fetchpriority={idx < 4 ? 'high' : 'auto'}
                         decoding="async"

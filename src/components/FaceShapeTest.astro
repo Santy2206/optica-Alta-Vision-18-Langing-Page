@@ -22,7 +22,7 @@ const catalogForTest = allItems.map((item) => ({
   brand: item.data.brand,
   price: item.data.price,
   image: item.data.image,
-  imageAlt: item.data.imageAlt,
+  imageAlt: item.data.name,
   frameShape: getFrameShape(item.data),
   overlayImage: getTryOnOverlayImage(item.data.colors[0]?.image || item.data.image),
   overlayImagePhotochromic: getTryOnPhotochromicImage(item.data.colors[0]?.image || item.data.image),

@@ -65,7 +65,7 @@ const steps = ORDER.flatMap(([id, accent]) => {
       hex2: color?.hex2,
       faces,
       image: getTryOnOverlayImage(color?.image || src) ?? getDisplayImage(src),
-      alt: item.data.imageAlt,
+      alt: item.data.name,
     },
   ];
 });

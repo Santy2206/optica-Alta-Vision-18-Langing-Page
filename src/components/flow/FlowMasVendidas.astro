@@ -65,7 +65,7 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
                   <a href="/catalogo" class="fl-vendida__foto" aria-label={dup ? undefined : `Ver ${item.data.name} en el catálogo`} tabindex={dup ? -1 : undefined}>
                     <img
                       src={displayImage}
-                      alt={dup ? '' : item.data.imageAlt}
+                      alt={dup ? '' : item.data.name}
                       loading="lazy"
                       decoding="async"
                       class="fl-vendida__img"
