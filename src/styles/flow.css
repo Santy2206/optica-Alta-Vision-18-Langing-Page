@@ -900,3 +900,153 @@ html:not(.fl-js) .flow .fl-paso::after {
   text-align: center;
   color: rgba(255, 255, 255, 0.45);
 }
+
+/* ---------- Las más vendidas (riel horizontal) ---------- */
+.flow .fl-vendidas__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.flow .fl-vendidas__ver {
+  white-space: nowrap;
+}
+.flow .fl-vendidas__riel {
+  margin: 2.5rem -1.25rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.flow .fl-vendidas__riel::-webkit-scrollbar {
+  display: none;
+}
+.flow .fl-vendidas {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  padding: 0 1.25rem;
+  scroll-snap-type: x mandatory;
+}
+.flow .fl-vendida {
+  scroll-snap-align: start;
+  width: min(66vw, 15.5rem);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.flow .fl-vendida__foto {
+  display: block;
+  aspect-ratio: 4/3;
+  background: rgba(255, 255, 255, 0.04);
+}
+.flow .fl-vendida__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.35s ease;
+}
+.flow .fl-vendida__foto:hover .fl-vendida__img {
+  transform: scale(1.05);
+}
+.flow .fl-vendida__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.9rem;
+  flex: 1;
+}
+.flow .fl-vendida__nombre {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+.flow .fl-vendida__marca {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+.flow .fl-vendida__swatches {
+  display: flex;
+  gap: 0.35rem;
+}
+.flow .fl-vendida__swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.flow .fl-vendida__precio {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.flow .fl-vendida__precio--suave {
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+.flow .fl-vendida__info .fl-btn {
+  margin-top: auto;
+  align-self: stretch;
+}
+@media (min-width: 900px) {
+  .flow .fl-vendida {
+    width: 17rem;
+  }
+}
+
+/* ---------- Promociones del CMS (estilo Flow) ---------- */
+.flow .fl-promo {
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+}
+@media (min-width: 768px) {
+  .flow .fl-promo {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 2.5rem;
+    padding: 2.5rem;
+  }
+}
+.flow .fl-promo + .fl-promo {
+  margin-top: 1.5rem;
+}
+.flow .fl-promo__badge {
+  display: inline-flex;
+  border-radius: 999px;
+  background: var(--magenta);
+  color: #fff;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.flow .fl-promo__titulo {
+  margin-top: 0.9rem;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.flow .fl-promo__texto {
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--texto-suave);
+}
+.flow .fl-promo__cta {
+  margin-top: 1.2rem;
+}
+.flow .fl-promo__img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 0.9rem;
+}
+@media (min-width: 768px) {
+  .flow .fl-promo__imgwrap {
+    order: 2;
+  }
+}

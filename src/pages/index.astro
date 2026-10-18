@@ -26,6 +26,7 @@ import FlowReveal from '../components/flow/FlowReveal.astro';
 import PromoCarrusel from '../components/PromoCarrusel.astro';
 import Promociones from '../components/Promociones.astro';
 import FlowUbicacion from '../components/flow/FlowUbicacion.astro';
+import FlowMasVendidas from '../components/flow/FlowMasVendidas.astro';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -314,6 +315,9 @@ const localBusiness = {
     <!-- Banners y promociones del CMS: se ocultan solos cuando no hay contenido activo. -->
     <PromoCarrusel />
     <Promociones />
+
+    <!-- Las más vendidas: todas las `featured` del catálogo, recientes primero. -->
+    <FlowMasVendidas />
 
     <!-- ESCENA 2 · UN MARCO PARA CADA ROSTRO (sticky + scroll) -->
     <section

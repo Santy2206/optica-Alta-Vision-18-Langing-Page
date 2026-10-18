@@ -1,0 +1,88 @@
+---
+// "Las más vendidas": riel horizontal con todas las monturas marcadas
+// `featured` en el CMS (sin tope; las más recientes primero, igual que antes).
+// Se oculta sola si no hay destacadas. Estilo Flow, igual que el catálogo.
+import { getCollection } from 'astro:content';
+import { waLink } from '../../utils/whatsapp';
+import { priceLabel, isFallbackPrice } from '../../utils/precio';
+import { isPlaceholderImage } from '../../utils/images';
+import { getDisplayImage } from '../../utils/cutout';
+import '../../styles/flow.css';
+
+const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).sort(
+  // createdAt (ISO) descendente; las sin fecha cuentan como más viejas.
+  (a, b) => (b.data.createdAt ?? '').localeCompare(a.data.createdAt ?? ''),
+);
+---
+
+{
+  vendidas.length > 0 && (
+    <section class="fl-sec" aria-labelledby="vendidas-titulo">
+      <div class="fl-glow fl-glow--iris" style="top:-30vmax;right:-25vmax" aria-hidden="true" />
+      <div class="fl-sec__inner">
+        <div class="fl-vendidas__head">
+          <div class="fl-reveal">
+            <p class="fl-eyebrow">Favoritas de la casa</p>
+            <h2 id="vendidas-titulo" class="fl-h2">
+              Las más <span class="fl-grad">vendidas</span>
+            </h2>
+          </div>
+          <a href="/catalogo" class="fl-link fl-vendidas__ver fl-reveal" style="--d:.12s">
+            Ver catálogo completo →
+          </a>
+        </div>
+
+        <div class="fl-vendidas__riel fl-reveal" style="--d:.15s">
+          <ul class="fl-vendidas" aria-label="Monturas más vendidas">
+            {vendidas.map((item) => {
+              const origen = `vendidas:${item.id}`;
+              const waHref = waLink(origen, `Hola, me interesa ${item.data.name}`);
+              const src = item.data.colors[0]?.image || item.data.image;
+              const displayImage = isPlaceholderImage(item.data.image)
+                ? item.data.image
+                : getDisplayImage(src);
+              return (
+                <li class="fl-card fl-vendida">
+                  <a href="/catalogo" class="fl-vendida__foto" aria-label={`Ver ${item.data.name} en el catálogo`}>
+                    <img
+                      src={displayImage}
+                      alt={item.data.imageAlt}
+                      loading="lazy"
+                      decoding="async"
+                      class="fl-vendida__img"
+                    />
+                  </a>
+                  <div class="fl-vendida__info">
+                    <p class="fl-vendida__nombre" title={item.data.name}>{item.data.name}</p>
+                    <p class="fl-vendida__marca">{item.data.brand}</p>
+                    {item.data.colors.length > 0 && (
+                      <div class="fl-vendida__swatches" aria-label="Colores disponibles">
+                        {item.data.colors.map((c) => (
+                          <span
+                            class="fl-vendida__swatch"
+                            title={c.name}
+                            style={
+                              c.hex2
+                                ? `background: linear-gradient(135deg, ${c.hex} 50%, ${c.hex2} 50%)`
+                                : `background-color: ${c.hex}`
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <p class:list={['fl-vendida__precio', isFallbackPrice(item.data.price) && 'fl-vendida__precio--suave']}>
+                      {priceLabel(item.data.price)}
+                    </p>
+                    <a href={waHref} data-cta={origen} class="fl-btn fl-btn--lima fl-btn--sm" target="_blank" rel="noopener noreferrer">
+                      Me interesa
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
