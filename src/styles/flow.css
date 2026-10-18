@@ -367,7 +367,7 @@ html:not(.fl-js) .flow .fl-paso::after {
   width: max-content;
   overflow: visible;
   text-align: left;
-  animation: fl-opiniones-scroll 38s linear infinite;
+  animation: fl-opiniones-scroll 75s linear infinite;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }
