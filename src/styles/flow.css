@@ -830,6 +830,22 @@ html:not(.fl-js) .flow .fl-paso::after {
   font-weight: 400;
   color: var(--texto-suave);
 }
+@media (min-width: 640px) {
+  .fl-lente__card {
+    max-width: 27rem;
+    padding: 1.6rem;
+  }
+  .fl-lente__thumb {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 0.8rem;
+  }
+  .fl-lente__opt {
+    gap: 1.1rem;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+  }
+}
 .fl-lente__opt--plano {
   justify-content: center;
   font-weight: 500;
