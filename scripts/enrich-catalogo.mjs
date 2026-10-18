@@ -363,19 +363,24 @@ async function main() {
         console.log(`color detectado para ${file}: ${color.name} ${color.hex}`);
       }
 
-      // 4. Género (filtro del catálogo): cat-eye es mujer por regla fija (sin gastar
-      // la llamada de visión); el resto lo clasifica Gemini sobre la imagen limpia.
+      // 4. Género (filtro del catálogo): formas no ambiguas por regla fija (sin gastar
+      // la llamada de visión) — cat-eye → mujer, aviador → hombre; el resto lo
+      // clasifica Gemini sobre la imagen limpia.
       if (!entry.genero || !GENEROS.includes(entry.genero)) {
-        const esCatEye =
-          entry.frameShape === 'cat-eye' || /cat[\s-]?eye/i.test(`${entry.name || ''} ${file}`);
-        if (esCatEye) {
-          entry.genero = 'mujer';
+        const ref = `${entry.frameShape || ''} ${entry.name || ''} ${file}`;
+        const generoRegla = /cat[\s-]?eye/i.test(ref)
+          ? 'mujer'
+          : /aviador/i.test(ref)
+            ? 'hombre'
+            : null;
+        if (generoRegla) {
+          entry.genero = generoRegla;
         } else {
           const genderSource = existsSync(tryonPath) ? tryonPath : sourcePath;
           entry.genero = hasKey ? await askFrameGender(await getFalUrl(genderSource)) : 'unisex';
         }
         dirty = true;
-        console.log(`género detectado para ${file}: ${entry.genero}${esCatEye ? ' (regla cat-eye)' : ''}`);
+        console.log(`género detectado para ${file}: ${entry.genero}${generoRegla ? ' (regla de forma)' : ''}`);
       }
     } catch (err) {
       // Un producto con foto rara o un fallo de fal no debe tumbar el resto del lote.
