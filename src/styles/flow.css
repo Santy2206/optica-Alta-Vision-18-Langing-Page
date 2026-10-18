@@ -595,3 +595,86 @@ html:not(.fl-js) .flow .fl-paso::after {
     transition: none;
   }
 }
+
+/* ---------- Ubicación / Encuéntranos ---------- */
+.flow .fl-ubi {
+  display: grid;
+  gap: 2.5rem;
+}
+@media (min-width: 900px) {
+  .flow .fl-ubi {
+    grid-template-columns: 1fr 1.05fr;
+    align-items: center;
+    gap: 3.5rem;
+  }
+}
+.flow .fl-ubi__datos {
+  margin-top: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+.flow .fl-dato {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    background-color 0.2s;
+}
+.flow a.fl-dato:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--acc) 70%, transparent);
+}
+.flow .fl-dato__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--acc) 24%, transparent);
+  color: var(--acc);
+}
+.flow .fl-dato__icono :where(svg) {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+.flow .fl-dato p {
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--texto-suave);
+}
+.flow a.fl-dato p {
+  color: #fff;
+  font-weight: 600;
+}
+.flow .fl-ubi__acciones {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.flow .fl-mapa {
+  padding: 0.5rem;
+  min-height: 320px;
+  overflow: hidden;
+}
+.flow .fl-mapa iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  border-radius: 0.85rem;
+}
+@media (min-width: 900px) {
+  .flow .fl-mapa {
+    min-height: 420px;
+  }
+}

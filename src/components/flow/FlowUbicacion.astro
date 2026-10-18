@@ -1,0 +1,107 @@
+---
+// Encuéntranos en estilo Flow: dirección, horario y teléfono de site.json + mapa embebido.
+import site from '../../utils/site';
+import { waLink } from '../../utils/whatsapp';
+import Icon from '../Icon.astro';
+import '../../styles/flow.css';
+
+// Formato legible del teléfono colombiano 573118812747 → +57 311 881 2747
+const raw = site.telefono;
+const formatted = raw.startsWith('57')
+  ? `+57 ${raw.slice(2, 5)} ${raw.slice(5, 8)} ${raw.slice(8)}`
+  : raw;
+
+const { lat, lng } = site.geo;
+const comoLlegar =
+  lat !== null && lng !== null ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : '';
+const origen = 'ubicacion';
+---
+
+<section id="ubicacion" class="fl-sec" aria-labelledby="ubicacion-titulo">
+  <div class="fl-glow fl-glow--iris" style="bottom:-35vmax;right:-25vmax" aria-hidden="true"></div>
+  <div class="fl-sec__inner">
+    <div class="fl-ubi">
+      <div class="fl-ubi__info">
+        <p class="fl-eyebrow fl-reveal">Visítanos en Fontibón</p>
+        <h2 id="ubicacion-titulo" class="fl-h2 fl-reveal" style="--d:.08s">
+          Encuentra tu <span class="fl-grad">óptica</span>
+        </h2>
+        <p class="fl-lead fl-reveal" style="--d:.14s">
+          Alta Visión 18 — te esperamos con el catálogo completo y tu examen visual sin cita.
+        </p>
+
+        <ul class="fl-ubi__datos">
+          {
+            site.direccion && (
+              <li class="fl-dato fl-card fl-reveal" style="--d:.2s;--acc:var(--cian)">
+                <span class="fl-dato__icono" aria-hidden="true">
+                  <Icon name="location" />
+                </span>
+                <p>{site.direccion}</p>
+              </li>
+            )
+          }
+          {
+            site.horario && (
+              <li class="fl-dato fl-card fl-reveal" style="--d:.26s;--acc:var(--lima)">
+                <span class="fl-dato__icono" aria-hidden="true">
+                  <Icon name="clock" />
+                </span>
+                <p>{site.horario}</p>
+              </li>
+            )
+          }
+          <li>
+            <a
+              href={`tel:+${site.telefono}`}
+              class="fl-dato fl-card fl-reveal"
+              style="--d:.32s;--acc:var(--magenta)"
+            >
+              <span class="fl-dato__icono" aria-hidden="true">
+                <Icon name="phone" />
+              </span>
+              <p>{formatted}</p>
+            </a>
+          </li>
+        </ul>
+
+        <div class="fl-ubi__acciones fl-reveal" style="--d:.38s">
+          {
+            comoLlegar && (
+              <a href={comoLlegar} target="_blank" rel="noopener noreferrer" class="fl-btn fl-btn--linea">
+                Cómo llegar
+              </a>
+            )
+          }
+          <a
+            href={waLink(origen, 'Hola, quiero saber cómo llegar a la óptica')}
+            data-cta={origen}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="fl-btn fl-btn--lima"
+          >
+            <Icon name="whatsapp" />
+            Escríbenos
+          </a>
+        </div>
+      </div>
+
+      {
+        site.googleMapsEmbedUrl && (
+          <div class="fl-mapa fl-card fl-reveal" style="--d:.15s">
+            <iframe
+              src={site.googleMapsEmbedUrl}
+              title="Ubicación de Alta Visión 18"
+              width="100%"
+              height="100%"
+              style="border:0;"
+              loading="lazy"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
