@@ -453,7 +453,42 @@ const localBusiness = {
               }
             </div>
 
-            <a href="/catalogo" class="btn btn--lima stage__cta">Cotizar mis lentes</a>
+            {/* Dos CTAs por tipo de lente: solo los lentes o con la montura
+                que se muestra en la escena. Se ve el par del paso activo y el
+                mensaje de WhatsApp lleva el tipo de lente. */}
+            <div class="stage__ctas">
+              {lentes.map((l, i) => (
+                <div
+                  class="stage__ctas-par"
+                  data-step={i}
+                  data-hide-inactive
+                  aria-hidden={i === 0 ? undefined : 'true'}
+                >
+                  <a
+                    href={waLink(
+                      `flow-lentes:${l.titulo.toLowerCase()}-con-montura`,
+                      `Hola, quiero cotizar ${l.nombre.toLowerCase()} con la montura ${lensItem?.data.name ?? 'que vi en la página'}`,
+                    )}
+                    class="btn btn--lima stage__cta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Cotizar con montura
+                  </a>
+                  <a
+                    href={waLink(
+                      `flow-lentes:${l.titulo.toLowerCase()}`,
+                      `Hola, quiero cotizar ${l.nombre.toLowerCase()} (solo los lentes, sin montura)`,
+                    )}
+                    class="btn btn--linea stage__cta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Cotizar sin montura
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div class="stage__visual stage__visual--lente">
@@ -1061,35 +1096,39 @@ const localBusiness = {
     color: #fff;
     font-weight: 600;
   }
-  /* CTAs apilados: uno por montura; solo el del paso activo es visible. */
+  /* CTAs apilados (grid 1/1): uno por montura o par de lentes; solo el del
+     paso activo es visible. La altura se ajusta al contenido. */
   .stage__ctas {
-    position: relative;
     margin-top: 1rem;
-    height: 3rem;
     display: none;
+    justify-items: start;
   }
-  .stage__ctas .stage__cta {
-    position: absolute;
-    top: 0;
-    left: 0;
-    margin-top: 0;
-    display: inline-flex;
+  .stage__ctas > * {
+    grid-area: 1 / 1;
     opacity: 0;
     visibility: hidden;
     transition:
       opacity 0.3s ease,
-      visibility 0.3s,
-      transform 0.2s,
-      box-shadow 0.2s,
-      background-color 0.2s;
+      visibility 0.3s;
   }
-  .stage__ctas .stage__cta.is-active {
+  .stage__ctas > .is-active {
     opacity: 1;
     visibility: visible;
   }
+  .stage__ctas .stage__cta {
+    margin-top: 0;
+    display: inline-flex;
+  }
+  /* Par de botones en la escena de lentes (con/sin montura). */
+  .stage__ctas-par {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
   @media (min-width: 900px) {
     .stage__ctas {
-      display: block;
+      display: grid;
       margin-top: 1.5rem;
     }
   }
