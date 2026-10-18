@@ -18,9 +18,17 @@ const duracionS = copiasPorMitad * promos.length * 7; // ~80px/s, como opiniones
 
 {
   promos.length > 0 && (
-    <section class="fl-sec fl-sec--tenue" aria-label="Promociones activas">
+    <section class="fl-sec fl-sec--tenue" aria-labelledby="promos-titulo">
       <div class="fl-glow fl-glow--cian" style="top:-30vmax;left:-25vmax" aria-hidden="true" />
       <div class="fl-sec__inner">
+        <div class="fl-vendidas__head">
+          <div class="fl-reveal">
+            <p class="fl-eyebrow">Aprovecha</p>
+            <h2 id="promos-titulo" class="fl-h2">
+              Promo<span class="fl-grad">ciones</span>
+            </h2>
+          </div>
+        </div>
         <div class="fl-promos-wrap">
           <ul class="fl-promos" style={`animation-duration:${duracionS}s`}>
             {Array.from({ length: repeticiones }, (_, c) =>
