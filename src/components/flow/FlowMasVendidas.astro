@@ -80,9 +80,24 @@ const vendidas = (await getCollection('catalogo', ({ data }) => data.featured)).
                     <p class:list={['fl-vendida__precio', isFallbackPrice(item.data.price) && 'fl-vendida__precio--suave']}>
                       {priceLabel(item.data.price)}
                     </p>
-                    <a href={waHref} data-cta={dup ? undefined : origen} class="fl-btn fl-btn--lima fl-btn--sm fl-vendida__cta" target="_blank" rel="noopener noreferrer" tabindex={dup ? -1 : undefined}>
-                      Me interesa
-                    </a>
+                    {item.data.category === 'formuladas' ? (
+                      /* Igual que en el catálogo: las formuladas abren el
+                         selector de tipo de lente antes de ir a WhatsApp. */
+                      <button
+                        type="button"
+                        class="fl-btn fl-btn--lima fl-btn--sm fl-vendida__cta"
+                        data-lente-open
+                        data-name={item.data.name}
+                        data-origen={origen}
+                        tabindex={dup ? -1 : undefined}
+                      >
+                        Me interesa
+                      </button>
+                    ) : (
+                      <a href={waHref} data-cta={dup ? undefined : origen} class="fl-btn fl-btn--lima fl-btn--sm fl-vendida__cta" target="_blank" rel="noopener noreferrer" tabindex={dup ? -1 : undefined}>
+                        Me interesa
+                      </a>
+                    )}
                   </div>
                 </li>
               );
