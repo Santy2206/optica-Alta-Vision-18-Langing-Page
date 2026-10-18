@@ -837,6 +837,21 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         return;
       }
 
+      // data-facetest-direct="camera|quiz": abre el modal saltando directo al
+      // paso elegido (botones de la sección puente del inicio).
+      const directBtn = target.closest<HTMLElement>('[data-facetest-direct]');
+      if (directBtn) {
+        openModal();
+        if (directBtn.dataset.facetestDirect === 'camera') {
+          showStep('camera');
+          startCamera();
+        } else {
+          resetMeasureForm();
+          showStep('quiz');
+        }
+        return;
+      }
+
       const manualBtn = target.closest<HTMLElement>('[data-facetest-manual]');
       if (manualBtn) {
         const shape = manualBtn.dataset.facetestManual;

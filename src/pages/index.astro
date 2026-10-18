@@ -613,7 +613,10 @@ const localBusiness = {
     <section class="puente">
       <p class="puente__eyebrow">¿Cuál es la tuya?</p>
       <h2 class="puente__h2">Descubre tu forma de rostro en 1 minuto.</h2>
-      <button type="button" class="btn btn--lima" data-facetest-open>Hacer el test de rostro</button>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <button type="button" class="btn btn--lima" data-facetest-direct="camera">Hacer el test con cámara</button>
+        <button type="button" class="btn btn--linea" data-facetest-direct="quiz">Medir con cinta métrica</button>
+      </div>
     </section>
 
     <!-- ESCENA 5 · CONFIANZA (cifras que cuentan hacia arriba) -->
