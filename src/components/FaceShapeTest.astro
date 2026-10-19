@@ -246,7 +246,6 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       </div>
       <div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-900">
         <video data-facetest-video autoplay playsinline muted class="h-full w-full -scale-x-100 object-cover"></video>
-        <canvas data-facetest-canvas class="hidden"></canvas>
 
         <!-- viewBox 400x300 = proporción 4:3 del contenedor; coordenadas alineadas con GUIDE en faceShapeCamera.ts -->
         <svg
@@ -308,12 +307,12 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" opacity="0.25" />
             <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
           </svg>
-          <p class="text-sm font-semibold">Analizando tu rostro con IA…</p>
-          <p class="text-xs text-white/80">Toma unos segundos, no cierres esta ventana.</p>
+          <p class="text-sm font-semibold">Analizando tu rostro…</p>
+          <p class="text-xs text-white/80">Solo tomará un momento.</p>
         </div>
       </div>
       <p class="mt-2 text-center text-[11px] text-slate-400">
-        Al tomar la foto se envía de forma segura a un servicio de IA para analizar tu rostro. No la guardamos.
+        Tu foto se analiza en tu propio navegador — nunca se guarda ni se envía a ningún servidor.
       </p>
       <button
         type="button"
@@ -456,6 +455,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
   import {
     checkAlignment,
     detectFaceShape,
+    captureFrames,
     preloadFaceLandmarker,
     FaceShapeCameraError,
     type AlignmentResult,
@@ -474,7 +474,6 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     };
 
     const video = modal.querySelector<HTMLVideoElement>('[data-facetest-video]');
-    const canvas = modal.querySelector<HTMLCanvasElement>('[data-facetest-canvas]');
     const captureBtn = modal.querySelector<HTMLButtonElement>('[data-facetest-capture]');
     const cameraLoading = modal.querySelector<HTMLElement>('[data-facetest-camera-loading]');
     const cameraError = modal.querySelector<HTMLElement>('[data-facetest-camera-error]');
@@ -610,7 +609,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     };
 
     captureBtn?.addEventListener('click', async () => {
-      if (!stream || !video || !canvas) return;
+      if (!stream || !video) return;
       captureBtn.disabled = true;
       capturing = true;
       analyzing?.classList.remove('hidden');
@@ -618,13 +617,11 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       guide?.classList.add('hidden');
       hint?.classList.add('hidden');
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const frames = await captureFrames(video);
       stopCamera();
 
       try {
-        const shape = await detectFaceShape(canvas);
+        const shape = await detectFaceShape(frames);
         renderResult(shape, 'camera');
         showStep('result');
       } catch (err) {

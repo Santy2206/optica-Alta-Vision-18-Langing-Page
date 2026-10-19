@@ -1,18 +1,11 @@
 {
-  // Cloudflare Workers Static Assets: sirve dist/ (sitio estático) y un Worker
-  // mínimo (worker/index.js) que solo atiende /api/*. Al existir este archivo,
-  // `wrangler deploy` NO corre el auto-config que instala @astrojs/cloudflare —
-  // el build se queda como el de Netlify.
-  // Secret requerido para el test de rostro con IA: `wrangler secret put FAL_KEY`
-  // (o Variables y secretos en el dashboard de Cloudflare).
+  // Cloudflare Workers Static Assets: sirve dist/ tal cual (sitio estático).
+  // Al existir este archivo, `wrangler deploy` NO corre el auto-config que
+  // instala @astrojs/cloudflare — el build se queda como el de Netlify.
   "name": "optica-alta-vision-18-langing-page",
-  "main": "./worker/index.js",
   "compatibility_date": "2026-10-18",
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS",
-    // Solo /api/* pasa por el Worker; el resto se sirve directo desde assets.
-    "run_worker_first": ["/api/*"],
     // /catalogo sirve /catalogo/index.html igual que en Netlify.
     "html_handling": "auto-trailing-slash"
   }

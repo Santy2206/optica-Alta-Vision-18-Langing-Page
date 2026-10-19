@@ -1,8 +1,8 @@
 import type { FaceShapeId } from '../data/faceShapeQuiz';
+import faceShapeModel from '../data/faceShapeModel.json';
 
-// Detección de forma de rostro: MediaPipe corre en el navegador (encuadre, pose
-// y clasificación de respaldo). La forma final la decide un modelo de visión vía
-// el Worker de Cloudflare (/api/face-shape); la foto no se guarda.
+// Detección de forma de rostro 100% en el navegador: la foto nunca se sube a
+// ningún servidor, solo se usa para calcular la forma y se descarta.
 //
 // Usa MediaPipe Face Landmarker (@mediapipe/tasks-vision), cargado bajo demanda
 // desde CDN solo cuando el usuario elige "usar la cámara" en el test.
@@ -224,54 +224,53 @@ export async function checkAlignment(video: HTMLVideoElement): Promise<Alignment
   return { issue: poseIssue(landmarks, headPose(result)), nose };
 }
 
-// Contorno del rostro (óvalo de MediaPipe), en orden.
-const FACE_OVAL = [
-  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150,
-  136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
-] as const;
+// Clasificador (regresión logística sobre los 468 landmarks),
+// entrenado con ~6000 fotos etiquetadas (forma de rostro: corazón, oblongo,
+// ovalado, redondo, cuadrado) — ~69% de acierto en fotos no vistas (carpeta de prueba), ~71%
+// uniendo oblongo+cuadrado. No predice "diamante" (el dataset no la incluye);
+// esa forma solo se obtiene con la guía de medición. Los pesos ya incluyen la
+// estandarización de los datos.
+const MODEL_TO_SHAPE: Record<string, FaceShapeId> = {
+  heart: 'corazon',
+  oblong: 'cuadrado',
+  oval: 'ovalado',
+  round: 'redondo',
+  square: 'cuadrado',
+};
 
-// Ancho del contorno a una altura dada (cruce de una línea horizontal con el polígono).
-function widthAt(poly: { x: number; y: number }[], y: number): number {
-  const xs: number[] = [];
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i];
-    const b = poly[(i + 1) % poly.length];
-    if ((a.y - y) * (b.y - y) < 0) xs.push(a.x + ((y - a.y) / (b.y - a.y)) * (b.x - a.x));
-  }
-  return xs.length >= 2 ? Math.max(...xs) - Math.min(...xs) : 0;
+// Landmarks → vector: se rota para alinear los ojos, se centra en la punta de
+// la nariz y se escala por el ancho de pómulos (invariante a tamaño y roll).
+function landmarkFeatures(landmarks: Landmark[]): number[] {
+  const eyeR = landmarks[33];
+  const eyeL = landmarks[263];
+  const angle = Math.atan2(eyeL.y - eyeR.y, eyeL.x - eyeR.x);
+  const cos = Math.cos(-angle);
+  const sin = Math.sin(-angle);
+  const nose = landmarks[POINTS.noseTip];
+  const rotated = landmarks.map((p) => {
+    const x = p.x - nose.x;
+    const y = p.y - nose.y;
+    return [x * cos - y * sin, x * sin + y * cos];
+  });
+  const scale = Math.hypot(rotated[454][0] - rotated[234][0], rotated[454][1] - rotated[234][1]) || 1;
+  return rotated.flatMap(([x, y]) => [x / scale, y / scale]);
 }
 
-/**
- * Clasifica por el perfil de anchos del contorno (frente, mandíbula, mentón)
- * y la relación largo/ancho. Los umbrales se calibraron con landmarks reales
- * de MediaPipe sobre fotos de referencia: los puntos sueltos (sienes, ángulo
- * de mandíbula) casi no cambian entre rostros, pero el perfil del contorno sí.
- * Es una guía orientativa de estilo, no una medición clínica.
- */
-function classify(rawLandmarks: Landmark[], size: ImageSize): FaceShapeId {
-  const landmarks = rawLandmarks.map((p) => toImageSpace(p, size));
-  const oval = FACE_OVAL.map((i) => landmarks[i]);
-  const top = landmarks[POINTS.foreheadTop].y;
-  const height = landmarks[POINTS.chin].y - top;
-  const at = (q: number) => widthAt(oval, top + q * height);
+type ShapeScores = Partial<Record<FaceShapeId, number>>;
 
-  const maxWidth = Math.max(...[0.1, 0.2, 0.3, 0.4, 0.5, 0.6].map(at), 1e-6);
-  const fore = at(0.1) / maxWidth;
-  const jaw = at(0.8) / maxWidth;
-  const chin = at(0.9) / maxWidth;
-  const len = height / maxWidth;
-
-  let shape: FaceShapeId;
-  if (len < 1.15) shape = 'redondo';
-  else if (jaw >= 0.8) shape = 'cuadrado';
-  else if (jaw >= 0.72) shape = len >= 1.22 ? 'cuadrado' : 'ovalado';
-  else if (fore >= 0.9) shape = 'diamante';
-  else if (len >= 1.22) shape = 'cuadrado';
-  else if (chin <= 0.495) shape = 'corazon';
-  else shape = 'ovalado';
-
-  console.debug('[faceShape]', { fore, jaw, chin, len, shape });
-  return shape;
+// Probabilidad por forma (suma 1) para un cuadro.
+function classifyScores(rawLandmarks: Landmark[], size: ImageSize): ShapeScores {
+  const features = landmarkFeatures(rawLandmarks.map((p) => toImageSpace(p, size)));
+  const scores: ShapeScores = {};
+  const logits = faceShapeModel.weights.map((w, k) => w.reduce((s, v, i) => s + v * features[i], faceShapeModel.bias[k]));
+  const max = Math.max(...logits);
+  const exps = logits.map((l) => Math.exp(l - max));
+  const total = exps.reduce((a, b) => a + b, 0);
+  faceShapeModel.classes.forEach((c, k) => {
+    const shape = MODEL_TO_SHAPE[c];
+    scores[shape] = (scores[shape] ?? 0) + exps[k] / total;
+  });
+  return scores;
 }
 
 export class FaceShapeCameraError extends Error {
@@ -282,7 +281,26 @@ export class FaceShapeCameraError extends Error {
   }
 }
 
-export async function detectFaceShape(source: HTMLCanvasElement): Promise<FaceShapeId> {
+const FRAME_COUNT = 8;
+const FRAME_INTERVAL_MS = 90;
+const MIN_GOOD_FRAMES = 3;
+
+// Toma varios cuadros seguidos (~0.7 s) del video: promediar sus probabilidades
+// elimina el ruido de un cuadro malo (parpadeo, micro-movimiento).
+export async function captureFrames(video: HTMLVideoElement): Promise<HTMLCanvasElement[]> {
+  const frames: HTMLCanvasElement[] = [];
+  for (let i = 0; i < FRAME_COUNT; i++) {
+    const frame = document.createElement('canvas');
+    frame.width = video.videoWidth;
+    frame.height = video.videoHeight;
+    frame.getContext('2d')?.drawImage(video, 0, 0, frame.width, frame.height);
+    frames.push(frame);
+    if (i < FRAME_COUNT - 1) await new Promise((resolve) => setTimeout(resolve, FRAME_INTERVAL_MS));
+  }
+  return frames;
+}
+
+export async function detectFaceShape(frames: HTMLCanvasElement[]): Promise<FaceShapeId> {
   let landmarker;
   try {
     landmarker = await loadFaceLandmarker();
@@ -290,52 +308,24 @@ export async function detectFaceShape(source: HTMLCanvasElement): Promise<FaceSh
     throw new FaceShapeCameraError('MODEL_LOAD_FAILED', 'No se pudo cargar el analizador facial.');
   }
 
-  const result = landmarker.detect(source);
-  const landmarks = result?.faceLandmarks?.[0];
-
-  if (!landmarks || landmarks.length === 0) {
-    throw new FaceShapeCameraError('NO_FACE', 'No detectamos un rostro en la foto.');
+  const total: ShapeScores = {};
+  let good = 0;
+  let faces = 0;
+  for (const frame of frames) {
+    const result = landmarker.detect(frame);
+    const landmarks = result?.faceLandmarks?.[0];
+    if (!landmarks || landmarks.length === 0) continue;
+    faces++;
+    if (poseIssue(landmarks, headPose(result))) continue;
+    const scores = classifyScores(landmarks, { width: frame.width || 1, height: frame.height || 1 });
+    for (const [shape, p] of Object.entries(scores) as [FaceShapeId, number][]) total[shape] = (total[shape] ?? 0) + p;
+    good++;
   }
 
-  if (poseIssue(landmarks, headPose(result))) {
-    throw new FaceShapeCameraError('BAD_ANGLE', 'El rostro no está mirando directo a la cámara.');
-  }
+  if (faces === 0) throw new FaceShapeCameraError('NO_FACE', 'No detectamos un rostro en la foto.');
+  if (good < MIN_GOOD_FRAMES) throw new FaceShapeCameraError('BAD_ANGLE', 'El rostro no está mirando directo a la cámara.');
 
-  const size: ImageSize = {
-    width: source.width || 1,
-    height: source.height || 1,
-  };
-
-  const localShape = classify(landmarks, size);
-  return (await classifyWithAI(source)) ?? localShape;
-}
-
-const AI_ENDPOINT = '/api/face-shape';
-const AI_TIMEOUT_MS = 25000;
-const AI_MAX_WIDTH = 640;
-const FACE_SHAPES: readonly FaceShapeId[] = ['ovalado', 'redondo', 'cuadrado', 'corazon', 'diamante'];
-
-// Pregunta a un modelo de visión (vía el Worker de Cloudflare) la forma del
-// rostro. Si no hay conexión, el endpoint no existe (dev) o falla, devuelve
-// null y se usa la clasificación local por landmarks.
-async function classifyWithAI(source: HTMLCanvasElement): Promise<FaceShapeId | null> {
-  try {
-    const scale = Math.min(1, AI_MAX_WIDTH / source.width);
-    const small = document.createElement('canvas');
-    small.width = Math.round(source.width * scale);
-    small.height = Math.round(source.height * scale);
-    small.getContext('2d')?.drawImage(source, 0, 0, small.width, small.height);
-
-    const res = await fetch(AI_ENDPOINT, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ image: small.toDataURL('image/jpeg', 0.85) }),
-      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
-    });
-    if (!res.ok) return null;
-    const { shape } = await res.json();
-    return FACE_SHAPES.includes(shape) ? shape : null;
-  } catch {
-    return null;
-  }
+  const [shape] = Object.entries(total).sort((a, b) => b[1] - a[1])[0] as [FaceShapeId, number];
+  console.debug('[faceShape]', { frames: good, shape, scores: Object.fromEntries(Object.entries(total).map(([k, v]) => [k, +(v / good).toFixed(3)])) });
+  return shape;
 }
