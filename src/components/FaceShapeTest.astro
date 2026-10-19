@@ -298,12 +298,19 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           </div>
         </div>
 
-        <p
-          class="absolute inset-x-0 bottom-0 hidden bg-slate-900/80 py-2 text-center text-xs font-medium text-white"
+        <div
+          class="absolute inset-0 z-10 hidden flex-col items-center justify-center gap-3 bg-slate-900 p-6 text-center text-white"
+          role="status"
+          aria-live="polite"
           data-facetest-analyzing
         >
-          Analizando tu rostro…
-        </p>
+          <svg class="h-10 w-10 animate-spin text-verde-neon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" opacity="0.25" />
+            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          </svg>
+          <p class="text-sm font-semibold">Analizando tu rostro con IA…</p>
+          <p class="text-xs text-white/80">Toma unos segundos, no cierres esta ventana.</p>
+        </div>
       </div>
       <p class="mt-2 text-center text-[11px] text-slate-400">
         Al tomar la foto se envía de forma segura a un servicio de IA para analizar tu rostro. No la guardamos.
@@ -607,14 +614,17 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       captureBtn.disabled = true;
       capturing = true;
       analyzing?.classList.remove('hidden');
+      analyzing?.classList.add('flex');
+      guide?.classList.add('hidden');
+      hint?.classList.add('hidden');
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      stopCamera();
 
       try {
         const shape = await detectFaceShape(canvas);
-        stopCamera();
         renderResult(shape, 'camera');
         showStep('result');
       } catch (err) {
@@ -630,7 +640,8 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       } finally {
         capturing = false;
         analyzing?.classList.add('hidden');
-        if (captureBtn) captureBtn.disabled = false;
+        analyzing?.classList.remove('flex');
+        guide?.classList.remove('hidden');
       }
     });
 
