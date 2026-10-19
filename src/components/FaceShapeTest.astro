@@ -241,7 +241,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           <li>Usa buena luz de frente — evita la luz a contraluz</li>
           <li>Recoge el cabello para que se vean tu frente y tus orejas</li>
           <li>Quítate las gafas, pon la <strong>punta de tu nariz en el círculo</strong> y tus ojos sobre la línea</li>
-          <li>Cuando la guía se ponga verde, toma la foto</li>
+          <li>Cuando la guía se ponga verde, quédate quieto: la foto se toma sola</li>
         </ul>
       </div>
       <div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-900">
@@ -306,7 +306,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         </p>
       </div>
       <p class="mt-2 text-center text-[11px] text-slate-400">
-        Tu foto se analiza en tu propio navegador — nunca se guarda ni se envía a ningún servidor.
+        Al tomar la foto se envía de forma segura a un servicio de IA para analizar tu rostro. No la guardamos.
       </p>
       <button
         type="button"
@@ -483,6 +483,8 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     let capturing = false;
 
     const ALIGN_INTERVAL_MS = 200;
+    const AUTO_CAPTURE_STABLE_FRAMES = 6;
+    let stableFrames = 0;
 
     const hintText = ({ issue, direction }: AlignmentResult): string => {
       switch (issue) {
@@ -501,7 +503,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         case 'PITCHED':
           return 'Mantén la barbilla recta, ni arriba ni abajo';
         default:
-          return '¡Perfecto! Quédate quieto y toma la foto';
+          return '¡Perfecto! Quédate quieto, tomando la foto…';
       }
     };
 
@@ -521,11 +523,17 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         hint.classList.remove('hidden');
       }
       if (captureBtn) captureBtn.disabled = !ok;
+      stableFrames = ok ? stableFrames + 1 : 0;
+      if (ok && stableFrames >= AUTO_CAPTURE_STABLE_FRAMES && !capturing) {
+        stableFrames = 0;
+        captureBtn?.click();
+      }
     };
 
     const resetAlignment = () => {
       window.clearTimeout(alignTimer);
       alignTimer = undefined;
+      stableFrames = 0;
       guide?.classList.remove('text-emerald-400');
       guide?.classList.add('text-white/80');
       noseDot?.classList.add('hidden');

@@ -27,3 +27,7 @@ public/uploads/catalogo/_preview/
 
 # jetbrains setting folder
 .idea/
+
+# wrangler
+.dev.vars
+.wrangler/

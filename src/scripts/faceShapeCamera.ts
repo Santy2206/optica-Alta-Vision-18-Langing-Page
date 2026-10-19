@@ -1,7 +1,8 @@
-import { calculateFaceShape, type FaceShapeId, type JawContour } from '../data/faceShapeQuiz';
+import type { FaceShapeId } from '../data/faceShapeQuiz';
 
-// Detección de forma de rostro 100% en el navegador: la foto nunca se sube a
-// ningún servidor, solo se usa para calcular unas proporciones y se descarta.
+// Detección de forma de rostro: MediaPipe corre en el navegador (encuadre, pose
+// y clasificación de respaldo). La forma final la decide un modelo de visión vía
+// el Worker de Cloudflare (/api/face-shape); la foto no se guarda.
 //
 // Usa MediaPipe Face Landmarker (@mediapipe/tasks-vision), cargado bajo demanda
 // desde CDN solo cuando el usuario elige "usar la cámara" en el test.
@@ -223,49 +224,54 @@ export async function checkAlignment(video: HTMLVideoElement): Promise<Alignment
   return { issue: poseIssue(landmarks, headPose(result)), nose };
 }
 
+// Contorno del rostro (óvalo de MediaPipe), en orden.
+const FACE_OVAL = [
+  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150,
+  136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
+] as const;
+
+// Ancho del contorno a una altura dada (cruce de una línea horizontal con el polígono).
+function widthAt(poly: { x: number; y: number }[], y: number): number {
+  const xs: number[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    if ((a.y - y) * (b.y - y) < 0) xs.push(a.x + ((y - a.y) / (b.y - a.y)) * (b.x - a.x));
+  }
+  return xs.length >= 2 ? Math.max(...xs) - Math.min(...xs) : 0;
+}
+
 /**
- * Convierte landmarks MediaPipe → medidas relativas y reusa calculateFaceShape
- * (misma heurística que la cinta métrica). El bug previo era:
- * 1) x/y normalizados sin aspect ratio → length/width inflado → siempre ovalado
- * 2) umbrales muy altos (length/width >= 1.35 = ovalado) en coordenadas rotas
- * 3) un solo punto de sien/mandíbula subestimaba anchos reales
+ * Clasifica por el perfil de anchos del contorno (frente, mandíbula, mentón)
+ * y la relación largo/ancho. Los umbrales se calibraron con landmarks reales
+ * de MediaPipe sobre fotos de referencia: los puntos sueltos (sienes, ángulo
+ * de mandíbula) casi no cambian entre rostros, pero el perfil del contorno sí.
+ * Es una guía orientativa de estilo, no una medición clínica.
  */
 function classify(rawLandmarks: Landmark[], size: ImageSize): FaceShapeId {
   const landmarks = rawLandmarks.map((p) => toImageSpace(p, size));
+  const oval = FACE_OVAL.map((i) => landmarks[i]);
+  const top = landmarks[POINTS.foreheadTop].y;
+  const height = landmarks[POINTS.chin].y - top;
+  const at = (q: number) => widthAt(oval, top + q * height);
 
-  const faceLength = distance(landmarks[POINTS.foreheadTop], landmarks[POINTS.chin]);
-  const cheekWidth = widthBetween(landmarks, POINTS.cheekLeft, POINTS.cheekRight);
-  // Promedio de anchos por pares simétricos (no de posiciones): promediar
-  // puntos altos y bajos del contorno inflaba la frente y encogía la
-  // mandíbula, y casi todos salían "corazón".
-  const pairWidth = (pairs: readonly (readonly [number, number])[]) =>
-    pairs.reduce((s, [r, l]) => s + distance(landmarks[r], landmarks[l]), 0) / pairs.length;
-  const foreheadWidth = pairWidth([
-    [54, 284],
-    [21, 251],
-  ]);
-  const jawWidth = pairWidth([
-    [58, 288],
-    [172, 397],
-  ]);
+  const maxWidth = Math.max(...[0.1, 0.2, 0.3, 0.4, 0.5, 0.6].map(at), 1e-6);
+  const fore = at(0.1) / maxWidth;
+  const jaw = at(0.8) / maxWidth;
+  const chin = at(0.9) / maxWidth;
+  const len = height / maxWidth;
 
-  // Medidas en "cm" ficticios: solo importan los ratios. Escala ~cara adulta.
-  const scale = 14 / Math.max(cheekWidth, 1e-6);
-  const forehead = foreheadWidth * scale;
-  const cheekbones = cheekWidth * scale;
-  const jaw = jawWidth * scale;
-  const length = faceLength * scale;
+  let shape: FaceShapeId;
+  if (len < 1.15) shape = 'redondo';
+  else if (jaw >= 0.8) shape = 'cuadrado';
+  else if (jaw >= 0.72) shape = len >= 1.22 ? 'cuadrado' : 'ovalado';
+  else if (fore >= 0.9) shape = 'diamante';
+  else if (len >= 1.22) shape = 'cuadrado';
+  else if (chin <= 0.495) shape = 'corazon';
+  else shape = 'ovalado';
 
-  // Contorno de mandíbula (aprox.):
-  // - angular: mandíbula ancha vs pómulos + poco afina hacia el mentón
-  // - suave: se estrecha hacia el mentón o es claramente más angosta
-  const chinSideWidth = widthBetween(landmarks, POINTS.chinLeft, POINTS.chinRight);
-  const jawToCheek = cheekWidth > 0 ? jawWidth / cheekWidth : 1;
-  const jawTaper = jawWidth > 0 ? chinSideWidth / jawWidth : 1;
-  const jawContour: JawContour =
-    jawToCheek >= 0.9 && jawTaper >= 0.68 ? 'angular' : 'suave';
-
-  return calculateFaceShape({ forehead, cheekbones, jaw, length, jawContour }).shape;
+  console.debug('[faceShape]', { fore, jaw, chin, len, shape });
+  return shape;
 }
 
 export class FaceShapeCameraError extends Error {
@@ -300,5 +306,36 @@ export async function detectFaceShape(source: HTMLCanvasElement): Promise<FaceSh
     height: source.height || 1,
   };
 
-  return classify(landmarks, size);
+  const localShape = classify(landmarks, size);
+  return (await classifyWithAI(source)) ?? localShape;
+}
+
+const AI_ENDPOINT = '/api/face-shape';
+const AI_TIMEOUT_MS = 25000;
+const AI_MAX_WIDTH = 640;
+const FACE_SHAPES: readonly FaceShapeId[] = ['ovalado', 'redondo', 'cuadrado', 'corazon', 'diamante'];
+
+// Pregunta a un modelo de visión (vía el Worker de Cloudflare) la forma del
+// rostro. Si no hay conexión, el endpoint no existe (dev) o falla, devuelve
+// null y se usa la clasificación local por landmarks.
+async function classifyWithAI(source: HTMLCanvasElement): Promise<FaceShapeId | null> {
+  try {
+    const scale = Math.min(1, AI_MAX_WIDTH / source.width);
+    const small = document.createElement('canvas');
+    small.width = Math.round(source.width * scale);
+    small.height = Math.round(source.height * scale);
+    small.getContext('2d')?.drawImage(source, 0, 0, small.width, small.height);
+
+    const res = await fetch(AI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ image: small.toDataURL('image/jpeg', 0.85) }),
+      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const { shape } = await res.json();
+    return FACE_SHAPES.includes(shape) ? shape : null;
+  } catch {
+    return null;
+  }
 }
