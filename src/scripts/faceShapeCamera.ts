@@ -1,4 +1,10 @@
-import type { FaceShapeId } from '../data/faceShapeQuiz';
+import {
+  buildFaceShapeResult,
+  DIAMOND_MIN_CHEEK_TO_FOREHEAD,
+  DIAMOND_MIN_CHEEK_TO_JAW,
+  type FaceShapeId,
+  type FaceShapeResult,
+} from '../data/faceShapeQuiz';
 import faceShapeModel from '../data/faceShapeModel.json';
 
 // Detección de forma de rostro 100% en el navegador: la foto nunca se sube a
@@ -224,12 +230,13 @@ export async function checkAlignment(video: HTMLVideoElement): Promise<Alignment
   return { issue: poseIssue(landmarks, headPose(result)), nose };
 }
 
-// Clasificador (regresión logística sobre los 468 landmarks),
-// entrenado con ~6000 fotos etiquetadas (forma de rostro: corazón, oblongo,
-// ovalado, redondo, cuadrado) — ~69% de acierto en fotos no vistas (carpeta de prueba), ~71%
-// uniendo oblongo+cuadrado. No predice "diamante" (el dataset no la incluye);
-// esa forma solo se obtiene con la guía de medición. Los pesos ya incluyen la
-// estandarización de los datos.
+// Modelo (regresión logística sobre los landmarks ya normalizados), entrenado con
+// ~6000 fotos etiquetadas (corazón, oblongo, ovalado, redondo, cuadrado): ~69% de
+// acierto en fotos no vistas. Un modelo que recibe SOLO razones geométricas rinde
+// mucho menos (~45-49%), por eso las razones (extractFaceRatios) se usan para mostrar
+// medidas, decidir "diamante" y estimar la confianza, no como entrada del modelo. El
+// dataset no incluye "diamante": esa forma sale de la regla híbrida de abajo. Los
+// pesos ya incluyen la estandarización de los datos.
 const MODEL_TO_SHAPE: Record<string, FaceShapeId> = {
   heart: 'corazon',
   oblong: 'cuadrado',
@@ -256,11 +263,47 @@ function landmarkFeatures(landmarks: Landmark[]): number[] {
   return rotated.flatMap(([x, y]) => [x / scale, y / scale]);
 }
 
+export type FaceRatios = {
+  /** Alto total del rostro (punto 10 → mentón) / ancho de pómulos. */
+  lengthToWidthRatio: number;
+  /** Ancho de frente (sienes) / ancho de pómulos. */
+  foreheadToCheekboneRatio: number;
+  /** Ancho de mandíbula (ángulos del maxilar) / ancho de pómulos. */
+  jawToCheekboneRatio: number;
+  /** Ángulo (grados) del maxilar en el gonion, entre la rama y la línea al mentón. 180° = recto. */
+  jawAngle: number;
+};
+
+const dist2d = (a: Landmark, b: Landmark) => Math.hypot(a.x - b.x, a.y - b.y);
+
+function angleAt(vertex: Landmark, a: Landmark, b: Landmark): number {
+  const ux = a.x - vertex.x;
+  const uy = a.y - vertex.y;
+  const wx = b.x - vertex.x;
+  const wy = b.y - vertex.y;
+  const cos = (ux * wx + uy * wy) / (Math.hypot(ux, uy) * Math.hypot(wx, wy) || 1);
+  return (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI;
+}
+
+/** Razones geométricas invariantes a escala, a partir de landmarks en espacio de imagen (px). */
+export function extractFaceRatios(landmarks: Landmark[]): FaceRatios {
+  const d = (a: number, b: number) => dist2d(landmarks[a], landmarks[b]);
+  const cheek = d(POINTS.cheekRight, POINTS.cheekLeft) || 1;
+  return {
+    lengthToWidthRatio: d(POINTS.foreheadTop, POINTS.chin) / cheek,
+    foreheadToCheekboneRatio: (d(54, 284) + d(21, 251)) / 2 / cheek,
+    jawToCheekboneRatio: (d(58, 288) + d(172, 397)) / 2 / cheek,
+    jawAngle:
+      (angleAt(landmarks[172], landmarks[58], landmarks[152]) + angleAt(landmarks[397], landmarks[288], landmarks[152])) /
+      2,
+  };
+}
+
 type ShapeScores = Partial<Record<FaceShapeId, number>>;
 
-// Probabilidad por forma (suma 1) para un cuadro.
-function classifyScores(rawLandmarks: Landmark[], size: ImageSize): ShapeScores {
-  const features = landmarkFeatures(rawLandmarks.map((p) => toImageSpace(p, size)));
+// Probabilidad por forma (suma 1).
+function classifyScores(landmarks: Landmark[]): ShapeScores {
+  const features = landmarkFeatures(landmarks);
   const scores: ShapeScores = {};
   const logits = faceShapeModel.weights.map((w, k) => w.reduce((s, v, i) => s + v * features[i], faceShapeModel.bias[k]));
   const max = Math.max(...logits);
@@ -273,6 +316,19 @@ function classifyScores(rawLandmarks: Landmark[], size: ImageSize): ShapeScores 
   return scores;
 }
 
+// Si el modelo dice ovalado/corazón con confianza moderada o alta pero los pómulos son
+// claramente lo más ancho (umbrales calibrados en faceShapeQuiz.ts), es diamante.
+const OVERRIDE_MIN_CONFIDENCE = 0.4;
+
+function shouldOverrideToDiamond(shape: FaceShapeId, confidence: number, ratios: FaceRatios): boolean {
+  if (shape !== 'ovalado' && shape !== 'corazon') return false;
+  if (confidence < OVERRIDE_MIN_CONFIDENCE) return false;
+  return (
+    1 / ratios.foreheadToCheekboneRatio >= DIAMOND_MIN_CHEEK_TO_FOREHEAD &&
+    1 / ratios.jawToCheekboneRatio >= DIAMOND_MIN_CHEEK_TO_JAW
+  );
+}
+
 export class FaceShapeCameraError extends Error {
   code: 'NO_FACE' | 'BAD_ANGLE' | 'MODEL_LOAD_FAILED';
   constructor(code: 'NO_FACE' | 'BAD_ANGLE' | 'MODEL_LOAD_FAILED', message: string) {
@@ -281,26 +337,32 @@ export class FaceShapeCameraError extends Error {
   }
 }
 
-const FRAME_COUNT = 8;
-const FRAME_INTERVAL_MS = 90;
-const MIN_GOOD_FRAMES = 3;
+export type CapturedFrame = {
+  /** Landmarks normalizados de MediaPipe. */
+  landmarks: Landmark[];
+  size: ImageSize;
+  /** 1 = nariz exactamente a la misma distancia de ambos ojos. */
+  symmetry: number;
+  poseOk: boolean;
+};
 
-// Toma varios cuadros seguidos (~0.7 s) del video: promediar sus probabilidades
-// elimina el ruido de un cuadro malo (parpadeo, micro-movimiento).
-export async function captureFrames(video: HTMLVideoElement): Promise<HTMLCanvasElement[]> {
-  const frames: HTMLCanvasElement[] = [];
-  for (let i = 0; i < FRAME_COUNT; i++) {
-    const frame = document.createElement('canvas');
-    frame.width = video.videoWidth;
-    frame.height = video.videoHeight;
-    frame.getContext('2d')?.drawImage(video, 0, 0, frame.width, frame.height);
-    frames.push(frame);
-    if (i < FRAME_COUNT - 1) await new Promise((resolve) => setTimeout(resolve, FRAME_INTERVAL_MS));
-  }
-  return frames;
+// Simetría horizontal con las distancias nariz → ojos (esquina externa e interna): si la
+// cabeza gira, la nariz se acerca a un ojo y se aleja del otro.
+function symmetryScore(landmarks: Landmark[], size: ImageSize): number {
+  const pts = landmarks.map((p) => toImageSpace(p, size));
+  const nose = pts[POINTS.noseTip];
+  const right = (dist2d(nose, pts[33]) + dist2d(nose, pts[133])) / 2;
+  const left = (dist2d(nose, pts[263]) + dist2d(nose, pts[362])) / 2;
+  return 1 - Math.abs(right - left) / ((right + left) / 2 || 1);
 }
 
-export async function detectFaceShape(frames: HTMLCanvasElement[]): Promise<FaceShapeId> {
+const FRAME_COUNT = 8;
+const FRAME_INTERVAL_MS = 90;
+
+// Toma varios cuadros seguidos (~0.7 s) y mide la simetría de cada uno. Devuelve los
+// cuadros con rostro ordenados de más a menos simétrico: se usa el mejor, en lugar de
+// promediar a ciegas cuadros con la cabeza ligeramente girada.
+export async function captureFrames(video: HTMLVideoElement): Promise<CapturedFrame[]> {
   let landmarker;
   try {
     landmarker = await loadFaceLandmarker();
@@ -308,24 +370,62 @@ export async function detectFaceShape(frames: HTMLCanvasElement[]): Promise<Face
     throw new FaceShapeCameraError('MODEL_LOAD_FAILED', 'No se pudo cargar el analizador facial.');
   }
 
-  const total: ShapeScores = {};
-  let good = 0;
-  let faces = 0;
-  for (const frame of frames) {
-    const result = landmarker.detect(frame);
-    const landmarks = result?.faceLandmarks?.[0];
-    if (!landmarks || landmarks.length === 0) continue;
-    faces++;
-    if (poseIssue(landmarks, headPose(result))) continue;
-    const scores = classifyScores(landmarks, { width: frame.width || 1, height: frame.height || 1 });
-    for (const [shape, p] of Object.entries(scores) as [FaceShapeId, number][]) total[shape] = (total[shape] ?? 0) + p;
-    good++;
+  const frames: CapturedFrame[] = [];
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  const size: ImageSize = { width: canvas.width || 1, height: canvas.height || 1 };
+
+  for (let i = 0; i < FRAME_COUNT; i++) {
+    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const result = landmarker.detect(canvas);
+    const landmarks: Landmark[] | undefined = result?.faceLandmarks?.[0];
+    if (landmarks && landmarks.length > 0) {
+      frames.push({
+        landmarks,
+        size,
+        symmetry: symmetryScore(landmarks, size),
+        poseOk: !poseIssue(landmarks, headPose(result)),
+      });
+    }
+    if (i < FRAME_COUNT - 1) await new Promise((resolve) => setTimeout(resolve, FRAME_INTERVAL_MS));
   }
+  return frames.sort((a, b) => b.symmetry - a.symmetry);
+}
 
-  if (faces === 0) throw new FaceShapeCameraError('NO_FACE', 'No detectamos un rostro en la foto.');
-  if (good < MIN_GOOD_FRAMES) throw new FaceShapeCameraError('BAD_ANGLE', 'El rostro no está mirando directo a la cámara.');
+const SUMMARY = {
+  camera: 'Calculado con tu foto a partir de las proporciones de tu rostro (frente, pómulos, mandíbula y largo).',
+  diamond: 'Tus pómulos son claramente lo más ancho de tu rostro, con frente y mandíbula más angostas.',
+};
 
-  const [shape] = Object.entries(total).sort((a, b) => b[1] - a[1])[0] as [FaceShapeId, number];
-  console.debug('[faceShape]', { frames: good, shape, scores: Object.fromEntries(Object.entries(total).map(([k, v]) => [k, +(v / good).toFixed(3)])) });
-  return shape;
+export function detectFaceShape(frames: CapturedFrame[]): FaceShapeResult {
+  if (frames.length === 0) throw new FaceShapeCameraError('NO_FACE', 'No detectamos un rostro en la foto.');
+  const best = frames.find((f) => f.poseOk);
+  if (!best) throw new FaceShapeCameraError('BAD_ANGLE', 'El rostro no está mirando directo a la cámara.');
+
+  const pixels = best.landmarks.map((p) => toImageSpace(p, best.size));
+  const ratios = extractFaceRatios(pixels);
+  const scores = classifyScores(pixels);
+  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]) as [FaceShapeId, number][];
+  const [top, topP] = ranked[0];
+  const secondP = ranked[1]?.[1] ?? 0;
+
+  const diamond = shouldOverrideToDiamond(top, topP, ratios);
+  const shape: FaceShapeId = diamond ? 'diamante' : top;
+  const confidence = !diamond && topP >= 0.5 && topP - secondP >= 0.15 ? 'alta' : 'media';
+  console.debug('[faceShape]', { shape, diamond, symmetry: +best.symmetry.toFixed(3), scores, ratios });
+
+  const round1 = (n: number) => Math.round(n * 10) / 10;
+  return buildFaceShapeResult(shape, {
+    subtype: '',
+    confidence,
+    summary: diamond ? SUMMARY.diamond : SUMMARY.camera,
+    ratios: {
+      lengthToWidth: round1(ratios.lengthToWidthRatio),
+      foreheadToJaw: round1(ratios.foreheadToCheekboneRatio / ratios.jawToCheekboneRatio),
+      cheekToForehead: round1(1 / ratios.foreheadToCheekboneRatio),
+      cheekToJaw: round1(1 / ratios.jawToCheekboneRatio),
+    },
+  });
 }

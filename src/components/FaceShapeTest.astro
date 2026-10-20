@@ -244,6 +244,20 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           <li>Cuando la guía se ponga verde, quédate quieto: la foto se toma sola</li>
         </ul>
       </div>
+      <div
+        class="mb-3 hidden items-center justify-between gap-3 rounded-xl border border-fucsia bg-fucsia/10 p-3 text-xs text-slate-800"
+        role="alert"
+        data-facetest-fallback
+      >
+        <p>La cámara tiene dificultades con la luz o la pose. Te recomendamos medir con cinta métrica, es más fiable en este caso.</p>
+        <button
+          type="button"
+          class="shrink-0 rounded-full border-2 border-slate-900 bg-verde-neon px-3 py-1.5 text-xs font-semibold text-slate-900"
+          data-facetest-switch-quiz
+        >
+          Medir con cinta
+        </button>
+      </div>
       <div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-900">
         <video data-facetest-video autoplay playsinline muted class="h-full w-full -scale-x-100 object-cover"></video>
 
@@ -450,7 +464,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
 </div>
 
 <script>
-  import { calculateFaceShape, isValidMeasurement } from '../data/faceShapeQuiz';
+  import { calculateFaceShape, InvalidMeasurementsError, isValidMeasurement, validateMeasurements } from '../data/faceShapeQuiz';
   import type { FaceMeasurements, FaceShapeResult, JawContour } from '../data/faceShapeQuiz';
   import {
     checkAlignment,
@@ -487,6 +501,19 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     let stream: MediaStream | null = null;
     let alignTimer: number | undefined;
     let capturing = false;
+    let cameraFailures = 0;
+    const fallbackBanner = modal.querySelector<HTMLElement>('[data-facetest-fallback]');
+
+    const updateFallbackBanner = () => {
+      const show = cameraFailures >= 2;
+      fallbackBanner?.classList.toggle('hidden', !show);
+      fallbackBanner?.classList.toggle('flex', show);
+    };
+
+    const resetCameraFailures = () => {
+      cameraFailures = 0;
+      updateFallbackBanner();
+    };
 
     const ALIGN_INTERVAL_MS = 200;
     const AUTO_CAPTURE_STABLE_FRAMES = 6;
@@ -617,14 +644,17 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       guide?.classList.add('hidden');
       hint?.classList.add('hidden');
 
-      const frames = await captureFrames(video);
-      stopCamera();
-
       try {
-        const shape = await detectFaceShape(frames);
-        renderResult(shape, 'camera');
+        const frames = await captureFrames(video);
+        stopCamera();
+        const result = detectFaceShape(frames);
+        resetCameraFailures();
+        renderResult(result.shape, 'camera', result);
         showStep('result');
       } catch (err) {
+        stopCamera();
+        cameraFailures++;
+        updateFallbackBanner();
         let message = 'No pudimos analizar tu rostro ahora mismo. Prueba con la guía de medición.';
         if (err instanceof FaceShapeCameraError) {
           if (err.code === 'NO_FACE') {
@@ -684,10 +714,12 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     const updateMeasureValidity = () => {
       const values = Array.from(measureInputs).map((input) => parseCm(input.value));
       const ok = values.length === 4 && values.every((v) => isValidMeasurement(v));
-      if (submitMeasureBtn) submitMeasureBtn.disabled = !ok;
+      const [forehead, cheekbones, jaw, length] = values;
+      const implausible = ok ? validateMeasurements({ forehead, cheekbones, jaw, length }) : null;
+      if (submitMeasureBtn) submitMeasureBtn.disabled = !ok || implausible !== null;
       if (measureError) {
-        measureError.classList.add('hidden');
-        measureError.textContent = '';
+        measureError.textContent = implausible ?? '';
+        measureError.classList.toggle('hidden', implausible === null);
       }
     };
 
@@ -722,9 +754,17 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         return;
       }
 
-      const result = calculateFaceShape(measurements);
-      renderResult(result.shape, 'quiz', result);
-      showStep('result');
+      try {
+        const result = calculateFaceShape(measurements);
+        renderResult(result.shape, 'quiz', result);
+        showStep('result');
+      } catch (err) {
+        if (!(err instanceof InvalidMeasurementsError)) throw err;
+        if (measureError) {
+          measureError.textContent = err.message;
+          measureError.classList.remove('hidden');
+        }
+      }
     });
 
     // --- Resultado ---
@@ -809,6 +849,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
 
     // --- Navegación general del modal ---
     const openModal = () => {
+      resetCameraFailures();
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       showStep('intro');
@@ -829,6 +870,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     });
 
     modal.querySelector('[data-facetest-start="camera"]')?.addEventListener('click', () => {
+      resetCameraFailures();
       showStep('camera');
       startCamera();
     });

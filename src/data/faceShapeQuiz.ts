@@ -31,6 +31,10 @@ export type FaceShapeResult = {
     cheekToJaw: number;
   };
   summary: string;
+  /** Descripción de la forma (misma que se muestra en el resultado). */
+  description: string;
+  /** Formas de montura recomendadas, en orden de prioridad. */
+  recommendedFrames: FrameShape[];
 };
 
 export const faceShapeInfo: Record<FaceShapeId, { label: string; image: string; description: string }> = {
@@ -81,6 +85,32 @@ export const frameRecommendations: Record<FaceShapeId, FrameShape[]> = {
   corazon: ['redonda', 'ovalada', 'aviador'],
   diamante: ['cat-eye', 'ovalada', 'clubmaster', 'aviador'],
 };
+
+/**
+ * Umbrales de diamante, compartidos por la cinta métrica y la cámara. Calibrados con
+ * ~6000 rostros (landmarks de MediaPipe): los pómulos superan SIEMPRE a frente y
+ * mandíbula en algún grado (mediana pómulos/frente 1.12, pómulos/mandíbula 1.18; con
+ * un margen del 5% la regla se cumplía en el 98% de los rostros). Aquí exigimos un margen
+ * que solo cumple un 2-4% de los rostros: pómulos ≥13% más anchos que la frente y ≥19%
+ * más anchos que la mandíbula.
+ */
+export const DIAMOND_MIN_CHEEK_TO_FOREHEAD = 1.13;
+export const DIAMOND_MIN_CHEEK_TO_JAW = 1.19;
+
+/** Estructura única de resultado, idéntica para la cámara y la cinta métrica. */
+export function buildFaceShapeResult(
+  shape: FaceShapeId,
+  data: Pick<FaceShapeResult, 'subtype' | 'confidence' | 'ratios' | 'summary'>,
+): FaceShapeResult {
+  const label = faceShapeInfo[shape].label;
+  return {
+    shape,
+    ...data,
+    displayLabel: data.subtype ? `${label} · ${data.subtype}` : label,
+    description: faceShapeInfo[shape].description,
+    recommendedFrames: frameRecommendations[shape],
+  };
+}
 
 /** Pasos de medición: ilustración + cómo + errores típicos de ese paso. */
 export const measurementSteps = [
@@ -152,6 +182,38 @@ export const measurementPrep = [
 const MIN_CM = 8;
 const MAX_CM = 30;
 
+/**
+ * Rangos de proporciones humanas realistas, relativos al ancho de pómulos. Fuera de
+ * estos rangos casi seguro hay un error al medir (cinta mal ubicada, cm vs mm, campos
+ * cruzados), no un rostro real.
+ */
+export const PROPORTION_BOUNDS = {
+  foreheadToCheek: [0.7, 1.15],
+  jawToCheek: [0.65, 1.15],
+  lengthToCheek: [1.0, 1.9],
+} as const;
+
+export class InvalidMeasurementsError extends Error {}
+
+/** Devuelve un mensaje de error si las medidas son imposibles entre sí, o null si son plausibles. */
+export function validateMeasurements(m: Pick<FaceMeasurements, 'forehead' | 'cheekbones' | 'jaw' | 'length'>): string | null {
+  const { forehead, cheekbones, jaw, length } = m;
+  if (![forehead, cheekbones, jaw, length].every(isValidMeasurement)) {
+    return 'Usa centímetros entre 8 y 30 (ej. 13,5) en las 4 casillas.';
+  }
+  const inRange = (value: number, [min, max]: readonly [number, number]) => value >= min && value <= max;
+  if (!inRange(forehead / cheekbones, PROPORTION_BOUNDS.foreheadToCheek)) {
+    return 'La frente no cuadra con tus pómulos: revisa ambas medidas (de sien a sien y de hueso a hueso del pómulo).';
+  }
+  if (!inRange(jaw / cheekbones, PROPORTION_BOUNDS.jawToCheek)) {
+    return 'La mandíbula no cuadra con tus pómulos: mídela en línea recta de esquina a esquina del maxilar, sin seguir la curva.';
+  }
+  if (!inRange(length / cheekbones, PROPORTION_BOUNDS.lengthToCheek)) {
+    return 'El largo del rostro no cuadra con el ancho: mídelo desde el nacimiento del cabello hasta la punta del mentón.';
+  }
+  return null;
+}
+
 export function isValidMeasurement(value: number): boolean {
   return Number.isFinite(value) && value >= MIN_CM && value <= MAX_CM;
 }
@@ -175,6 +237,8 @@ function widthsSimilar(forehead: number, cheekbones: number, jaw: number, pct = 
  * Heurística de estilo (no clínica): prioriza diamante → corazón → compactos → alargados → ovalado.
  */
 export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
+  const invalid = validateMeasurements(m);
+  if (invalid) throw new InvalidMeasurementsError(invalid);
   const { forehead, cheekbones, jaw, length, jawContour } = m;
   const maxWidth = Math.max(forehead, cheekbones, jaw);
   const lengthToWidth = length / maxWidth;
@@ -190,7 +254,7 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
   };
 
   const equalWidths = widthsSimilar(forehead, cheekbones, jaw, 0.1);
-  const cheeksWidest = cheekbones >= forehead * 1.06 && cheekbones >= jaw * 1.06;
+  const cheeksWidest = cheekToForehead >= DIAMOND_MIN_CHEEK_TO_FOREHEAD && cheekToJaw >= DIAMOND_MIN_CHEEK_TO_JAW;
   const foreheadWidest = forehead >= cheekbones * 0.98 && forehead > jaw * 1.12;
   // Compacto: largo y ancho cercanos. 1.28 (antes 1.2) cubre redondos/cuadrados
   // reales y los de cámara; por encima de eso suele ser ovalado.
@@ -205,7 +269,7 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
   // 1) Diamante: pómulos claramente lo más ancho; frente y mandíbula más angostas.
   if (cheeksWidest && foreheadToJaw < 1.12 && foreheadToJaw > 0.88) {
     shape = 'diamante';
-    subtype = cheekToForehead >= 1.15 && cheekToJaw >= 1.15 ? 'marcado' : 'sutil';
+    subtype = cheekToForehead >= 1.2 && cheekToJaw >= 1.25 ? 'marcado' : 'sutil';
     summary =
       subtype === 'marcado'
         ? 'Tus pómulos son claramente lo más ancho; frente y mandíbula se estrechan de forma simétrica.'
@@ -272,13 +336,11 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
   ) {
     confidence = 'media';
   }
-  if (shape === 'diamante' && (cheekToForehead < 1.1 || cheekToJaw < 1.1)) {
+  if (shape === 'diamante' && subtype === 'sutil') {
     confidence = 'media';
   }
 
-  const displayLabel = `${faceShapeInfo[shape].label} · ${subtype}`;
-
-  return { shape, subtype, displayLabel, confidence, ratios, summary };
+  return buildFaceShapeResult(shape, { subtype, confidence, ratios, summary });
 }
 
 /** @deprecated Usar calculateFaceShape. Se mantiene por compatibilidad de imports. */
