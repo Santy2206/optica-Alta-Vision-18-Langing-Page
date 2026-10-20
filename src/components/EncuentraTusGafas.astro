@@ -10,7 +10,9 @@ const formas = [
   { id: 'ovalado', imagen: '/images/rostros/ovalado.svg', label: 'Ovalado' },
   { id: 'redondo', imagen: '/images/rostros/redondo.svg', label: 'Redondo' },
   { id: 'cuadrado', imagen: '/images/rostros/cuadrado.svg', label: 'Cuadrado' },
-  { id: 'corazon', imagen: '/images/rostros/corazon.svg', label: 'Corazón' },
+  { id: 'rectangular', imagen: '/images/rostros/rectangular.svg', label: 'Rectangular / alargado' },
+  { id: 'corazon', imagen: '/images/rostros/corazon.svg', label: 'Triángulo invertido / corazón' },
+  { id: 'triangular', imagen: '/images/rostros/triangular.svg', label: 'Triangular' },
   { id: 'diamante', imagen: '/images/rostros/diamante.svg', label: 'Diamante' },
 ] as const;
 ---
@@ -46,7 +48,7 @@ const formas = [
 
     <p class="mb-6 mt-10 text-sm font-semibold text-slate-700">¿Ya conoces tu forma de rostro? Elígela:</p>
 
-    <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       {
         formas.map((forma, i) => {
           const todas = frameRecommendations[forma.id];

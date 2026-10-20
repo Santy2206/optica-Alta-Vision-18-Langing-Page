@@ -145,10 +145,12 @@ const GENEROS = ['unisex', 'hombre', 'mujer'];
 // (src/data/faceShapeQuiz.ts → frameRecommendations). Determinista, sin visión.
 const FACE_RECS = {
   ovalado: ['aviador', 'cat-eye', 'rectangular', 'cuadrada', 'redonda', 'clubmaster', 'ovalada'],
-  redondo: ['cuadrada', 'rectangular', 'clubmaster', 'aviador'],
-  cuadrado: ['redonda', 'ovalada', 'cat-eye', 'aviador'],
-  corazon: ['redonda', 'ovalada', 'aviador'],
-  diamante: ['cat-eye', 'ovalada', 'clubmaster', 'aviador'],
+  redondo: ['cuadrada', 'rectangular', 'cat-eye', 'aviador'],
+  cuadrado: ['redonda', 'ovalada', 'aviador'],
+  rectangular: ['aviador', 'cuadrada', 'redonda', 'clubmaster'],
+  corazon: ['aviador', 'ovalada', 'redonda', 'cat-eye', 'clubmaster', 'cuadrada'], // + selección manual (curatedFrames)
+  triangular: ['cat-eye', 'clubmaster'],
+  diamante: ['cat-eye', 'ovalada', 'redonda', 'clubmaster'],
 };
 async function askFrameGender(imageUrl) {
   const result = await fal.subscribe(VISION_MODEL, {

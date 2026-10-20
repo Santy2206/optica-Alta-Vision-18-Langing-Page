@@ -309,12 +309,13 @@ function resetAndReturn(result: AlignmentResult): AlignmentResult {
 // ~6000 fotos etiquetadas (corazón, oblongo, ovalado, redondo, cuadrado): ~69% de
 // acierto en fotos no vistas. Un modelo que recibe SOLO razones geométricas rinde
 // mucho menos (~45-49%), por eso las razones (extractFaceRatios) se usan para mostrar
-// medidas, decidir "diamante" y estimar la confianza, no como entrada del modelo. El
-// dataset no incluye "diamante": esa forma sale de la regla híbrida de abajo. Los
-// pesos ya incluyen la estandarización de los datos.
+// medidas, decidir "diamante"/"triangular" y estimar la confianza, no como entrada del
+// modelo. El dataset no incluye "diamante" ni "triangular": esas formas salen de las
+// reglas híbridas de abajo. "oblong" es la forma rectangular/alargada. Los pesos ya
+// incluyen la estandarización de los datos.
 const MODEL_TO_SHAPE: Record<string, FaceShapeId> = {
   heart: 'corazon',
-  oblong: 'cuadrado',
+  oblong: 'rectangular',
   oval: 'ovalado',
   round: 'redondo',
   square: 'cuadrado',
@@ -453,6 +454,17 @@ function shouldOverrideToDiamond(shape: FaceShapeId, confidence: number, ratios:
   );
 }
 
+// Triangular: la mandíbula es la zona más ancha. Con estas mismas medidas, frente/mandíbula
+// tiene mediana 1.25 y solo ~2% de los ~1000 rostros de prueba baja de 1.10 (0.1% baja de 1.0).
+// Sin ejemplos etiquetados de triangular, este corte NO está validado.
+const CAMERA_TRIANGULAR_MAX_FOREHEAD_TO_JAW = 1.1;
+const TRIANGULAR_FROM: FaceShapeId[] = ['ovalado', 'cuadrado', 'rectangular', 'redondo'];
+
+function shouldOverrideToTriangular(shape: FaceShapeId, confidence: number, ratios: FaceRatios): boolean {
+  if (!TRIANGULAR_FROM.includes(shape) || confidence < OVERRIDE_MIN_CONFIDENCE) return false;
+  return ratios.foreheadToCheekboneRatio / ratios.jawToCheekboneRatio < CAMERA_TRIANGULAR_MAX_FOREHEAD_TO_JAW;
+}
+
 export class FaceShapeCameraError extends Error {
   code: 'NO_FACE' | 'BAD_ANGLE' | 'MODEL_LOAD_FAILED';
   constructor(code: 'NO_FACE' | 'BAD_ANGLE' | 'MODEL_LOAD_FAILED', message: string) {
@@ -529,6 +541,7 @@ export async function captureFrames(video: HTMLVideoElement): Promise<CapturedFr
 const SUMMARY = {
   camera: 'Calculado con tu foto a partir de las proporciones de tu rostro (frente, pómulos, mandíbula y largo).',
   diamond: 'Tus pómulos son claramente lo más ancho de tu rostro, con frente y mandíbula más angostas.',
+  triangular: 'Tu mandíbula es casi tan ancha como tu frente o más, lo que da una estructura triangular.',
 };
 
 export type FaceOverlay = {
@@ -593,7 +606,9 @@ const SHAPE_STRUCTURE: Record<FaceShapeId, string> = {
   ovalado: 'ovalada',
   redondo: 'redonda',
   cuadrado: 'cuadrada',
-  corazon: 'de corazón',
+  rectangular: 'rectangular y alargada',
+  corazon: 'de triángulo invertido o corazón',
+  triangular: 'triangular',
   diamante: 'de diamante',
 };
 
@@ -601,7 +616,9 @@ const SHAPE_TRAIT: Record<FaceShapeId, string> = {
   ovalado: 'largo medio y contornos suaves',
   redondo: 'largo y ancho parecidos, sin ángulos',
   cuadrado: 'contorno recto y mandíbula definida',
+  rectangular: 'más largo que ancho, con anchos parejos',
   corazon: 'frente ancha y mentón angosto',
+  triangular: 'mandíbula más ancha que la frente',
   diamante: 'pómulos como la parte más ancha',
 };
 
@@ -613,7 +630,11 @@ function explainResult(ratios: FaceRatios, shape: FaceShapeId): { headline: stri
   const headline =
     shape === 'diamante'
       ? 'Pómulos más anchos que frente y mandíbula'
-      : fj >= FOREHEAD_JAW_WIDE
+      : shape === 'triangular'
+        ? 'Mandíbula casi tan ancha como la frente'
+        : shape === 'rectangular'
+          ? 'Rostro claramente más largo que ancho'
+          : fj >= FOREHEAD_JAW_WIDE
         ? 'Frente y pómulos claramente más anchos que la mandíbula'
         : fj >= FOREHEAD_JAW_SIMILAR
           ? 'Frente y pómulos más anchos que la mandíbula'
@@ -636,15 +657,17 @@ export function detectFaceShape(frames: CapturedFrame[]): CameraFaceShapeResult 
   const secondP = ranked[1]?.[1] ?? 0;
 
   const diamond = shouldOverrideToDiamond(top, topP, ratios);
-  const shape: FaceShapeId = diamond ? 'diamante' : top;
-  const confidence = !diamond && topP >= 0.5 && topP - secondP >= 0.15 ? 'alta' : 'media';
-  console.debug('[faceShape]', { shape, diamond, symmetry: +best.symmetry.toFixed(3), scores, ratios });
+  const triangular = !diamond && shouldOverrideToTriangular(top, topP, ratios);
+  const overridden = diamond || triangular;
+  const shape: FaceShapeId = diamond ? 'diamante' : triangular ? 'triangular' : top;
+  const confidence = !overridden && topP >= 0.5 && topP - secondP >= 0.15 ? 'alta' : 'media';
+  console.debug('[faceShape]', { shape, diamond, triangular, symmetry: +best.symmetry.toFixed(3), scores, ratios });
 
   const round1 = (n: number) => Math.round(n * 10) / 10;
   const base = buildFaceShapeResult(shape, {
     subtype: '',
     confidence,
-    summary: diamond ? SUMMARY.diamond : SUMMARY.camera,
+    summary: diamond ? SUMMARY.diamond : triangular ? SUMMARY.triangular : SUMMARY.camera,
     ratios: {
       lengthToWidth: round1(ratios.lengthToWidthRatio),
       foreheadToJaw: round1(ratios.foreheadToCheekboneRatio / ratios.jawToCheekboneRatio),

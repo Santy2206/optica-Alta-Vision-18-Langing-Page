@@ -9,6 +9,7 @@ import { getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout
 import {
   faceShapeInfo,
   frameRecommendations,
+  curatedFrames,
   measurementSteps,
   measurementPrep,
 } from '../data/faceShapeQuiz';
@@ -24,6 +25,7 @@ const catalogForTest = allItems.map((item) => ({
   image: item.data.image,
   imageAlt: item.data.name,
   frameShape: getFrameShape(item.data),
+  genero: item.data.genero ?? 'unisex',
   overlayImage: getTryOnOverlayImage(item.data.colors[0]?.image || item.data.image),
   overlayImagePhotochromic: getTryOnPhotochromicImage(item.data.colors[0]?.image || item.data.image),
 }));
@@ -61,11 +63,29 @@ function pickDiverse<T extends { frameShape: FrameShape | null }>(
   return result;
 }
 
+const generoTabs = [
+  { value: 'todos', label: 'Todas' },
+  { value: 'hombre', label: 'Para hombre' },
+  { value: 'mujer', label: 'Para mujer' },
+] as const;
+
+// Hombre/mujer incluyen también las monturas unisex.
 const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
   const recommended = frameRecommendations[shapeId];
-  const candidates = catalogForTest.filter((item) => item.frameShape && recommended.includes(item.frameShape));
-  const matches = pickDiverse(candidates, recommended, 6, faceIndex * 3);
-  return { shapeId, matches };
+  const curated = curatedFrames[shapeId];
+  const candidates = curated
+    ? catalogForTest
+    : catalogForTest.filter((item) => item.frameShape && recommended.includes(item.frameShape));
+  const byGenero = generoTabs.map(({ value }) => {
+    const pool = value === 'todos' ? candidates : candidates.filter((c) => c.genero === 'unisex' || c.genero === value);
+    return {
+      value,
+      matches: curated
+        ? curated.flatMap((slug) => pool.filter((c) => c.slug === slug))
+        : pickDiverse(pool, recommended, pool.length, faceIndex * 3),
+    };
+  });
+  return { shapeId, byGenero };
 });
 ---
 
@@ -529,9 +549,26 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         </button>
       </p>
 
+      <div class="mb-4 flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar monturas por género">
+        <span class="text-sm font-semibold text-slate-900">Monturas:</span>
+        {
+          generoTabs.map(({ value, label }) => (
+            <button
+              type="button"
+              aria-pressed={value === 'todos' ? 'true' : 'false'}
+              data-facetest-genero-tab={value}
+              class="rounded-full border-2 border-slate-900 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-900 transition-colors hover:bg-slate-100 aria-pressed:bg-verde-neon"
+            >
+              {label}
+            </button>
+          ))
+        }
+      </div>
+
       {
-        faceShapeResults.map(({ shapeId, matches }) => (
-          <div class="hidden" data-facetest-result-grid={shapeId}>
+        faceShapeResults.map(({ shapeId, byGenero }) =>
+          byGenero.map(({ value: generoValue, matches }) => (
+          <div class="hidden" data-facetest-result-grid={shapeId} data-facetest-genero-grid={generoValue}>
             {matches.length > 0 ? (
               <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {matches.map((item) => (
@@ -578,7 +615,8 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
               </p>
             )}
           </div>
-        ))
+          ))
+        )
       }
 
       <div class="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -1001,6 +1039,28 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       overlayFigure?.classList.remove('hidden');
     }
 
+    let currentShape = '';
+    let currentGenero = 'todos';
+
+    function applyGridVisibility() {
+      modal!.querySelectorAll<HTMLElement>('[data-facetest-result-grid]').forEach((el) => {
+        el.classList.toggle(
+          'hidden',
+          el.dataset.facetestResultGrid !== currentShape || el.dataset.facetestGeneroGrid !== currentGenero,
+        );
+      });
+      modal!.querySelectorAll<HTMLElement>('[data-facetest-genero-tab]').forEach((el) => {
+        el.setAttribute('aria-pressed', String(el.dataset.facetestGeneroTab === currentGenero));
+      });
+    }
+
+    modal.querySelectorAll<HTMLElement>('[data-facetest-genero-tab]').forEach((tab) =>
+      tab.addEventListener('click', () => {
+        currentGenero = tab.dataset.facetestGeneroTab ?? 'todos';
+        applyGridVisibility();
+      }),
+    );
+
     function renderResult(shapeId: string, source: 'camera' | 'quiz' | 'manual', detail?: FaceShapeResult) {
       overlayFigure?.classList.add('hidden');
       modal!.querySelectorAll<HTMLElement>('[data-facetest-result-image]').forEach((el) => {
@@ -1012,9 +1072,8 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
       modal!.querySelectorAll<HTMLElement>('[data-facetest-result-description]').forEach((el) => {
         el.classList.toggle('hidden', el.dataset.facetestResultDescription !== shapeId);
       });
-      modal!.querySelectorAll<HTMLElement>('[data-facetest-result-grid]').forEach((el) => {
-        el.classList.toggle('hidden', el.dataset.facetestResultGrid !== shapeId);
-      });
+      currentShape = shapeId;
+      applyGridVisibility();
       uncertaintyNote?.classList.toggle('hidden', source !== 'camera');
 
       if (subtypeEl) {

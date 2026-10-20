@@ -6,7 +6,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import { getTryOnOverlayImage, getTryOnPhotochromicImage, getDisplayImage } from '../utils/cutout';
-import { frameRecommendations, faceShapeInfo } from '../data/faceShapeQuiz';
+import { frameRecommendations, faceShapeInfo, curatedFrames } from '../data/faceShapeQuiz';
 import { frameShapeLabel, getFrameShape } from '../data/frameShape';
 import site from '../utils/site';
 import { seo, zonaCompleta } from '../utils/seo';
@@ -51,7 +51,10 @@ const steps = ORDER.flatMap(([id, accent]) => {
   const shape = getFrameShape(item.data);
   const faces = shape
     ? Object.entries(frameRecommendations)
-        .filter(([, shapes]) => shapes.includes(shape))
+        .filter(([face, shapes]) => {
+          const curated = curatedFrames[face as keyof typeof curatedFrames];
+          return curated ? curated.includes(id) : shapes.includes(shape);
+        })
         .map(([face]) => faceShapeInfo[face as keyof typeof faceShapeInfo].label)
     : [];
   return [
@@ -162,11 +165,12 @@ const zonas: Array<{ texto: string; left: string; top: string }> = lensMask.lens
 // ---------- Escena 4: rostro ----------
 const catalogoMini = all
   .map((i) => ({
+    id: i.id,
     name: i.data.name,
     shape: getFrameShape(i.data),
     image: getTryOnOverlayImage(i.data.colors[0]?.image || i.data.image),
   }))
-  .filter((x) => x.shape && x.image) as Array<{ name: string; shape: FrameShape; image: string }>;
+  .filter((x) => x.shape && x.image) as Array<{ id: string; name: string; shape: FrameShape; image: string }>;
 
 function elegir(shapes: FrameShape[], n: number, offset: number) {
   const buckets = shapes.map((sh) => {
@@ -182,6 +186,19 @@ function elegir(shapes: FrameShape[], n: number, offset: number) {
   return out;
 }
 
+// Si la forma tiene lista elegida a mano (curatedFrames), las miniaturas y "Te quedan" salen de ella.
+function minisDe(id: FaceShapeId, i: number) {
+  const curated = curatedFrames[id];
+  if (!curated) return elegir(frameRecommendations[id], 3, i * 2);
+  return curated.flatMap((slug) => catalogoMini.filter((x) => x.id === slug)).slice(0, 3);
+}
+function quedanDe(id: FaceShapeId) {
+  const curated = curatedFrames[id];
+  if (!curated) return frameRecommendations[id].slice(0, 3).map((sh) => frameShapeLabel[sh]);
+  const shapes = curated.flatMap((slug) => catalogoMini.filter((x) => x.id === slug).map((x) => x.shape));
+  return [...new Set(shapes)].slice(0, 3).map((sh) => frameShapeLabel[sh]);
+}
+
 const ACC_CARAS = ['#019FD8', '#C21173', '#7CB928', '#6A47B8', '#019FD8'];
 const caras = (Object.keys(faceShapeInfo) as FaceShapeId[]).map((id, i) => ({
   id,
@@ -189,8 +206,8 @@ const caras = (Object.keys(faceShapeInfo) as FaceShapeId[]).map((id, i) => ({
   descripcion: faceShapeInfo[id].description,
   image: faceShapeInfo[id].image,
   acc: ACC_CARAS[i % ACC_CARAS.length],
-  quedan: frameRecommendations[id].slice(0, 3).map((sh) => frameShapeLabel[sh]),
-  minis: elegir(frameRecommendations[id], 3, i * 2),
+  quedan: quedanDe(id),
+  minis: minisDe(id, i),
 }));
 const entrega = site.tiempoEntrega.replace(/\s*hábiles?$/i, '');
 
@@ -552,7 +569,12 @@ const localBusiness = {
             <div class="stage__shapes">
               {
                 caras.map((c, i) => (
-                  <h2 class="stage__shape" data-step={i} data-hide-inactive aria-hidden={i === 0 ? undefined : 'true'}>
+                  <h2
+                    class:list={['stage__shape', c.label.length > 12 && 'stage__shape--largo']}
+                    data-step={i}
+                    data-hide-inactive
+                    aria-hidden={i === 0 ? undefined : 'true'}
+                  >
                     {c.label}
                   </h2>
                 ))
@@ -1441,6 +1463,16 @@ const localBusiness = {
   .stage--lentes .stage__shape {
     font-size: clamp(2.2rem, 6vw, 4.2rem);
   }
+  /* Nombres largos de rostro ("Triángulo invertido / corazón"): menor tamaño y a dos líneas
+     dentro de la columna de texto, para que no pasen por debajo de la ilustración. */
+  .stage__shape--largo {
+    width: 100%;
+    font-size: clamp(2rem, 3.6vw, 2.7rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    white-space: normal;
+    text-wrap: balance;
+  }
   @media (max-width: 899px) {
     .stage__shapes {
       height: clamp(2.6rem, 11vw, 3.4rem);
@@ -1451,6 +1483,12 @@ const localBusiness = {
     }
     .stage--lentes .stage__shape {
       font-size: clamp(2rem, 9.5vw, 2.8rem);
+    }
+    .stage--rostro .stage__shapes {
+      height: clamp(3.6rem, 16vw, 4.8rem);
+    }
+    .stage__shape--largo {
+      font-size: clamp(1.7rem, 7.4vw, 2.2rem);
     }
     .stage__desc {
       font-size: 0.92rem;

@@ -11,7 +11,7 @@ import { waLink } from '../utils/whatsapp';
 import { priceLabel as getPriceLabel, isFallbackPrice } from '../utils/precio';
 import { isPlaceholderImage } from '../utils/images';
 import { getFrameShape, FRAME_SHAPES, frameShapeLabel } from '../data/frameShape';
-import { faceShapeInfo, frameRecommendations } from '../data/faceShapeQuiz';
+import { faceShapeInfo, frameRecommendations, curatedFrames } from '../data/faceShapeQuiz';
 import FrameShapeIcon from '../components/FrameShapeIcon.astro';
 import { getDisplayImage, getTryOnOverlayImage, getTryOnPhotochromicImage } from '../utils/cutout';
 import FlowPasos from '../components/flow/FlowPasos.astro';
@@ -131,17 +131,19 @@ const formas = [
               // Misma foto de fondo recortado que displayImage para que combine con bg-slate-100.
               const hoverSource = firstColor?.modelImage || item.data.hoverImage;
               const hoverImage = hoverSource ? getDisplayImage(hoverSource) : '';
-              // Rostros a los que favorece (filtro "forma de rostro"): primero el
-              // campo `rostros` del JSON (lo llena la IA; el CMS lo puede corregir);
-              // si está vacío se deriva del frameShape con la matriz del test.
+              // Rostros a los que favorece (filtro "forma de rostro"): se derivan del
+              // frameShape con la matriz del test, así siempre coinciden con el resultado del
+              // test. El campo `rostros` del JSON solo se usa si la montura no tiene forma.
               const shape = getFrameShape(item.data);
-              const rostrosFavorecidos = item.data.rostros.length
-                ? item.data.rostros
-                : shape
-                  ? (Object.keys(frameRecommendations) as Array<keyof typeof frameRecommendations>).filter(
-                      (rostro) => frameRecommendations[rostro].includes(shape),
-                    )
-                  : [];
+              const derivados = shape
+                ? (Object.keys(frameRecommendations) as Array<keyof typeof frameRecommendations>).filter(
+                    (rostro) => {
+                      const curated = curatedFrames[rostro];
+                      return curated ? curated.includes(item.id) : frameRecommendations[rostro].includes(shape);
+                    },
+                  )
+                : [];
+              const rostrosFavorecidos = shape ? derivados : item.data.rostros;
 
               return (
                 <article

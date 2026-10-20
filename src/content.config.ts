@@ -23,7 +23,7 @@ const catalogo = defineCollection({
     /** Rostros que favorece la montura (filtro del catálogo). La IA lo rellena
      * desde frameShape; si está vacío la página lo deriva igual. */
     rostros: z
-      .array(z.enum(['ovalado', 'redondo', 'cuadrado', 'corazon', 'diamante']))
+      .array(z.enum(['ovalado', 'redondo', 'cuadrado', 'rectangular', 'corazon', 'triangular', 'diamante']))
       .nullish()
       .transform((v) => v ?? []),
     /** null/omitido = "Monturas desde $X" (site.precioDesdeMontura) o "Cotiza por WhatsApp".

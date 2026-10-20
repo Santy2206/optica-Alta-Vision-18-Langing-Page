@@ -1,6 +1,6 @@
 import type { FrameShape } from './frameShape';
 
-export type FaceShapeId = 'ovalado' | 'redondo' | 'cuadrado' | 'corazon' | 'diamante';
+export type FaceShapeId = 'ovalado' | 'redondo' | 'cuadrado' | 'rectangular' | 'corazon' | 'triangular' | 'diamante';
 
 export type JawContour = 'suave' | 'angular';
 
@@ -56,11 +56,23 @@ export const faceShapeInfo: Record<FaceShapeId, { label: string; image: string; 
     description:
       'Mandíbula marcada y frente ancha, con líneas rectas. Las monturas redondeadas suavizan tus rasgos.',
   },
+  rectangular: {
+    label: 'Rectangular / alargado',
+    image: '/images/rostros/rectangular.svg',
+    description:
+      'Rostro claramente más largo que ancho, con frente, pómulos y mandíbula de ancho parecido. Las monturas altas y anchas acortan visualmente tu rostro.',
+  },
   corazon: {
-    label: 'Corazón',
+    label: 'Triángulo invertido / corazón',
     image: '/images/rostros/corazon.svg',
     description:
       'Frente ancha y mentón angosto. Las monturas más anchas en la parte baja equilibran tu rostro.',
+  },
+  triangular: {
+    label: 'Triangular',
+    image: '/images/rostros/triangular.svg',
+    description:
+      'Frente más angosta y mandíbula más ancha. Las monturas con detalle o color arriba llevan la atención a la parte alta del rostro.',
   },
   diamante: {
     label: 'Diamante',
@@ -74,16 +86,137 @@ export const faceShapeInfo: Record<FaceShapeId, { label: string; image: string; 
 // resultado del test reparte los productos entre ellas). Basado en guías de estilo
 // estándar de óptica, no en una medición clínica:
 // - ovalado: casi cualquiera.
-// - redondo: angulares (cuadrada, rectangular, browline) para dar definición.
-// - cuadrado: curvas que suavizan (redonda, ovalada, ojo de gato).
-// - corazón: más anchas abajo o livianas; se evitan las cargadas arriba (ojo de gato, browline).
-// - diamante: las que realzan la línea de las cejas (ojo de gato, browline) u ovaladas.
+// - redondo: angulares (cuadrada/hexagonal, rectangular, ojo de gato angular, aviador estructurado) para dar definición.
+// - cuadrado: curvas que suavizan (redonda, ovalada, aviador).
+// - rectangular/alargado: monturas con altura y curvas que acortan el rostro (aviador, redonda, ovalada, clubmaster, ojo de gato).
+// - corazón / triángulo invertido: más anchas abajo o livianas; se evitan las cargadas arriba (ojo de gato, browline).
+// - triangular: lo contrario; volumen arriba (ojo de gato, clubmaster/browline).
+// - diamante: ojos y pómulos suavizados (ojo de gato, ovalada, redonda) o ceja marcada (clubmaster).
 export const frameRecommendations: Record<FaceShapeId, FrameShape[]> = {
   ovalado: ['aviador', 'cat-eye', 'rectangular', 'cuadrada', 'redonda', 'clubmaster', 'ovalada'],
-  redondo: ['cuadrada', 'rectangular', 'clubmaster', 'aviador'],
-  cuadrado: ['redonda', 'ovalada', 'cat-eye', 'aviador'],
-  corazon: ['redonda', 'ovalada', 'aviador'],
-  diamante: ['cat-eye', 'ovalada', 'clubmaster', 'aviador'],
+  redondo: ['cuadrada', 'rectangular', 'cat-eye', 'aviador'],
+  cuadrado: ['redonda', 'ovalada', 'aviador'],
+  rectangular: ['aviador', 'redonda', 'ovalada', 'clubmaster', 'cat-eye'],
+  corazon: ['aviador', 'ovalada', 'redonda', 'cat-eye', 'clubmaster', 'cuadrada'],
+  triangular: ['cat-eye', 'clubmaster'],
+  diamante: ['cat-eye', 'ovalada', 'redonda', 'clubmaster'],
+};
+
+/**
+ * Selección manual de monturas (ids del catálogo, en orden) para formas donde la montura
+ * concreta importa más que su silueta: en corazón / triángulo invertido solo van las ligeras,
+ * al aire (rimless/semi-rimless), claras o translúcidas; las demás formas (salvo ovalado, que
+ * admite casi todo el catálogo) tienen su lista elegida a mano. Si una forma está aquí, el test y el
+ * filtro del catálogo usan esta lista en lugar de `frameRecommendations`.
+ */
+export const curatedFrames: Partial<Record<FaceShapeId, string[]>> = {
+  corazon: [
+    'aviador01-plateado-rimless-a', // Aviador Rimless Plateado
+    'aviador01-dorado-rimless-989', // Aviador Rimless Plateado Carey
+    'aviador01-dorado-rimless-a', // Aviador Rimless Plateado Negro
+    'cateye05-rimless-dorado-a', // Cat-Eye Rimless Palo de Rosa
+    'cateye05-transparente-941', // Cat-Eye Semi-rimless
+    'clubmaster07-plateado-980', // Clubmaster Semi-rimless
+    'redonda03-plateado-968', // Ovalada Palo de Rosa
+    'redonda03-plateado-sticker-a', // Ovalada Plateada
+    'redonda03-cyo-plateado', // Redonda Lila
+    'acetatocuadrada09-transparente-b', // Cuadrada Cristal
+    'acetatocuadrada09-transparente-a', // Cuadrada Transparente
+    'clubmaster07-transparente-b', // Clubmaster Champagne
+    'clubmaster07-transparente-sticker-a', // Clubmaster Transparente
+  ],
+  redondo: [
+    'acetatocuadrada09-gris-a', // Cuadrada Gris
+    'acetatocuadrada09-gris-b', // Cuadrada Gris Mate
+    'acetatocuadrada09-transparente-a', // Cuadrada Transparente
+    'acetatocuadrada09-transparente-b', // Cuadrada Cristal
+    'acetatocuadrada09-verde-a', // Cuadrada Verde Oliva
+    'rect02-plateado-990', // Rectangular Plateado
+    'rect02-plateado-a', // Rectangular Plateado 2
+    'cateye05-dorado-angular-a', // Cat-Eye Dorado Angular
+    'cateye05-negra-angular-942', // Cat-Eye Azul Angular
+    'cateye05-transparente-b', // Cat-Eye Hexagonal Dorado
+    'hexagonal04-dorado-a', // Hexagonal Dorada
+    'hexagonal04-dorado-b', // Hexagonal Plateada
+    'hexagonal04-dorado-sticker', // Hexagonal Oro Rosa
+    'aviador01-negro-rectangular-987', // Aviador Cobre Rectangular
+    'aviador01-negro-cuadrado-a', // Aviador Morado Cuadrado
+    'aviador01-plateado-cuadrado-974', // Aviador Palo de Rosa Cuadrado
+    'aviador01-plateado-cuadrado-cobre', // Aviador Plateado Cuadrado
+  ],
+  cuadrado: [
+    'panto10-negro-021', // Redonda Panto Negro
+    'redonda03-cyo-plateado', // Redonda Lila
+    'redonda03-plateado-968', // Ovalada Palo de Rosa
+    'redonda03-plateado-sticker-a', // Ovalada Plateada
+    'aviador01-plateado-redondeado-a', // Aviador Plateado Redondeado
+    'aviador01-plateado-redondeado-b', // Aviador Dorado Redondeado
+    'aviador01-dorado-aviador-988', // Aviador Café
+    'aviador01-dorado-aviador-clasico-a', // Aviador Dorado Clásico
+    'aviador01-plateado-clasico-a', // Aviador Plateado Clásico
+    'aviador01-plateado-simple-962', // Aviador Plateado
+    'aviador01-plateado-simple-977', // Aviador Plateado 2
+    'aviador01-plateado-logo-puente', // Aviador Plateado Puente
+    'aviador01-dorado-rimless-989', // Aviador Rimless Plateado Carey
+    'aviador01-dorado-rimless-a', // Aviador Rimless Plateado Negro
+    'aviador01-plateado-rimless-a', // Aviador Rimless Plateado
+  ],
+  rectangular: [
+    'aviador01-dorado-aviador-988', // Aviador Café
+    'aviador01-dorado-aviador-clasico-a', // Aviador Dorado Clásico
+    'aviador01-plateado-clasico-a', // Aviador Plateado Clásico
+    'aviador01-plateado-simple-962', // Aviador Plateado
+    'aviador01-plateado-simple-977', // Aviador Plateado 2
+    'aviador01-plateado-logo-puente', // Aviador Plateado Puente
+    'aviador01-plateado-redondeado-a', // Aviador Plateado Redondeado
+    'aviador01-plateado-redondeado-b', // Aviador Dorado Redondeado
+    'aviador01-negro-cuadrado-a', // Aviador Morado Cuadrado
+    'aviador01-plateado-cuadrado-974', // Aviador Palo de Rosa Cuadrado
+    'aviador01-plateado-cuadrado-cobre', // Aviador Plateado Cuadrado
+    'aviador01-dorado-rimless-989', // Aviador Rimless Plateado Carey
+    'aviador01-dorado-rimless-a', // Aviador Rimless Plateado Negro
+    'aviador01-plateado-rimless-a', // Aviador Rimless Plateado
+    'panto10-negro-021', // Redonda Panto Negro
+    'redonda03-cyo-plateado', // Redonda Lila
+    'redonda03-plateado-968', // Ovalada Palo de Rosa
+    'redonda03-plateado-sticker-a', // Ovalada Plateada
+    'clubmaster07-negro-978', // Clubmaster Negro
+    'clubmaster07-plateado-980', // Clubmaster Semi-rimless
+    'clubmaster07-transparente-b', // Clubmaster Champagne
+    'clubmaster07-transparente-sticker-a', // Clubmaster Transparente
+    'cateye05-dorado-clasico-a', // Cat-Eye Gris Dorado
+    'cateye05-negra-logo-a', // Cat-Eye Burdeo
+    'cateye05-rosado-930', // Cat-Eye Rosado
+    'cateyeacetato06-azul-a', // Cat-Eye Acetato Azul
+    'cateyeacetato06-azul-dorado-935', // Cat-Eye Acetato Negro
+    'cateyeacetato06-negro-azul-936', // Cat-Eye Acetato Gris
+  ],
+  triangular: [
+    'cateye05-dorado-angular-a', // Cat-Eye Dorado Angular
+    'cateye05-dorado-clasico-a', // Cat-Eye Gris Dorado
+    'cateye05-negra-angular-942', // Cat-Eye Azul Angular
+    'cateye05-negra-logo-a', // Cat-Eye Burdeo
+    'cateye05-rosado-930', // Cat-Eye Rosado
+    'cateyeacetato06-azul-a', // Cat-Eye Acetato Azul
+    'cateyeacetato06-azul-dorado-935', // Cat-Eye Acetato Negro
+    'cateyeacetato06-negro-azul-936', // Cat-Eye Acetato Gris
+    'clubmaster07-negro-978', // Clubmaster Negro
+    'clubmaster07-plateado-980', // Clubmaster Semi-rimless
+    'clubmaster07-transparente-b', // Clubmaster Champagne
+    'clubmaster07-transparente-sticker-a', // Clubmaster Transparente
+  ],
+  diamante: [
+    'cateye05-dorado-clasico-a', // Cat-Eye Gris Dorado
+    'cateye05-rosado-930', // Cat-Eye Rosado
+    'cateye05-rimless-dorado-a', // Cat-Eye Rimless Palo de Rosa
+    'redonda03-plateado-968', // Ovalada Palo de Rosa
+    'redonda03-plateado-sticker-a', // Ovalada Plateada
+    'panto10-negro-021', // Redonda Panto Negro
+    'redonda03-cyo-plateado', // Redonda Lila
+    'clubmaster07-negro-978', // Clubmaster Negro
+    'clubmaster07-transparente-b', // Clubmaster Champagne
+    'clubmaster07-plateado-980', // Clubmaster Semi-rimless
+  ],
 };
 
 /**
@@ -235,7 +368,7 @@ function widthsSimilar(forehead: number, cheekbones: number, jaw: number, pct = 
 
 /**
  * Calcula forma + subtipo a partir de 4 medidas (cm) y el contorno de mandíbula.
- * Heurística de estilo (no clínica): prioriza diamante → corazón → compactos → alargados → ovalado.
+ * Heurística de estilo (no clínica): prioriza diamante → triangular → corazón → compactos → rectangular → alargados → ovalado.
  */
 export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
   const invalid = validateMeasurements(m);
@@ -276,7 +409,17 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
         ? 'Tus pómulos son claramente lo más ancho; frente y mandíbula se estrechan de forma simétrica.'
         : 'Los pómulos destacan un poco sobre frente y mandíbula: un diamante suave.';
   }
-  // 2) Corazón: frente ancha y mandíbula/mentón notablemente más angostos.
+  // 2) Triangular: la mandíbula es la parte más ancha (≥8% más que la frente y cercana a los pómulos).
+  else if (foreheadToJaw <= 0.92 && jaw >= cheekbones * 0.93) {
+    shape = 'triangular';
+    subtype = foreheadToJaw <= 0.85 ? 'marcado' : 'suave';
+    summary =
+      subtype === 'marcado'
+        ? 'La mandíbula es claramente más ancha que la frente: forma triangular.'
+        : 'Mandíbula algo más ancha que la frente: triangular suave.';
+    if (subtype === 'suave') confidence = 'media';
+  }
+  // 3) Corazón / triángulo invertido: frente ancha y mandíbula/mentón notablemente más angostos.
   else if (foreheadWidest || foreheadToJaw >= 1.15) {
     shape = 'corazon';
     subtype = foreheadToJaw >= 1.25 ? 'marcado' : 'suave';
@@ -286,7 +429,7 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
         : 'Frente un poco más ancha que la mandíbula: forma de corazón suave.';
     if (!foreheadWidest && foreheadToJaw < 1.2) confidence = 'media';
   }
-  // 3) Compactos (largo ≈ ancho): el contorno de mandíbula decide cuadrado vs redondo.
+  // 4) Compactos (largo ≈ ancho): el contorno de mandíbula decide cuadrado vs redondo.
   // Sin esa pista, un rostro con anchos parejos se confunde fácil entre ambos.
   else if (compact) {
     if (jawContour === 'angular') {
@@ -305,14 +448,21 @@ export function calculateFaceShape(m: FaceMeasurements): FaceShapeResult {
           : 'Proporciones compactas y mandíbula suave, sin líneas muy angulares.';
     }
   }
-  // 4) Alargado con anchos parejos → ovalado alargado (equivalente estilístico a oblongo).
+  // 5) Rectangular/alargado: claramente más largo que ancho, anchos parejos y mandíbula angular.
+  else if (lengthToWidth >= 1.4 && jawContour === 'angular' && widthsSimilar(forehead, cheekbones, jaw, 0.14)) {
+    shape = 'rectangular';
+    subtype = elongated ? 'marcado' : 'suave';
+    summary = 'Rostro claramente más largo que ancho, con anchos parejos y mandíbula definida: rectangular.';
+    if (!elongated) confidence = 'media';
+  }
+  // 6) Alargado con anchos parejos y contorno suave → ovalado alargado.
   else if (elongated && (equalWidths || widthsSimilar(forehead, cheekbones, jaw, 0.14))) {
     shape = 'ovalado';
     subtype = 'alargado';
     summary =
       'Tu rostro es claramente más largo que ancho, con anchos bastante equilibrados. En estilo se acerca a un ovalado alargado.';
   }
-  // 5) Ovalado por defecto (proporciones equilibradas).
+  // 7) Ovalado por defecto (proporciones equilibradas).
   else {
     shape = 'ovalado';
     if (elongated) {

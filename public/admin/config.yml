@@ -96,7 +96,9 @@ collections:
           - { label: Ovalado, value: ovalado }
           - { label: Redondo, value: redondo }
           - { label: Cuadrado, value: cuadrado }
-          - { label: Corazón, value: corazon }
+          - { label: Rectangular / alargado, value: rectangular }
+          - { label: Triángulo invertido / corazón, value: corazon }
+          - { label: Triangular, value: triangular }
           - { label: Diamante, value: diamante }
       - label: "Vista de lado (hover) · IA"
         name: hoverImage
