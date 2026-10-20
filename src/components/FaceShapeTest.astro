@@ -378,7 +378,10 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           aria-label="Tu foto con las medidas del rostro marcadas"
           data-facetest-overlay-canvas
         ></canvas>
-        <figcaption class="mt-2 text-xs leading-relaxed text-slate-600" data-facetest-overlay-text></figcaption>
+        <figcaption class="mt-2 text-sm text-slate-600">
+          <strong class="block text-slate-900" data-facetest-overlay-headline></strong>
+          <span data-facetest-overlay-detail></span>
+        </figcaption>
       </figure>
 
       {
@@ -810,12 +813,14 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
 
     const overlayFigure = modal.querySelector<HTMLElement>('[data-facetest-overlay]');
     const overlayCanvas = modal.querySelector<HTMLCanvasElement>('[data-facetest-overlay-canvas]');
-    const overlayText = modal.querySelector<HTMLElement>('[data-facetest-overlay-text]');
+    const overlayHeadline = modal.querySelector<HTMLElement>('[data-facetest-overlay-headline]');
+    const overlayDetail = modal.querySelector<HTMLElement>('[data-facetest-overlay-detail]');
 
     function showOverlay(overlay: Parameters<typeof drawMeasurementOverlay>[1]) {
       if (!overlayCanvas) return;
       drawMeasurementOverlay(overlayCanvas, overlay);
-      if (overlayText) overlayText.textContent = overlay.explanation;
+      if (overlayHeadline) overlayHeadline.textContent = overlay.explanation.headline;
+      if (overlayDetail) overlayDetail.textContent = overlay.explanation.detail;
       overlayFigure?.classList.remove('hidden');
     }
 

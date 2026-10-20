@@ -87,7 +87,8 @@ export const frameRecommendations: Record<FaceShapeId, FrameShape[]> = {
 };
 
 /**
- * Umbrales de diamante, compartidos por la cinta métrica y la cámara. Calibrados con
+ * Umbrales de diamante de la cinta métrica (frente de sien a sien, mandíbula de esquina a
+ * esquina). La cámara tiene los suyos en faceShapeCamera.ts porque mide otros puntos. Calibrados con
  * ~6000 rostros (landmarks de MediaPipe): los pómulos superan SIEMPRE a frente y
  * mandíbula en algún grado (mediana pómulos/frente 1.12, pómulos/mandíbula 1.18; con
  * un margen del 5% la regla se cumplía en el 98% de los rostros). Aquí exigimos un margen

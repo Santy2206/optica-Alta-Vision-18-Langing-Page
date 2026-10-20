@@ -1,7 +1,6 @@
 import {
   buildFaceShapeResult,
-  DIAMOND_MIN_CHEEK_TO_FOREHEAD,
-  DIAMOND_MIN_CHEEK_TO_JAW,
+  faceShapeInfo,
   type FaceShapeId,
   type FaceShapeResult,
 } from '../data/faceShapeQuiz';
@@ -338,9 +337,9 @@ function landmarkFeatures(landmarks: Landmark[]): number[] {
 export type FaceRatios = {
   /** Alto total del rostro (punto 10 → mentón) / ancho de pómulos. */
   lengthToWidthRatio: number;
-  /** Ancho de frente (sienes) / ancho de pómulos. */
+  /** Ancho de la frente alta (sobre las cejas, bajo el nacimiento del cabello) / ancho de pómulos. */
   foreheadToCheekboneRatio: number;
-  /** Ancho de mandíbula (ángulos del maxilar) / ancho de pómulos. */
+  /** Ancho de la mandíbula baja (bajo la boca, hacia el mentón) / ancho de pómulos. */
   jawToCheekboneRatio: number;
   /** Ángulo (grados) del maxilar en el gonion, entre la rama y la línea al mentón. 180° = recto. */
   jawAngle: number;
@@ -363,8 +362,8 @@ export function extractFaceRatios(landmarks: Landmark[]): FaceRatios {
   const cheek = d(POINTS.cheekRight, POINTS.cheekLeft) || 1;
   return {
     lengthToWidthRatio: d(POINTS.foreheadTop, POINTS.chin) / cheek,
-    foreheadToCheekboneRatio: (d(54, 284) + d(21, 251)) / 2 / cheek,
-    jawToCheekboneRatio: (d(58, 288) + d(172, 397)) / 2 / cheek,
+    foreheadToCheekboneRatio: (d(103, 332) + d(67, 297)) / 2 / cheek,
+    jawToCheekboneRatio: (d(136, 365) + d(150, 379)) / 2 / cheek,
     jawAngle:
       (angleAt(landmarks[172], landmarks[58], landmarks[152]) + angleAt(landmarks[397], landmarks[288], landmarks[152])) /
       2,
@@ -389,15 +388,20 @@ function classifyScores(landmarks: Landmark[]): ShapeScores {
 }
 
 // Si el modelo dice ovalado/corazón con confianza moderada o alta pero los pómulos son
-// claramente lo más ancho (umbrales calibrados en faceShapeQuiz.ts), es diamante.
+// claramente lo más ancho, es diamante. Umbrales calibrados con ~6000 rostros midiendo
+// EXACTAMENTE los mismos puntos que se dibujan (frente alta y mandíbula baja): ahí los
+// pómulos superan a frente y mandíbula en ~1.6x de mediana, y un margen del 5% se cumplía
+// en el 100% de los rostros. Estos cortes (percentil 25 de cada razón) los cumple ~1.4%.
+const CAMERA_DIAMOND_MIN_CHEEK_TO_FOREHEAD = 1.695;
+const CAMERA_DIAMOND_MIN_CHEEK_TO_JAW = 1.631;
 const OVERRIDE_MIN_CONFIDENCE = 0.4;
 
 function shouldOverrideToDiamond(shape: FaceShapeId, confidence: number, ratios: FaceRatios): boolean {
   if (shape !== 'ovalado' && shape !== 'corazon') return false;
   if (confidence < OVERRIDE_MIN_CONFIDENCE) return false;
   return (
-    1 / ratios.foreheadToCheekboneRatio >= DIAMOND_MIN_CHEEK_TO_FOREHEAD &&
-    1 / ratios.jawToCheekboneRatio >= DIAMOND_MIN_CHEEK_TO_JAW
+    1 / ratios.foreheadToCheekboneRatio >= CAMERA_DIAMOND_MIN_CHEEK_TO_FOREHEAD &&
+    1 / ratios.jawToCheekboneRatio >= CAMERA_DIAMOND_MIN_CHEEK_TO_JAW
   );
 }
 
@@ -484,19 +488,20 @@ export type FaceOverlay = {
   /** Landmarks normalizados del cuadro mostrado. */
   landmarks: Landmark[];
   ratios: FaceRatios;
-  /** Texto en lenguaje natural que explica las razones calculadas. */
-  explanation: string;
+  /** Explicación corta: titular en negrita + una frase. Los números van en la tarjeta de proporciones. */
+  explanation: { headline: string; detail: string };
 };
 
 export type CameraFaceShapeResult = FaceShapeResult & { overlay: FaceOverlay };
 
-// Líneas de medida y su color. Frente y mandíbula son el promedio de 2 pares de puntos
-// (igual que extractFaceRatios), por eso se dibujan los dos.
+// Líneas de medida y su color: son EXACTAMENTE los pares que usa extractFaceRatios (la
+// frente y la mandíbula promedian 2 pares). La frente va en la parte alta y plana, lejos de
+// las cejas; la mandíbula va bajo la boca, hacia el mentón, sin cruzar los labios.
 export const MEASUREMENT_LINES = [
   { id: 'length', label: 'Largo', color: '#38bdf8', pairs: [[10, 152]] },
-  { id: 'forehead', label: 'Frente', color: '#fbbf24', pairs: [[54, 284], [21, 251]] },
+  { id: 'forehead', label: 'Frente', color: '#fbbf24', pairs: [[103, 332], [67, 297]] },
   { id: 'cheek', label: 'Pómulos', color: '#ff1493', pairs: [[234, 454]] },
-  { id: 'jaw', label: 'Mandíbula', color: '#00b4b0', pairs: [[58, 288], [172, 397]] },
+  { id: 'jaw', label: 'Mandíbula', color: '#00b4b0', pairs: [[136, 365], [150, 379]] },
 ] as const;
 
 /** Dibuja la foto capturada y las 4 medidas sobre ella. */
@@ -529,26 +534,28 @@ export function drawMeasurementOverlay(target: HTMLCanvasElement, overlay: FaceO
   }
 }
 
-// Palabras para describir cada razón; los cortes son los terciles de ~6000 rostros, así
-// que "corto/medio/alargado" es relativo a un rostro típico.
-function describeRatios(ratios: FaceRatios, shapeLabel: string): string {
-  const { lengthToWidthRatio: len, foreheadToCheekboneRatio: fore, jawToCheekboneRatio: jaw, jawAngle } = ratios;
-  const lengthWord = len < 1.164 ? 'un rostro más bien corto' : len <= 1.198 ? 'una proporción media' : 'un rostro más alargado';
-  const fj = fore / jaw;
-  const foreJawWord =
-    fj > 1.08
-      ? 'la frente es claramente más ancha que la mandíbula'
-      : fj >= 1.03
-        ? 'la frente es un poco más ancha que la mandíbula'
-        : 'frente y mandíbula tienen casi el mismo ancho';
-  const angleWord = jawAngle < 146 ? 'marcada' : jawAngle <= 150 ? 'intermedia' : 'suave';
-  const pct = (n: number) => Math.round(n * 100);
-  return (
-    `Largo del rostro (línea azul): ${len.toFixed(2)} veces el ancho de tus pómulos, ${lengthWord}. ` +
-    `Frente (amarillo): ${pct(fore)}% del ancho de tus pómulos (rosa). Mandíbula (turquesa): ${pct(jaw)}%; ${foreJawWord}. ` +
-    `Ángulo de la mandíbula: ${Math.round(jawAngle)}°, una línea ${angleWord}. ` +
-    `Con estas proporciones, tu forma más cercana es ${shapeLabel.toLowerCase()}.`
-  );
+const SHAPE_TRAIT: Record<FaceShapeId, string> = {
+  ovalado: 'largo medio y contornos suaves',
+  redondo: 'largo y ancho parecidos, sin ángulos',
+  cuadrado: 'contorno recto y mandíbula definida',
+  corazon: 'frente ancha y mentón angosto',
+  diamante: 'pómulos como la parte más ancha',
+};
+
+// El titular describe lo que se midió (relación frente/mandíbula; cortes = terciles de
+// ~6000 rostros). La frase de apoyo solo dice a qué forma se parece, sin afirmar rasgos
+// que la medida podría contradecir. Sin cifras: esas van en la tarjeta de proporciones.
+function explainResult(ratios: FaceRatios, shape: FaceShapeId, label: string): { headline: string; detail: string } {
+  const fj = ratios.foreheadToCheekboneRatio / ratios.jawToCheekboneRatio;
+  const headline =
+    shape === 'diamante'
+      ? 'Pómulos más anchos que frente y mandíbula'
+      : fj > 1.0
+        ? 'Frente más ancha que la mandíbula'
+        : fj < 0.94
+          ? 'Mandíbula más ancha que la frente'
+          : 'Frente y mandíbula de ancho similar';
+  return { headline, detail: `Se parece más a un rostro ${label.toLowerCase()}: ${SHAPE_TRAIT[shape]}.` };
 }
 
 export function detectFaceShape(frames: CapturedFrame[]): CameraFaceShapeResult {
@@ -586,7 +593,7 @@ export function detectFaceShape(frames: CapturedFrame[]): CameraFaceShapeResult 
       image: best.image,
       landmarks: best.landmarks,
       ratios,
-      explanation: describeRatios(ratios, base.displayLabel),
+      explanation: explainResult(ratios, shape, faceShapeInfo[shape].label),
     },
   };
 }
