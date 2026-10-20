@@ -1,6 +1,5 @@
 import {
   buildFaceShapeResult,
-  faceShapeInfo,
   type FaceShapeId,
   type FaceShapeResult,
 } from '../data/faceShapeQuiz';
@@ -47,9 +46,14 @@ const MAX_ASYMMETRY_RATIO = 1.25;
 
 // Límites de pose de la cabeza (grados). Inclinar la barbilla arriba/abajo
 // acorta el largo aparente del rostro y altera la proporción largo/ancho.
-const MAX_YAW_DEG = 10;
-const MAX_PITCH_DEG = 12;
-const MAX_ROLL_DEG = 7;
+const MAX_YAW_DEG = 7;
+const MAX_PITCH_DEG = 5;
+const MAX_ROLL_DEG = 5;
+// El "cero" de cabeceo de MediaPipe no coincide con una cara de frente: en ~1000 retratos
+// frontales el cabeceo medio fue +5.9° (mediana +6.5°, desv. 5.8°) y solo el 36% quedaba
+// dentro de ±5° del cero. Se mide respecto a esa pose de referencia, que es la de las fotos
+// con las que se entrenó el modelo; usar 0 empujaría a la gente a bajar la cabeza ~6°.
+const PITCH_REFERENCE_DEG = 5.9;
 
 // Guía visual del paso de cámara, en unidades del viewBox del SVG (400x300,
 // igual a la proporción 4:3 del contenedor). Mantener alineado con el SVG de
@@ -191,7 +195,7 @@ function headPose(result: any): HeadPose | null {
 function poseIssue(landmarks: Landmark[], pose: HeadPose | null): 'TURNED' | 'TILTED' | 'PITCHED' | null {
   if (!isFacingCamera(landmarks) || (pose && Math.abs(pose.yaw) > MAX_YAW_DEG)) return 'TURNED';
   if (pose && Math.abs(pose.roll) > MAX_ROLL_DEG) return 'TILTED';
-  if (pose && Math.abs(pose.pitch) > MAX_PITCH_DEG) return 'PITCHED';
+  if (pose && Math.abs(pose.pitch - PITCH_REFERENCE_DEG) > MAX_PITCH_DEG) return 'PITCHED';
   return null;
 }
 
@@ -334,12 +338,56 @@ function landmarkFeatures(landmarks: Landmark[]): number[] {
   return rotated.flatMap(([x, y]) => [x / scale, y / scale]);
 }
 
+// El mesh de MediaPipe termina a mitad de la frente (punto 10): no tiene ningún punto en el
+// nacimiento del cabello. Se estima extendiendo el eje punto 10 → mentón un 14.5% de su largo:
+// el percentil 25 medido con un segmentador de piel en ~5000 rostros (mediana 18.7%). Se
+// prefiere quedar un poco dentro de la frente antes que subir al cuero cabelludo y medir el
+// volumen del pelo: en ~75% de los rostros el punto cae sobre la piel.
+const HAIRLINE_EXTENSION = 0.145;
+
+function hairlinePoint(landmarks: Landmark[]): Landmark {
+  const top = landmarks[POINTS.foreheadTop];
+  const chin = landmarks[POINTS.chin];
+  return {
+    x: top.x + HAIRLINE_EXTENSION * (top.x - chin.x),
+    y: top.y + HAIRLINE_EXTENSION * (top.y - chin.y),
+    z: top.z + HAIRLINE_EXTENSION * (top.z - chin.z),
+  };
+}
+
+// Frente: el contorno del mesh se cierra hacia dentro por encima de las sienes y termina en el
+// punto 10 (mitad de la frente), así que sus pares altos (67/297, 103/332) miden solo 51% y 72%
+// del ancho de pómulos y quedan amontonados abajo. El ancho real de sien a sien es la cuerda
+// 54/284 (85%). Se miden DOS líneas con ese mismo ancho, desplazadas a lo largo del eje del
+// rostro a dos alturas, como % del largo (punto 10 → mentón) bajo el punto 10: negativo =
+// por encima. Entre el nacimiento del cabello (-14.5%) y las cejas (+16.7%) quedan a ~1/3 y
+// ~2/3 de la frente, separadas ~11% del largo y a ~9% de las cejas.
+const FOREHEAD_CHORD = [54, 284] as const;
+const FOREHEAD_LINE_LEVELS = [-0.036, 0.073] as const;
+
+function foreheadSegments(landmarks: Landmark[]): { a: Landmark; b: Landmark }[] {
+  const top = landmarks[POINTS.foreheadTop];
+  const chin = landmarks[POINTS.chin];
+  const a = landmarks[FOREHEAD_CHORD[0]];
+  const b = landmarks[FOREHEAD_CHORD[1]];
+  const naturalLevel = ((a.y + b.y) / 2 - top.y) / (chin.y - top.y || 1);
+  return FOREHEAD_LINE_LEVELS.map((level) => {
+    const k = level - naturalLevel;
+    const move = (p: Landmark): Landmark => ({
+      x: p.x + k * (chin.x - top.x),
+      y: p.y + k * (chin.y - top.y),
+      z: p.z + k * (chin.z - top.z),
+    });
+    return { a: move(a), b: move(b) };
+  });
+}
+
 export type FaceRatios = {
-  /** Alto total del rostro (punto 10 → mentón) / ancho de pómulos. */
+  /** Largo del rostro (nacimiento del cabello estimado → mentón) / ancho de pómulos. */
   lengthToWidthRatio: number;
-  /** Ancho de la frente alta (sobre las cejas, bajo el nacimiento del cabello) / ancho de pómulos. */
+  /** Ancho de la frente de sien a sien (cuerda 54/284) / ancho de pómulos. */
   foreheadToCheekboneRatio: number;
-  /** Ancho de la mandíbula baja (bajo la boca, hacia el mentón) / ancho de pómulos. */
+  /** Ancho de la mandíbula (ángulos del maxilar y mandíbula baja) / ancho de pómulos. */
   jawToCheekboneRatio: number;
   /** Ángulo (grados) del maxilar en el gonion, entre la rama y la línea al mentón. 180° = recto. */
   jawAngle: number;
@@ -361,9 +409,9 @@ export function extractFaceRatios(landmarks: Landmark[]): FaceRatios {
   const d = (a: number, b: number) => dist2d(landmarks[a], landmarks[b]);
   const cheek = d(POINTS.cheekRight, POINTS.cheekLeft) || 1;
   return {
-    lengthToWidthRatio: d(POINTS.foreheadTop, POINTS.chin) / cheek,
-    foreheadToCheekboneRatio: (d(103, 332) + d(67, 297)) / 2 / cheek,
-    jawToCheekboneRatio: (d(136, 365) + d(150, 379)) / 2 / cheek,
+    lengthToWidthRatio: dist2d(hairlinePoint(landmarks), landmarks[POINTS.chin]) / cheek,
+    foreheadToCheekboneRatio: foreheadSegments(landmarks).reduce((sum, { a, b }) => sum + dist2d(a, b), 0) / FOREHEAD_LINE_LEVELS.length / cheek,
+    jawToCheekboneRatio: (d(172, 397) + d(150, 379)) / 2 / cheek,
     jawAngle:
       (angleAt(landmarks[172], landmarks[58], landmarks[152]) + angleAt(landmarks[397], landmarks[288], landmarks[152])) /
       2,
@@ -389,11 +437,11 @@ function classifyScores(landmarks: Landmark[]): ShapeScores {
 
 // Si el modelo dice ovalado/corazón con confianza moderada o alta pero los pómulos son
 // claramente lo más ancho, es diamante. Umbrales calibrados con ~6000 rostros midiendo
-// EXACTAMENTE los mismos puntos que se dibujan (frente alta y mandíbula baja): ahí los
-// pómulos superan a frente y mandíbula en ~1.6x de mediana, y un margen del 5% se cumplía
-// en el 100% de los rostros. Estos cortes (percentil 25 de cada razón) los cumple ~1.4%.
-const CAMERA_DIAMOND_MIN_CHEEK_TO_FOREHEAD = 1.695;
-const CAMERA_DIAMOND_MIN_CHEEK_TO_JAW = 1.631;
+// EXACTAMENTE las mismas medidas que se dibujan: ahí los pómulos superan a la frente en ~1.17x y
+// a la mandíbula en ~1.47x de mediana, y un margen del 5% se cumplía en el 100% de los
+// rostros. Estos cortes (percentil 25 de cada razón) los cumple ~1.2%.
+const CAMERA_DIAMOND_MIN_CHEEK_TO_FOREHEAD = 1.205;
+const CAMERA_DIAMOND_MIN_CHEEK_TO_JAW = 1.5;
 const OVERRIDE_MIN_CONFIDENCE = 0.4;
 
 function shouldOverrideToDiamond(shape: FaceShapeId, confidence: number, ratios: FaceRatios): boolean {
@@ -494,15 +542,21 @@ export type FaceOverlay = {
 
 export type CameraFaceShapeResult = FaceShapeResult & { overlay: FaceOverlay };
 
-// Líneas de medida y su color: son EXACTAMENTE los pares que usa extractFaceRatios (la
-// frente y la mandíbula promedian 2 pares). La frente va en la parte alta y plana, lejos de
-// las cejas; la mandíbula va bajo la boca, hacia el mentón, sin cruzar los labios.
-export const MEASUREMENT_LINES = [
-  { id: 'length', label: 'Largo', color: '#38bdf8', pairs: [[10, 152]] },
-  { id: 'forehead', label: 'Frente', color: '#fbbf24', pairs: [[103, 332], [67, 297]] },
-  { id: 'cheek', label: 'Pómulos', color: '#ff1493', pairs: [[234, 454]] },
-  { id: 'jaw', label: 'Mandíbula', color: '#00b4b0', pairs: [[136, 365], [150, 379]] },
-] as const;
+// Segmentos de medida y su color: son EXACTAMENTE los que usa extractFaceRatios (la frente
+// y la mandíbula promedian 2 pares). El largo va del nacimiento del cabello estimado al
+// mentón. Frente: dos líneas de sien a sien (cuerda 54/284), ver foreheadSegments. Mandíbula: 172/397 (ángulos del maxilar, el gonion,
+// 80% del ancho de pómulos; en una cara de frente queda a la altura del labio inferior y la
+// comisura, ~6% del largo bajo las comisuras de la boca) y 150/379 (mandíbula baja, 56%).
+export function measurementSegments(landmarks: Landmark[]): { id: string; color: string; a: Landmark; b: Landmark }[] {
+  const pairs = (id: string, color: string, list: [number, number][]) =>
+    list.map(([a, b]) => ({ id, color, a: landmarks[a], b: landmarks[b] }));
+  return [
+    { id: 'length', color: '#38bdf8', a: hairlinePoint(landmarks), b: landmarks[POINTS.chin] },
+    ...foreheadSegments(landmarks).map(({ a, b }) => ({ id: 'forehead', color: '#fbbf24', a, b })),
+    ...pairs('cheek', '#ff1493', [[234, 454]]),
+    ...pairs('jaw', '#00b4b0', [[172, 397], [150, 379]]),
+  ];
+}
 
 /** Dibuja la foto capturada y las 4 medidas sobre ella. */
 export function drawMeasurementOverlay(target: HTMLCanvasElement, overlay: FaceOverlay) {
@@ -515,24 +569,33 @@ export function drawMeasurementOverlay(target: HTMLCanvasElement, overlay: FaceO
   const lineWidth = Math.max(2, image.width / 160);
   ctx.lineWidth = lineWidth;
   ctx.lineCap = 'round';
-  for (const { color, pairs } of MEASUREMENT_LINES) {
+  for (const { color, a: pa, b: pb } of measurementSegments(landmarks)) {
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
-    for (const [a, b] of pairs) {
-      const pa = landmarks[a];
-      const pb = landmarks[b];
+    ctx.beginPath();
+    ctx.moveTo(pa.x * image.width, pa.y * image.height);
+    ctx.lineTo(pb.x * image.width, pb.y * image.height);
+    ctx.stroke();
+    for (const p of [pa, pb]) {
       ctx.beginPath();
-      ctx.moveTo(pa.x * image.width, pa.y * image.height);
-      ctx.lineTo(pb.x * image.width, pb.y * image.height);
-      ctx.stroke();
-      for (const p of [pa, pb]) {
-        ctx.beginPath();
-        ctx.arc(p.x * image.width, p.y * image.height, lineWidth * 1.3, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.arc(p.x * image.width, p.y * image.height, lineWidth * 1.3, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 }
+
+// Terciles y mediana de frente/mandíbula medidos en ~6000 rostros (1.215 / 1.284; mediana 1.249).
+const FOREHEAD_JAW_SIMILAR = 1.215;
+const FOREHEAD_JAW_WIDE = 1.284;
+const FOREHEAD_JAW_MEDIAN = 1.249;
+
+const SHAPE_STRUCTURE: Record<FaceShapeId, string> = {
+  ovalado: 'ovalada',
+  redondo: 'redonda',
+  cuadrado: 'cuadrada',
+  corazon: 'de corazón',
+  diamante: 'de diamante',
+};
 
 const SHAPE_TRAIT: Record<FaceShapeId, string> = {
   ovalado: 'largo medio y contornos suaves',
@@ -542,20 +605,22 @@ const SHAPE_TRAIT: Record<FaceShapeId, string> = {
   diamante: 'pómulos como la parte más ancha',
 };
 
-// El titular describe lo que se midió (relación frente/mandíbula; cortes = terciles de
-// ~6000 rostros). La frase de apoyo solo dice a qué forma se parece, sin afirmar rasgos
-// que la medida podría contradecir. Sin cifras: esas van en la tarjeta de proporciones.
-function explainResult(ratios: FaceRatios, shape: FaceShapeId, label: string): { headline: string; detail: string } {
+// Titular en negrita = lo que se midió (relación frente/mandíbula; cortes = terciles de ~6000
+// rostros); los pómulos siempre superan a la frente y a la mandíbula medidas. Sin cifras: esas van en la tarjeta de proporciones. Si el
+// rasgo de la forma (corazón = frente ancha) lo contradice la medida, la frase se suaviza.
+function explainResult(ratios: FaceRatios, shape: FaceShapeId): { headline: string; detail: string } {
   const fj = ratios.foreheadToCheekboneRatio / ratios.jawToCheekboneRatio;
   const headline =
     shape === 'diamante'
       ? 'Pómulos más anchos que frente y mandíbula'
-      : fj > 1.0
-        ? 'Frente más ancha que la mandíbula'
-        : fj < 0.94
-          ? 'Mandíbula más ancha que la frente'
-          : 'Frente y mandíbula de ancho similar';
-  return { headline, detail: `Se parece más a un rostro ${label.toLowerCase()}: ${SHAPE_TRAIT[shape]}.` };
+      : fj >= FOREHEAD_JAW_WIDE
+        ? 'Frente y pómulos claramente más anchos que la mandíbula'
+        : fj >= FOREHEAD_JAW_SIMILAR
+          ? 'Frente y pómulos más anchos que la mandíbula'
+          : 'Frente, pómulos y mandíbula de ancho más parejo';
+  const supported = shape !== 'corazon' || fj >= FOREHEAD_JAW_MEDIAN;
+  const lead = supported ? 'Tu rostro tiene una estructura' : 'Se parece más a una estructura';
+  return { headline, detail: `${lead} ${SHAPE_STRUCTURE[shape]} (${SHAPE_TRAIT[shape]}).` };
 }
 
 export function detectFaceShape(frames: CapturedFrame[]): CameraFaceShapeResult {
@@ -593,7 +658,7 @@ export function detectFaceShape(frames: CapturedFrame[]): CameraFaceShapeResult 
       image: best.image,
       landmarks: best.landmarks,
       ratios,
-      explanation: explainResult(ratios, shape, faceShapeInfo[shape].label),
+      explanation: explainResult(ratios, shape),
     },
   };
 }
