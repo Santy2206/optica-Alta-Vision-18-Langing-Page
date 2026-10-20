@@ -239,9 +239,9 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         <ul class="list-disc space-y-0.5 pl-4">
           <li>Mira directo a la cámara, con la cabeza derecha (ni girada ni inclinada)</li>
           <li>Usa buena luz de frente — evita la luz a contraluz</li>
-          <li>Recoge el cabello para que se vean tu frente y tus orejas</li>
+          <li>Despeja tu frente y cabello: recógelo para que se vean tu frente y tus orejas</li>
           <li>Quítate las gafas, pon la <strong>punta de tu nariz en el círculo</strong> y tus ojos sobre la línea</li>
-          <li>Cuando la guía se ponga verde, quédate quieto: la foto se toma sola</li>
+          <li>Cuando la guía se ponga verde, quédate totalmente quieto durante 1 segundo: la foto se toma sola</li>
         </ul>
       </div>
       <div
@@ -284,6 +284,13 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           aria-live="polite"
           data-facetest-hint
         ></p>
+
+        <p
+          class="pointer-events-none absolute inset-x-0 bottom-2 mx-auto hidden w-fit max-w-[90%] rounded-full bg-white/90 px-3 py-1.5 text-center text-xs font-semibold text-slate-900"
+          data-facetest-prep
+        >
+          Despeja tu frente y cabello para mejores resultados
+        </p>
 
         <div
           class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-sm font-medium text-white"
@@ -363,6 +370,16 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           <p class="mt-0.5 hidden text-sm font-medium text-aguamarina" data-facetest-result-subtype></p>
         </div>
       </div>
+
+      <figure class="mb-4 hidden" data-facetest-overlay>
+        <canvas
+          class="w-full rounded-xl bg-slate-900"
+          role="img"
+          aria-label="Tu foto con las medidas del rostro marcadas"
+          data-facetest-overlay-canvas
+        ></canvas>
+        <figcaption class="mt-2 text-xs leading-relaxed text-slate-600" data-facetest-overlay-text></figcaption>
+      </figure>
 
       {
         faceShapeIds.map((id) => (
@@ -470,6 +487,9 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     checkAlignment,
     detectFaceShape,
     captureFrames,
+    drawMeasurementOverlay,
+    resetMotionGate,
+    AUTO_CAPTURE_STILL_MS,
     preloadFaceLandmarker,
     FaceShapeCameraError,
     type AlignmentResult,
@@ -497,6 +517,19 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     const guide = modal.querySelector<SVGElement>('[data-facetest-guide]');
     const noseDot = modal.querySelector<SVGCircleElement>('[data-facetest-nose-dot]');
     const hint = modal.querySelector<HTMLElement>('[data-facetest-hint]');
+    const prep = modal.querySelector<HTMLElement>('[data-facetest-prep]');
+    let prepTimer: number | undefined;
+
+    const hidePrep = () => {
+      window.clearTimeout(prepTimer);
+      prep?.classList.add('hidden');
+    };
+
+    const showPrep = () => {
+      prep?.classList.remove('hidden');
+      window.clearTimeout(prepTimer);
+      prepTimer = window.setTimeout(hidePrep, 5000);
+    };
 
     let stream: MediaStream | null = null;
     let alignTimer: number | undefined;
@@ -516,10 +549,8 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     };
 
     const ALIGN_INTERVAL_MS = 200;
-    const AUTO_CAPTURE_STABLE_FRAMES = 6;
-    let stableFrames = 0;
 
-    const hintText = ({ issue, direction }: AlignmentResult): string => {
+    const hintText = ({ issue, direction, stillMs = 0 }: AlignmentResult): string => {
       switch (issue) {
         case 'NO_FACE':
           return 'Ubica tu rostro frente a la cámara';
@@ -536,7 +567,9 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         case 'PITCHED':
           return 'Mantén la barbilla recta, ni arriba ni abajo';
         default:
-          return '¡Perfecto! Quédate quieto, tomando la foto…';
+          return stillMs > 0
+            ? `¡Perfecto! No te muevas… ${Math.max(0, (AUTO_CAPTURE_STILL_MS - stillMs) / 1000).toFixed(1)} s`
+            : 'Quédate totalmente quieto para que la foto salga nítida';
       }
     };
 
@@ -556,9 +589,8 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         hint.classList.remove('hidden');
       }
       if (captureBtn) captureBtn.disabled = !ok;
-      stableFrames = ok ? stableFrames + 1 : 0;
-      if (ok && stableFrames >= AUTO_CAPTURE_STABLE_FRAMES && !capturing) {
-        stableFrames = 0;
+      if (ok && (alignment.stillMs ?? 0) >= AUTO_CAPTURE_STILL_MS && !capturing) {
+        resetMotionGate();
         captureBtn?.click();
       }
     };
@@ -566,7 +598,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     const resetAlignment = () => {
       window.clearTimeout(alignTimer);
       alignTimer = undefined;
-      stableFrames = 0;
+      resetMotionGate();
       guide?.classList.remove('text-emerald-400');
       guide?.classList.add('text-white/80');
       noseDot?.classList.add('hidden');
@@ -607,6 +639,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     const stopCamera = () => {
       stream?.getTracks().forEach((track) => track.stop());
       stream = null;
+      hidePrep();
       resetAlignment();
     };
 
@@ -624,6 +657,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           await video.play();
         }
         cameraLoading?.classList.add('hidden');
+        showPrep();
         if (hint) {
           hint.textContent = 'Preparando la guía…';
           hint.classList.remove('hidden');
@@ -650,6 +684,7 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         const result = detectFaceShape(frames);
         resetCameraFailures();
         renderResult(result.shape, 'camera', result);
+        showOverlay(result.overlay);
         showStep('result');
       } catch (err) {
         stopCamera();
@@ -773,7 +808,19 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
     const summaryEl = modal.querySelector<HTMLElement>('[data-facetest-result-summary]');
     const ratiosEl = modal.querySelector<HTMLElement>('[data-facetest-result-ratios]');
 
+    const overlayFigure = modal.querySelector<HTMLElement>('[data-facetest-overlay]');
+    const overlayCanvas = modal.querySelector<HTMLCanvasElement>('[data-facetest-overlay-canvas]');
+    const overlayText = modal.querySelector<HTMLElement>('[data-facetest-overlay-text]');
+
+    function showOverlay(overlay: Parameters<typeof drawMeasurementOverlay>[1]) {
+      if (!overlayCanvas) return;
+      drawMeasurementOverlay(overlayCanvas, overlay);
+      if (overlayText) overlayText.textContent = overlay.explanation;
+      overlayFigure?.classList.remove('hidden');
+    }
+
     function renderResult(shapeId: string, source: 'camera' | 'quiz' | 'manual', detail?: FaceShapeResult) {
+      overlayFigure?.classList.add('hidden');
       modal!.querySelectorAll<HTMLElement>('[data-facetest-result-image]').forEach((el) => {
         el.classList.toggle('hidden', el.dataset.facetestResultImage !== shapeId);
       });

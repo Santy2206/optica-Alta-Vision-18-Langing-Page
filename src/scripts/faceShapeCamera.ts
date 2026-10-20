@@ -61,9 +61,25 @@ export const GUIDE = {
   noseX: 200,
   noseY: 174,
   noseTolerance: 22,
-  minFaceHeight: 150,
-  maxFaceHeight: 235,
+  // El ancho del rostro debe ocupar entre el 45% y el 55% del ancho de la guía (el óvalo
+  // dibujado mide 208/400 = 52%). Se estima con la distancia entre los ojos, que no
+  // depende del cabello ni de la barbilla.
+  minFaceWidthRatio: 0.45,
+  maxFaceWidthRatio: 0.55,
 };
+
+// Ancho de pómulos / distancia entre esquinas externas de los ojos (landmarks 33-263):
+// mediana 1.555 (rango p5-p95: 1.47-1.65) en ~5000 rostros.
+const CHEEK_WIDTH_PER_INTER_EYE = 1.555;
+
+// Control de movimiento: se captura solo con la cabeza quieta. El desplazamiento se mide
+// en píxeles de un video de referencia de 640 px de ancho, para que el umbral no dependa
+// de la resolución de la cámara.
+export const AUTO_CAPTURE_STILL_MS = 1000;
+const MAX_FRAME_SHIFT_PX = 3;
+const MAX_WINDOW_DRIFT_PX = 6;
+const MOTION_REFERENCE_WIDTH = 640;
+const MOTION_POINTS = [1, 10, 152, 234, 454, 33, 263, 61, 291, 172, 397, 54, 284] as const;
 
 type Landmark = { x: number; y: number; z: number };
 
@@ -187,7 +203,54 @@ export type AlignmentResult = {
   // Posición de la punta de la nariz en coordenadas del viewBox de la guía.
   nose?: { x: number; y: number };
   direction?: 'izquierda' | 'derecha' | 'arriba' | 'abajo';
+  /** Milisegundos seguidos sin movimiento dentro de la zona de alineación (0 si hay movimiento). */
+  stillMs?: number;
+  /** Desplazamiento medio de los landmarks respecto al cuadro anterior (px de referencia). */
+  shiftPx?: number;
 };
+
+type MotionSample = { time: number; points: { x: number; y: number }[] };
+let motionPrev: MotionSample | null = null;
+let motionWindowStart: MotionSample | null = null;
+let motionStillShifts = 0;
+
+export function resetMotionGate() {
+  motionPrev = null;
+  motionWindowStart = null;
+  motionStillShifts = 0;
+}
+
+const meanShift = (a: MotionSample, b: MotionSample) =>
+  a.points.reduce((sum, p, i) => sum + Math.hypot(p.x - b.points[i].x, p.y - b.points[i].y), 0) / a.points.length;
+
+// Velocidad de los landmarks entre cuadros consecutivos. Hacen falta 3 cuadros seguidos
+// (2 desplazamientos) por debajo de 3 px para empezar a contar la quietud; cualquier
+// salto mayor, o una deriva lenta acumulada, reinicia el conteo.
+function updateMotionGate(landmarks: Landmark[], vw: number, vh: number): { shiftPx: number; stillMs: number } {
+  const k = MOTION_REFERENCE_WIDTH / vw;
+  const sample: MotionSample = {
+    time: performance.now(),
+    points: MOTION_POINTS.map((i) => ({ x: landmarks[i].x * vw * k, y: landmarks[i].y * vh * k })),
+  };
+  const prev = motionPrev;
+  motionPrev = sample;
+  if (!prev) return { shiftPx: Infinity, stillMs: 0 };
+
+  const shiftPx = meanShift(prev, sample);
+  if (shiftPx > MAX_FRAME_SHIFT_PX) {
+    motionStillShifts = 0;
+    motionWindowStart = null;
+    return { shiftPx, stillMs: 0 };
+  }
+
+  motionStillShifts++;
+  motionWindowStart ??= prev;
+  if (meanShift(motionWindowStart, sample) > MAX_WINDOW_DRIFT_PX) {
+    motionStillShifts = 1;
+    motionWindowStart = prev;
+  }
+  return { shiftPx, stillMs: motionStillShifts >= 2 ? sample.time - motionWindowStart.time : 0 };
+}
 
 // Revisión en vivo del encuadre: compara la cara detectada con la guía
 // visual (círculo de la nariz + tamaño del óvalo) y con la pose de la cabeza.
@@ -203,7 +266,7 @@ export async function checkAlignment(video: HTMLVideoElement): Promise<Alignment
 
   const result = landmarker.detect(video);
   const landmarks: Landmark[] | undefined = result?.faceLandmarks?.[0];
-  if (!landmarks || landmarks.length === 0) return { issue: 'NO_FACE' };
+  if (!landmarks || landmarks.length === 0) return resetAndReturn({ issue: 'NO_FACE' });
 
   const scale = Math.max(cw / vw, ch / vh);
   const offsetX = (cw - vw * scale) / 2;
@@ -214,20 +277,29 @@ export async function checkAlignment(video: HTMLVideoElement): Promise<Alignment
   });
 
   const nose = toGuide(landmarks[POINTS.noseTip]);
-  const faceHeight = toGuide(landmarks[POINTS.chin]).y - toGuide(landmarks[POINTS.foreheadTop]).y;
+  const eyeR = toGuide(landmarks[33]);
+  const eyeL = toGuide(landmarks[263]);
+  const faceWidthRatio = (Math.hypot(eyeR.x - eyeL.x, eyeR.y - eyeL.y) * CHEEK_WIDTH_PER_INTER_EYE) / GUIDE.width;
 
-  if (faceHeight < GUIDE.minFaceHeight) return { issue: 'TOO_FAR', nose };
-  if (faceHeight > GUIDE.maxFaceHeight) return { issue: 'TOO_CLOSE', nose };
+  if (faceWidthRatio < GUIDE.minFaceWidthRatio) return resetAndReturn({ issue: 'TOO_FAR', nose });
+  if (faceWidthRatio > GUIDE.maxFaceWidthRatio) return resetAndReturn({ issue: 'TOO_CLOSE', nose });
 
   const dx = nose.x - GUIDE.noseX;
   const dy = nose.y - GUIDE.noseY;
   if (Math.hypot(dx, dy) > GUIDE.noseTolerance) {
     const direction =
       Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'izquierda' : 'derecha') : dy > 0 ? 'arriba' : 'abajo';
-    return { issue: 'OFF_CENTER', nose, direction };
+    return resetAndReturn({ issue: 'OFF_CENTER', nose, direction });
   }
 
-  return { issue: poseIssue(landmarks, headPose(result)), nose };
+  const issue = poseIssue(landmarks, headPose(result));
+  if (issue) return resetAndReturn({ issue, nose });
+  return { issue: null, nose, ...updateMotionGate(landmarks, vw, vh) };
+}
+
+function resetAndReturn(result: AlignmentResult): AlignmentResult {
+  resetMotionGate();
+  return result;
 }
 
 // Modelo (regresión logística sobre los landmarks ya normalizados), entrenado con
@@ -344,6 +416,8 @@ export type CapturedFrame = {
   /** 1 = nariz exactamente a la misma distancia de ambos ojos. */
   symmetry: number;
   poseOk: boolean;
+  /** Copia reducida del cuadro (para dibujar las medidas sobre la foto del resultado). */
+  image: HTMLCanvasElement;
 };
 
 // Simetría horizontal con las distancias nariz → ojos (esquina externa e interna): si la
@@ -357,6 +431,7 @@ function symmetryScore(landmarks: Landmark[], size: ImageSize): number {
 }
 
 const FRAME_COUNT = 8;
+const SNAPSHOT_WIDTH = 640;
 const FRAME_INTERVAL_MS = 90;
 
 // Toma varios cuadros seguidos (~0.7 s) y mide la simetría de cada uno. Devuelve los
@@ -382,11 +457,16 @@ export async function captureFrames(video: HTMLVideoElement): Promise<CapturedFr
     const result = landmarker.detect(canvas);
     const landmarks: Landmark[] | undefined = result?.faceLandmarks?.[0];
     if (landmarks && landmarks.length > 0) {
+      const image = document.createElement('canvas');
+      image.width = Math.min(SNAPSHOT_WIDTH, size.width);
+      image.height = Math.round((image.width * size.height) / size.width);
+      image.getContext('2d')?.drawImage(canvas, 0, 0, image.width, image.height);
       frames.push({
         landmarks,
         size,
         symmetry: symmetryScore(landmarks, size),
         poseOk: !poseIssue(landmarks, headPose(result)),
+        image,
       });
     }
     if (i < FRAME_COUNT - 1) await new Promise((resolve) => setTimeout(resolve, FRAME_INTERVAL_MS));
@@ -399,7 +479,79 @@ const SUMMARY = {
   diamond: 'Tus pómulos son claramente lo más ancho de tu rostro, con frente y mandíbula más angostas.',
 };
 
-export function detectFaceShape(frames: CapturedFrame[]): FaceShapeResult {
+export type FaceOverlay = {
+  image: HTMLCanvasElement;
+  /** Landmarks normalizados del cuadro mostrado. */
+  landmarks: Landmark[];
+  ratios: FaceRatios;
+  /** Texto en lenguaje natural que explica las razones calculadas. */
+  explanation: string;
+};
+
+export type CameraFaceShapeResult = FaceShapeResult & { overlay: FaceOverlay };
+
+// Líneas de medida y su color. Frente y mandíbula son el promedio de 2 pares de puntos
+// (igual que extractFaceRatios), por eso se dibujan los dos.
+export const MEASUREMENT_LINES = [
+  { id: 'length', label: 'Largo', color: '#38bdf8', pairs: [[10, 152]] },
+  { id: 'forehead', label: 'Frente', color: '#fbbf24', pairs: [[54, 284], [21, 251]] },
+  { id: 'cheek', label: 'Pómulos', color: '#ff1493', pairs: [[234, 454]] },
+  { id: 'jaw', label: 'Mandíbula', color: '#00b4b0', pairs: [[58, 288], [172, 397]] },
+] as const;
+
+/** Dibuja la foto capturada y las 4 medidas sobre ella. */
+export function drawMeasurementOverlay(target: HTMLCanvasElement, overlay: FaceOverlay) {
+  const { image, landmarks } = overlay;
+  target.width = image.width;
+  target.height = image.height;
+  const ctx = target.getContext('2d');
+  if (!ctx) return;
+  ctx.drawImage(image, 0, 0);
+  const lineWidth = Math.max(2, image.width / 160);
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  for (const { color, pairs } of MEASUREMENT_LINES) {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    for (const [a, b] of pairs) {
+      const pa = landmarks[a];
+      const pb = landmarks[b];
+      ctx.beginPath();
+      ctx.moveTo(pa.x * image.width, pa.y * image.height);
+      ctx.lineTo(pb.x * image.width, pb.y * image.height);
+      ctx.stroke();
+      for (const p of [pa, pb]) {
+        ctx.beginPath();
+        ctx.arc(p.x * image.width, p.y * image.height, lineWidth * 1.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+// Palabras para describir cada razón; los cortes son los terciles de ~6000 rostros, así
+// que "corto/medio/alargado" es relativo a un rostro típico.
+function describeRatios(ratios: FaceRatios, shapeLabel: string): string {
+  const { lengthToWidthRatio: len, foreheadToCheekboneRatio: fore, jawToCheekboneRatio: jaw, jawAngle } = ratios;
+  const lengthWord = len < 1.164 ? 'un rostro más bien corto' : len <= 1.198 ? 'una proporción media' : 'un rostro más alargado';
+  const fj = fore / jaw;
+  const foreJawWord =
+    fj > 1.08
+      ? 'la frente es claramente más ancha que la mandíbula'
+      : fj >= 1.03
+        ? 'la frente es un poco más ancha que la mandíbula'
+        : 'frente y mandíbula tienen casi el mismo ancho';
+  const angleWord = jawAngle < 146 ? 'marcada' : jawAngle <= 150 ? 'intermedia' : 'suave';
+  const pct = (n: number) => Math.round(n * 100);
+  return (
+    `Largo del rostro (línea azul): ${len.toFixed(2)} veces el ancho de tus pómulos, ${lengthWord}. ` +
+    `Frente (amarillo): ${pct(fore)}% del ancho de tus pómulos (rosa). Mandíbula (turquesa): ${pct(jaw)}%; ${foreJawWord}. ` +
+    `Ángulo de la mandíbula: ${Math.round(jawAngle)}°, una línea ${angleWord}. ` +
+    `Con estas proporciones, tu forma más cercana es ${shapeLabel.toLowerCase()}.`
+  );
+}
+
+export function detectFaceShape(frames: CapturedFrame[]): CameraFaceShapeResult {
   if (frames.length === 0) throw new FaceShapeCameraError('NO_FACE', 'No detectamos un rostro en la foto.');
   const best = frames.find((f) => f.poseOk);
   if (!best) throw new FaceShapeCameraError('BAD_ANGLE', 'El rostro no está mirando directo a la cámara.');
@@ -417,7 +569,7 @@ export function detectFaceShape(frames: CapturedFrame[]): FaceShapeResult {
   console.debug('[faceShape]', { shape, diamond, symmetry: +best.symmetry.toFixed(3), scores, ratios });
 
   const round1 = (n: number) => Math.round(n * 10) / 10;
-  return buildFaceShapeResult(shape, {
+  const base = buildFaceShapeResult(shape, {
     subtype: '',
     confidence,
     summary: diamond ? SUMMARY.diamond : SUMMARY.camera,
@@ -428,4 +580,13 @@ export function detectFaceShape(frames: CapturedFrame[]): FaceShapeResult {
       cheekToJaw: round1(1 / ratios.jawToCheekboneRatio),
     },
   });
+  return {
+    ...base,
+    overlay: {
+      image: best.image,
+      landmarks: best.landmarks,
+      ratios,
+      explanation: describeRatios(ratios, base.displayLabel),
+    },
+  };
 }
