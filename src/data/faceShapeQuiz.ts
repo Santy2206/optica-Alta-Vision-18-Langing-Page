@@ -57,16 +57,16 @@ export const faceShapeInfo: Record<FaceShapeId, { label: string; image: string; 
       'Mandíbula marcada y frente ancha, con líneas rectas. Las monturas redondeadas suavizan tus rasgos.',
   },
   rectangular: {
-    label: 'Rectangular / alargado',
+    label: 'Rectangular',
     image: '/images/rostros/rectangular.svg',
     description:
-      'Rostro claramente más largo que ancho, con frente, pómulos y mandíbula de ancho parecido. Las monturas altas y anchas acortan visualmente tu rostro.',
+      'Rostro claramente más largo que ancho (también llamado oblongo o alargado), con frente, pómulos y mandíbula de ancho parecido. Las monturas altas y anchas acortan visualmente tu rostro.',
   },
   corazon: {
-    label: 'Triángulo invertido / corazón',
+    label: 'Triángulo invertido',
     image: '/images/rostros/corazon.svg',
     description:
-      'Frente ancha y mentón angosto. Las monturas más anchas en la parte baja equilibran tu rostro.',
+      'Frente ancha y mentón angosto (también llamado corazón). Las monturas más anchas en la parte baja equilibran tu rostro.',
   },
   triangular: {
     label: 'Triangular',

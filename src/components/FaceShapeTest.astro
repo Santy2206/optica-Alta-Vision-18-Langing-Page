@@ -570,9 +570,18 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
           byGenero.map(({ value: generoValue, matches }) => (
           <div class="hidden" data-facetest-result-grid={shapeId} data-facetest-genero-grid={generoValue}>
             {matches.length > 0 ? (
+              <>
               <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {matches.map((item) => (
-                  <article class="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                {matches.map((item, itemIdx) => (
+                  <article
+                    class:list={[
+                      'flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm',
+                      itemIdx >= 6 && 'hidden',
+                      item.overlayImage && 'cursor-pointer transition-shadow hover:shadow-md',
+                    ]}
+                    data-vermas-item={itemIdx >= 6 ? '' : undefined}
+                    data-tryon-card={item.overlayImage ? '' : undefined}
+                  >
                     <div class="flex aspect-[4/3] items-center justify-center bg-aguamarina/10 p-5">
                       <img src={item.image} alt={item.imageAlt} loading="lazy" class="max-h-full max-w-full object-contain" />
                     </div>
@@ -609,6 +618,20 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
                   </article>
                 ))}
               </div>
+              {matches.length > 6 && (
+                <div class="mt-4 text-center">
+                  <button
+                    type="button"
+                    data-facetest-vermas
+                    data-count={matches.length}
+                    aria-expanded="false"
+                    class="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-aguamarina hover:text-aguamarina"
+                  >
+                    Ver las {matches.length} monturas
+                  </button>
+                </div>
+              )}
+              </>
             ) : (
               <p class="text-sm text-slate-500">
                 Escríbenos y te recomendamos las monturas que mejor le van a tu forma de rostro.
@@ -1060,6 +1083,19 @@ const faceShapeResults = faceShapeIds.map((shapeId, faceIndex) => {
         applyGridVisibility();
       }),
     );
+
+    // "Ver las N monturas": despliega el resto de la lista dentro de su propia
+    // grilla (cada combinación rostro+género tiene la suya).
+    modal.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-facetest-vermas]');
+      const grid = btn?.closest<HTMLElement>('[data-facetest-result-grid]');
+      if (!btn || !grid) return;
+      const items = grid.querySelectorAll<HTMLElement>('[data-vermas-item]');
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      items.forEach((el) => el.classList.toggle('hidden', expanded));
+      btn.setAttribute('aria-expanded', String(!expanded));
+      btn.textContent = expanded ? `Ver las ${btn.dataset.count ?? ''} monturas` : 'Ver menos';
+    });
 
     function renderResult(shapeId: string, source: 'camera' | 'quiz' | 'manual', detail?: FaceShapeResult) {
       overlayFigure?.classList.add('hidden');

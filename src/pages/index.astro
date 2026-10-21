@@ -353,7 +353,12 @@ const localBusiness = {
             <div class="stage__shapes">
               {
                 steps.map((s, i) => (
-                  <h2 class="stage__shape" data-step={i} data-hide-inactive aria-hidden={i === 0 ? undefined : 'true'}>
+                  <h2
+                    class:list={['stage__shape', s.shape.length >= 9 && 'stage__shape--medio']}
+                    data-step={i}
+                    data-hide-inactive
+                    aria-hidden={i === 0 ? undefined : 'true'}
+                  >
                     {s.shape}
                   </h2>
                 ))
@@ -1463,15 +1468,24 @@ const localBusiness = {
   .stage--lentes .stage__shape {
     font-size: clamp(2.2rem, 6vw, 4.2rem);
   }
-  /* Nombres largos de rostro ("Triángulo invertido / corazón"): menor tamaño y a dos líneas
-     dentro de la columna de texto, para que no pasen por debajo de la ilustración. */
+  /* Nombres largos de rostro ("Triángulo invertido"): a dos líneas dentro de la columna
+     de texto, casi al tamaño de los demás, para que no pasen por debajo de la ilustración. */
+  .stage--rostro .stage__shapes {
+    height: clamp(4.6rem, 12vw, 9rem);
+  }
   .stage__shape--largo {
     width: 100%;
-    font-size: clamp(2rem, 3.6vw, 2.7rem);
-    line-height: 1.05;
+    font-size: clamp(2.4rem, 5.8vw, 4.4rem);
+    line-height: 1.02;
     letter-spacing: -0.03em;
     white-space: normal;
     text-wrap: balance;
+  }
+  /* Nombres de montura de 9+ letras ("Clubmaster", "Rectangular"): un poco más
+     pequeños en una sola línea para no invadir la foto de la montura. */
+  .stage__shape--medio {
+    font-size: clamp(2.4rem, 6.4vw, 5.4rem);
+    white-space: nowrap;
   }
   @media (max-width: 899px) {
     .stage__shapes {
@@ -1485,10 +1499,10 @@ const localBusiness = {
       font-size: clamp(2rem, 9.5vw, 2.8rem);
     }
     .stage--rostro .stage__shapes {
-      height: clamp(3.6rem, 16vw, 4.8rem);
+      height: clamp(4.6rem, 20vw, 5.6rem);
     }
     .stage__shape--largo {
-      font-size: clamp(1.7rem, 7.4vw, 2.2rem);
+      font-size: clamp(1.9rem, 8.6vw, 2.6rem);
     }
     .stage__desc {
       font-size: 0.92rem;

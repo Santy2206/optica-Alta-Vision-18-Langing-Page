@@ -148,8 +148,12 @@ const formas = [
               return (
                 <article
                   id={item.id}
-                  class="fl-card fl-producto flex flex-col overflow-hidden scroll-mt-24"
+                  class:list={[
+                    'fl-card fl-producto flex flex-col overflow-hidden scroll-mt-24',
+                    overlayImage && 'cursor-pointer',
+                  ]}
                   data-catalog-item
+                  data-tryon-card={overlayImage ? '' : undefined}
                   data-category={item.data.category}
                   data-genero={item.data.genero ?? 'unisex'}
                   data-rostro={rostrosFavorecidos.join(' ')}

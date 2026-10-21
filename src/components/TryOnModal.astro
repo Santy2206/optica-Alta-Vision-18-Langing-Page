@@ -313,6 +313,14 @@ import site from '../utils/site';
       return;
     }
 
+    // Clic en la tarjeta completa (no en un botón/enlace interno): abre el probador
+    // con la montura de esa tarjeta, igual que el botón "Probar con cámara".
+    const card = target?.closest<HTMLElement>('[data-tryon-card]');
+    if (card && !target?.closest('a, button')) {
+      card.querySelector<HTMLElement>('[data-tryon-open]')?.click();
+      return;
+    }
+
     // Elegir un color de marco en la tarjeta deja listo "Probar con cámara"
     // con ese marco (si tiene foto con fondo recortado disponible).
     const swatch = target?.closest<HTMLElement>('[data-swatch]');
