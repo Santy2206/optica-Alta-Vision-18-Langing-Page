@@ -1,5 +1,9 @@
 {
-  "telefono": "573203024272",
+  "googleReviews": {
+    "rating": 4.9,
+    "total": 188,
+    "url": "https://www.google.com/maps?cid=11742087252462091046"
+  },
   "horario": {
     "dias": [
       "Monday",
@@ -9,47 +13,34 @@
       "Friday",
       "Saturday"
     ],
-    "abre": "11:00",
+    "abre": "10:00",
     "cierra": "20:00"
   },
   "barrio": "Fontibón",
-  "direccion": "Cl. 18 #103A-40, Fontibón Centro, Bogotá",
-  "direccionPostal": {
-    "calle": "Cl. 18 #103A-40",
-    "localidad": "Bogotá"
-  },
-  "geo": {
-    "lat": 4.6753752,
-    "lng": -74.1458289
-  },
-  "redesSociales": {
-    "instagram": "https://www.instagram.com/opticaaltavision18",
-    "facebook": "https://www.facebook.com/Opticaaltavisionp"
-  },
   "googleMapsEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.5422422426323!2d-74.1458289!3d4.6753751999999995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f9dc82d890c75%3A0xa2f44624d4a53b26!2sOPTICA%20ALTA%20VISI%C3%93N%2018!5e0!3m2!1sen!2sco!4v1790474361093!5m2!1sen!2sco",
   "examen": {
     "precio": null,
     "gratisConCompra": false
   },
-  "precioDesdeMontura": null,
-  "tiempoEntrega": "3 a 5 días hábiles",
-  "aniosExperiencia": null,
+  "heroImagen": "",
   "clientesAtendidos": null,
-  "googleReviews": {
-    "rating": 4.9,
-    "total": 188,
-    "url": "https://www.google.com/maps?cid=11742087252462091046"
-  },
+  "precioDesdeMontura": null,
   "optometra": {
     "nombre": "",
     "cargo": "",
     "tarjetaProfesional": "",
     "foto": ""
   },
-  "heroImagen": "",
-  "hero": {
-    "titulo": "Ve mejor en {tiempoEntrega}{barrio}",
-    "subtitulo": "Optometría profesional, monturas formuladas, de sol y lentes blandos{cuotas}."
+  "direccion": "Cl. 18 #103A-40, Fontibón Centro, Bogotá",
+  "geo": {
+    "lat": 4.6753752,
+    "lng": -74.1458289
+  },
+  "aniosExperiencia": null,
+  "telefono": "573203024272",
+  "faq": {
+    "garantiaFormula": "",
+    "ninos": ""
   },
   "pagos": {
     "cuotas": true,
@@ -59,13 +50,22 @@
     "addi": true,
     "sistecredito": true
   },
+  "redesSociales": {
+    "instagram": "https://www.instagram.com/opticaaltavision18",
+    "facebook": "https://www.facebook.com/Opticaaltavisionp"
+  },
+  "hero": {
+    "titulo": "Ve mejor en {tiempoEntrega}{barrio}",
+    "subtitulo": "Optometría profesional, monturas formuladas, de sol y lentes blandos{cuotas}."
+  },
   "probador": {
     "ctaTexto": "Me gustan, ¿las tienen disponibles?"
   },
-  "faq": {
-    "garantiaFormula": "",
-    "ninos": ""
+  "direccionPostal": {
+    "calle": "Cl. 18 #103A-40",
+    "localidad": "Bogotá"
   },
+  "tiempoEntrega": "3 a 5 días hábiles",
   "nosotros": {
     "historia": "En Alta Visión 18 creemos que ver bien es disfrutar mejor cada día. Por eso ofrecemos exámenes visuales profesionales y una selección de monturas para toda la familia, con atención cercana.\n\nNuestro compromiso es acompañarte en todo el proceso: desde la fórmula hasta la entrega de tus gafas, cuidando la calidad y el servicio en cada paso.",
     "cita": "Ver bien no debería ser complicado — por eso estamos aquí, cerca de ti.",
